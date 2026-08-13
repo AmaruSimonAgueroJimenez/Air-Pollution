@@ -1,0 +1,17 @@
+# Descarga de datos — pipeline de contaminantes
+# pip install -r requirements.txt   (idealmente en un entorno conda/micromamba)
+requests>=2.31
+pandas>=2.0
+numpy>=1.24
+# NASA Earthdata (TROPOMI, OMI, MOPITT, MERRA-2, MODIS)
+earthaccess>=0.9
+# Copernicus CDS/ADS (ERA5, CAMS EAC4)
+cdsapi>=0.7
+# Reanálisis / OPeNDAP / netCDF (GEOS-CF, CAMS, MERRA-2)
+xarray>=2023.1
+netCDF4>=1.6
+pydap>=3.4
+# Raster (ACAG PM2.5, AOD)
+rioxarray>=0.15
+# AWS S3 público (ACAG SatPM2.5, bucket satpmdata)
+boto3>=1.28

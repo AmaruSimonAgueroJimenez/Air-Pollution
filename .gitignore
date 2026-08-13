@@ -1,0 +1,74 @@
+# History files
+.Rhistory
+.Rapp.history
+.RData
+.RDataTmp
+.Ruserdata
+
+# RStudio / R build
+.Rproj.user/
+/*.tar.gz
+/*.Rcheck/
+*-Ex.R
+
+# knitr / R Markdown / Quarto
+*_cache/
+/cache/
+*.utf8.md
+*.knit.md
+vignettes/*.html
+vignettes/*.pdf
+
+# Credenciales / secretos locales — NUNCA versionar
+.Renviron
+.env
+*.env
+!.env.example
+.httr-oauth
+
+# ============================================================
+# Datos pesados (NO aptos para GitHub, >100 MB rompen el push).
+# Se REGENERAN con scripts_pipeline/ y scripts_superficie/, o se
+# comparten aparte (Zenodo/Drive). Se CONSERVAN resultados chicos + figuras.
+# ============================================================
+# data/* y no data/ : con la barra git ni siquiera entra al directorio y las
+# excepciones de abajo no se aplicarían.
+data/*
+papers/
+tesis/
+
+# ... salvo los INSUMOS chicos de configuración, sin los cuales el pipeline no
+# corre (no son datos descargados, son entradas del repo).
+!data/sinca/
+data/sinca/*
+!data/sinca/config_sinca_estaciones.json
+!data/sinca/estaciones.csv
+
+# Bitácoras de ejecución y basura de trabajo (se regeneran solas)
+logs/
+_to_delete/
+
+# Salidas pesadas (todos los contaminantes: PM2.5/PM10/NO2/O3/SO2/CO)
+output_files/*.parquet
+output_files/*_horario*.csv
+output_files/*_comuna_dia*.csv
+output_files/_prev*/
+# (se CONSERVAN: output_files/figures/*.png y los CSV chicos de resultados
+#  rr_surface_*, comparacion_*, validacion_*, importancias_* — todos <10 MB)
+
+# Renders legacy y artefactos de build (regenerables desde su .qmd)
+others_scripts/*.html
+others_scripts/*_files/
+docs/*_files/
+*.quarto_ipynb
+**/*.quarto_ipynb
+*.quarto_ipynb_*
+**/*.quarto_ipynb_*
+
+# Cachés y basura del SO
+__pycache__/
+**/__pycache__/
+.DS_Store
+**/.DS_Store
+.ipynb_checkpoints/
+**/.ipynb_checkpoints/

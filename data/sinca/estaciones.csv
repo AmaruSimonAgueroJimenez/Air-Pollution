@@ -1,0 +1,110 @@
+region_sinca,estacion,nombre,comuna,lat,lon,n_anios_con_datos
+RXV,F01,Arica,Arica,-18.483527,-70.290549,14
+RI,117,Alto Hospicio,Alto Hospicio,-20.290499,-70.100224,11
+RII,237,Antofagasta,Antofagasta,-23.613552,-70.383327,14
+RII,233,Club Deportivo 23 de Marzo,Calama,-22.460124,-68.937804,7
+RII,235,Colegio Pedro Vergara Keller,Calama,-22.44218,-68.933011,7
+RII,236,Estación Centro,Calama,-22.461818,-68.928181,6
+RII,217,Hospital del Cobre,Calama,-22.454013,-68.910175,7
+RII,204,Sierra Gorda,Sierra Gorda,-22.890232,-69.318843,0
+RII,230,Bomberos,Tocopilla,-22.107845,-70.208757,0
+RII,251,Super Site,Tocopilla,-22.085846,-70.188361,0
+RII,231,Tres Marias,Tocopilla,-22.060235,-70.187362,0
+RII,222,Escuela E-10,Tocopilla,-22.085607,-70.188863,0
+RIII,333,Huasco Sivica,Huasco,-28.469975,-71.219658,13
+RIII,330,21 de Mayo,Huasco,-28.467939,-71.227212,0
+RIII,310,EME F,Huasco,-28.466352,-71.221583,1
+RIII,309,EME M,Huasco,-28.470313,-71.218837,0
+RIV,426,Coquimbo,Coquimbo,-29.970648,-71.335911,14
+RIV,425,La Serena,Coquimbo,-29.920396,-71.256011,14
+RIV,424,Cuncumen,Salamanca,-31.889271,-70.629332,7
+RV,560,Concón MMA,Concón,inf,inf,9
+RV,509,Concón,Concón,-32.924756,-71.515479,0
+RV,532,Los Andes,Los Andes,-32.846426,-70.586475,2
+RV,505,Puchuncaví,Puchuncaví,-32.718731,-71.407326,1
+RV,503,La Greda,Puchuncaví,-32.748276,-71.474214,5
+RV,504,Los Maitenes,Puchuncaví,-32.764345,-71.454509,5
+RV,548,Ventanas,Puchuncaví,-31.840542,-71.456405,4
+RV,513,Cuerpo de Bomberos,Quillota,-32.885508,-71.247424,2
+RV,515,La Palma,Quillota,-30.391714,-44.052555,0
+RV,514,San Pedro,Quillota,-32.937288,-71.274291,2
+RV,549,Quilpue,Quilpué,-33.047441,-71.4345,4
+RV,551,Quilpue Gimnasio,Quilpué,-33.047498,-71.438977,4
+RV,539,Centro Quintero,Quintero,-32.787721,-71.532226,0
+RV,547,Loncura,Quintero,-32.794914,-71.49642,0
+RV,540,Quintero,Quintero,56.574398,114.86628,1
+RV,550,Valparaiso,Valparaíso,-33.049537,-71.614235,14
+RV,529,Viña del Mar,Viña del Mar,-33.020335,-71.550097,19
+RM,D35,Cerrillos II,Cerrillos,-33.495781,-70.704209,5
+RM,D16,Cerrillos I,Cerrillos,-33.492884,-70.719329,9
+RM,D18,Cerro Navia,Cerro Navia,-33.43307,-70.732055,18
+RM,D17,El Bosque (Acreditada),El Bosque,-33.547016,-70.666163,18
+RM,D11,Independencia,Independencia,-33.422261,-70.651139,13
+RM,D12,La Florida (Acreditada),La Florida,-33.516667,-70.58816,23
+RM,D13,Las Condes (Acreditada),Las Condes,-33.376776,-70.523256,23
+RM,D15,Pudahuel (Acreditada),Pudahuel,-33.437785,-70.750144,23
+RM,D27,Puente Alto,Puente Alto,-33.591356,-70.594431,18
+RM,D30,Quilicura,Quilicura,-33.349631,-70.723846,11
+RM,D29,Quilicura I,Quilicura,-33.365857,-70.748219,8
+RM,D14,Parque O'Higgins,Santiago,-33.464177,-70.660702,23
+RM,D28,Talagante,Talagante,-33.673819,-70.952996,18
+RVI,609,Rancagua I,Rancagua,-34.162283,-70.713931,19
+RVI,615,Rancagua II,Rancagua,-34.143887,-70.737126,15
+RVI,611,Rengo,Rengo,-34.394527,-70.852987,11
+RVI,612,San Fernando,San Fernando,-34.579882,-70.989671,11
+RVII,714,Cauquenes Sivica,Cauquenes,-35.964507,-72.317015,6
+RVII,709,Curicó,Curicó,-34.974944,-71.233954,14
+RVII,706,El Boldo,Curicó,-34.972352,-71.230259,0
+RVII,713,Linares,Linares,-35.836969,-71.592874,12
+RVII,703,La Florida,Talca,-35.435223,-71.678119,14
+RVII,710,U.C. Maule,Talca,-35.435772,-71.619468,14
+RVII,711,Universidad de Talca,Talca,-35.406574,-71.633253,14
+RVIII,810,"INIA, Chillán",Chillán,-36.59484,-72.08931,14
+RVIII,873,Puren,Chillán,-36.616218,-72.09309,15
+RVIII,884,San Carlos,San Carlos,-36.526775,-72.069846,6
+RVIII,854,Punteras,Chiguayante,-36.923316,-73.036123,12
+RVIII,833,"Meteorológica, Chiguayante",Chiguayante,-36.913359,-67.035705,0
+RVIII,827,Kingston College,Concepción,-36.78465,-73.052062,10
+RVIII,831,Cerro Merquín,Coronel,-37.021191,-73.149561,12
+RVIII,878,Coronel Norte,Coronel,-37.009376,-67.149612,0
+RVIII,880,"Escuadron, ENEL",Coronel,-36.953702,-73.150792,2
+RVIII,881,"Escuadron, ENESA",Coronel,-36.933828,-73.152518,0
+RVIII,879,"Lagunillas, ENEL",Coronel,-36.984457,-73.153204,2
+RVIII,859,Lota rural,Coronel,-37.100196,-73.152187,2
+RVIII,860,Lota urbana,Coronel,-37.074182,-73.145147,2
+RVIII,832,Balneario Curanilahue,Curanilahue,-37.485123,-73.331608,11
+RVIII,805,Bocatoma,Hualpén,-36.803109,-73.12038,0
+RVIII,838,ENAP Price,Hualpén,-36.791363,-73.119109,0
+RVIII,804,JUNJI,Hualpén,-36.780744,-73.115615,0
+RVIII,841,Hualqui,Hualqui,-36.97749,-72.931943,10
+RVIII,826,Laja,Laja,-37.267791,-66.71089,0
+RVIII,875,21 de mayo,Los Angeles,-37.471191,-72.361471,15
+RVIII,874,Los Ángeles Oriente,Los Angeles,-37.463088,-72.324552,14
+RVIII,818,Club de Empleados,Nacimiento,-37.502013,-66.676393,0
+RVIII,870,Lautaro,Nacimiento,-37.509146,-72.656115,0
+RVIII,802,Consultorio - San Vicente,Talcahuano,-36.72369,-73.123695,11
+RVIII,803,Libertad,Talcahuano,-36.717419,-73.111355,0
+RVIII,807,Indura,Talcahuano,-36.769998,-73.113806,0
+RVIII,806,Inpesca,Talcahuano,-36.737292,-73.104382,0
+RVIII,837,Nueva Libertad,Talcahuano,-36.736197,-67.118855,0
+RVIII,830,Liceo Polivalente,Tomé,-36.601716,-72.958522,13
+RIX,902,Padre Las Casas II,Padre las Casas,-38.76473,-72.598792,15
+RIX,901,Las Encinas Temuco,Temuco,-38.748637,-72.618994,18
+RIX,905,Ñielol,Temuco,-38.72693,-72.579895,10
+RIX,904,Museo Ferroviario,Temuco,-38.725253,-72.571141,9
+RIX,906,Villarrica,Villarrica,-39.289509,-72.222433,3
+RXIV,E06,CESFAM Lago Ranco,Lago Ranco,-40.321518,-72.471943,1
+RXIV,E04,La Union,La Unión,-40.286595,-67.077206,9
+RXIV,E03,Valdivia,Valdivia,-39.831347,-73.22847,19
+RXIV,E08,Valdivia 2,Valdivia,-39.810515,-73.219473,9
+RX,A01,Osorno,Osorno,-40.584498,-73.118665,19
+RX,AA2,Universidad de Los Lagos,Osorno,-40.581777,-73.173044,3
+RX,A04,Entre Lagos,Osorno,-40.683984,-78.596447,1
+RX,A08,Alerce,Puerto Montt,-41.399151,-66.899563,10
+RX,A07,Mirasol,Puerto Montt,-41.479529,-72.968828,14
+RX,A09,Puerto Varas,Puerto Varas,-41.329893,-72.971119,7
+RXI,B05,Vialidad,Aysén,-45.404183,-72.687459,9
+RXI,B06,Cochrane,Cochrane,-47.254832,-72.57141,3
+RXI,B03,Coyhaique,Coyhaique,-45.579936,-72.061085,14
+RXI,B04,Coyhaique II,Coyhaique,-45.579046,-72.049967,14
+RXII,C05,Punta Arenas,Punta Arenas,-53.158348,-70.921507,14
