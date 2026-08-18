@@ -193,11 +193,13 @@ for ph in s.placeholders:
         r.font.name = F; r.font.size = Pt(13); r.font.color.rgb = INK2
 text(s, 0.67, 1.30, 8.5, 0.3, [( 'ACTIVIDAD FINAL DE GRADUACIÓN 1  ·  MDS3050  ·  VIDEO DE AVANCE N.º 1: DEFINICIÓN DEL PROBLEMA', {})],
      size=10.5, color=UCBLUE, bold=True)
-equipo = ['José Jesús Romero Fuenmayor', 'Roberto Ignacio Ávila Escobar', 'Amaru Simón Agüero Jiménez']
+equipo = ['José Jesús Romero Fuenmayor', 'Roberto Ignacio Ávila Escobar',
+          'Amaru Simón Agüero Jiménez', 'Esteban Adolfo González Rodríguez']
 for i, n in enumerate(equipo):
-    x = 0.67 + i * 2.92
-    box(s, x, 4.32, 2.78, 0.44, ICE, radius=0.18)
-    text(s, x + 0.12, 4.32, 2.6, 0.44, n, size=10, bold=True, color=DARK, anchor=MSO_ANCHOR.MIDDLE)
+    x = 0.67 + i * 2.20
+    box(s, x, 4.32, 2.06, 0.44, ICE, radius=0.18)
+    text(s, x + 0.08, 4.32, 1.90, 0.44, n, size=8.2, bold=True, color=DARK,
+         align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
 text(s, 0.67, 4.88, 8.5, 0.26, 'Equipo 2 (Team2)  ·  agosto de 2026', size=9.5, color=MUTED)
 
 # =====================================================================
@@ -438,7 +440,7 @@ box(s, 6.95, 1.02, 2.55, 3.32, WHITE, radius=0.06)
 s.shapes.add_picture(A('qr_repo.png'), Inches(7.17), Inches(1.24), Inches(2.11), Inches(2.11))
 text(s, 7.05, 3.42, 2.35, 0.8, 'Escanea para ver el repositorio, el pipeline y la documentación',
      size=8.5, color=DARK, align=PP_ALIGN.CENTER, leading=0.95)
-text(s, 0.55, 4.80, 8.9, 0.3, 'Equipo 2: José J. Romero · Roberto I. Ávila · Amaru S. Agüero          ¡Gracias!',
+text(s, 0.55, 4.80, 8.9, 0.3, 'Equipo 2: José J. Romero · Roberto I. Ávila · Amaru S. Agüero · Esteban A. González          ¡Gracias!',
      size=10, bold=False, color=LIGHTBLUE)
 
 prs.save('AFG1_Video1_Presentacion_UC.pptx')

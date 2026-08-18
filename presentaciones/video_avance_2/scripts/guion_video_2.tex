@@ -1,0 +1,71 @@
+\input{preambulo}
+
+\fancyhead[L]{\small\color{azul}\textbf{AFG 1 · Equipo 2}}
+\fancyhead[R]{\small\color{gris}Guion del video de avance N.º 2}
+\fancyfoot[L]{\small\color{gris}Estimación multi-contaminante de la calidad del aire en Chile}
+\fancyfoot[R]{\small\color{gris}Página \thepage\ de \pageref{LastPage}}
+
+\begin{document}
+
+\begin{center}
+{\color{azul}\LARGE\bfseries Guion del video de avance N.º 2}\\[0.15cm]
+{\large Revisión de literatura}\\[0.25cm]
+{\color{tinta2}Actividad Final de Graduación 1 · MDS3050 · Equipo 2 (Team2)}\\
+{\color{gris}\small José Jesús Romero Fuenmayor · Roberto Ignacio Ávila Escobar · Amaru Simón Agüero Jiménez · Esteban Adolfo González Rodríguez}\\[0.2cm]
+{\color{azul}\rule{\textwidth}{0.8pt}}
+\end{center}
+
+\begin{ficha}{Ficha del guion}
+\small
+\begin{tabular}{@{}L{4.2cm}L{11.6cm}@{}}
+\textbf{Material} & \texttt{AFG1\_Video2\_Presentacion\_UC.pptx} (9 diapositivas) \\
+\textbf{Duración objetivo} & 4:35 (máximo permitido: 5:00) \\
+\textbf{Quién graba} & Un integrante distinto del que grabó el video 1, para ir cumpliendo la regla de que cada estudiante participe en al menos uno de los videos del curso. \\
+\textbf{Estructura oficial} & Cubre los 5 pasos exigidos: 1 presentación, 2 objetivos de la semana, 3 cómo se abordaron y tareas realizadas, 4 desafíos, 5 tareas de la próxima semana. \\
+\end{tabular}
+\end{ficha}
+
+\begin{nota}
+\small \textbf{Cómo usar este guion.} Formato de un solo presentador. Si prefieren relevos, los cortes naturales son el inicio de la diapositiva 5 y el inicio de la diapositiva 8. Las cifras que se mencionan (R² 0.81; R² 0.80 a 0.84; 0.61 a 0.70) están citadas al pie en las diapositivas correspondientes, por si el tutor pregunta por la fuente.
+\end{nota}
+
+\section{Guion por diapositiva}
+
+\diapo{D1}{Portada}{0:00 a 0:20}
+\paso{1} Hola, mi nombre es \acot{nombre de quien graba}, integrante del Equipo 2 junto a \acot{nombrar a los otros tres}. Este es nuestro segundo video de avance. Nuestro proyecto busca estimar seis contaminantes del aire para todo Chile a nivel de comuna y hora, validando contra la red SINCA. Hoy toca contar qué dice la literatura.
+
+\diapo{D2}{Cómo hicimos la revisión}{0:20 a 0:55}
+\paso{2} El objetivo de esta semana fue hacer la revisión de literatura por contaminante, fijar líneas base de desempeño y armar el marco para la defensa de tema. \paso{3} Seguimos el método visto en la sesión sincrónica del curso: búsqueda por palabras clave en Google Scholar, Scopus y Web of Science, criterios de inclusión explícitos, citation chaining hacia atrás y hacia adelante desde los trabajos ancla, y síntesis en una matriz de contaminante por método. Estructuramos la revisión por tema y por metodología, y todas las referencias que citamos tienen identificador digital verificado.
+
+\diapo{D3}{Qué se sabe (1): PM$_{2.5}$}{0:55 a 1:35}
+Lo primero que muestra la literatura es que el material particulado fino es el contaminante mejor resuelto. Existen estimaciones globales mensuales con incertidumbre cuantificada, que son la base del producto que usamos. El salto metodológico fue combinar el satélite con un modelo químico y corregir contra estaciones mediante regresión geográficamente ponderada, con un R cuadrado de cero coma ochenta y uno en validación cruzada. Después llegaron los ensambles de aprendizaje automático, con Estados Unidos a un kilómetro y resolución diaria. Y para Chile hay estudios de composición y fuentes, como la leña en el sur, que nos dan el contexto local.
+
+\diapo{D4}{Qué se sabe (2): los gases}{1:35 a 2:15}
+Los gases van una década más atrás. Para dióxido de nitrógeno y ozono el camino está trazado: hay un modelo global de regresión de uso de suelo y productos diarios sin huecos para China construidos con inteligencia artificial interpretable. Pero dióxido de azufre y monóxido de carbono son los menos estudiados: el primer mapeo diario y sin huecos para China apareció recién en 2023. Un dato clave de ese trabajo es que, cuando se predice en estaciones que el modelo nunca vio, el desempeño cae a R cuadrado de cero coma seis a cero coma siete. Y el patrón geográfico es claro: casi toda esta literatura se concentra en China, Estados Unidos y Europa; Sudamérica no tiene un producto propio equivalente.
+
+\diapo{D5}{Cómo se ha hecho: metodologías}{2:15 a 2:50}
+En cuanto a métodos, la literatura se ordena en cuatro familias: la regresión de uso de suelo, la geoestadística con regresión geográficamente ponderada y kriging, el aprendizaje automático con boosting y ensambles, y los híbridos físico-estadísticos que combinan modelo químico, satélite y corrección con estaciones. La validación estándar del área es la cross-validation espacial dejando estaciones fuera. De ahí sale directamente nuestra elección: comparar GWR, gradient boosting y kriging bajo validación LOSO.
+
+\diapo{D6}{Qué no se sabe: brechas}{2:50 a 3:30}
+Las brechas que encontramos son cuatro. Primero, cobertura geográfica: para Chile y Sudamérica no existe un producto multi-gas continuo, público y validado. Segundo, dióxido de azufre y monóxido de carbono están poco modelados en todo el mundo. Tercero, las redes ralas: el desempeño cae lejos de las estaciones, y las macrozonas extremas de Chile son justo ese caso difícil. Y cuarto, la resolución temporal: predominan los productos anuales o mensuales. Nuestro posicionamiento sale directo de esas brechas: aplicar la receta madura al territorio chileno completo, seis contaminantes, comuna por hora y día, cinco macrozonas, con SINCA como única verdad-terreno y sin validación epidemiológica, según la recomendación docente.
+
+\diapo{D7}{Implicancias y líneas base}{3:30 a 4:00}
+Esta revisión también fija decisiones de diseño: los predictores que la literatura repite, la validación por estación con reporte por macrozona, y los tres motores a comparar. Y nos deja líneas base honestas: R cuadrado de cero coma ochenta y uno para el particulado global, y para gases diarios entre cero coma ochenta y cero coma ochenta y cuatro en validación cruzada, pero de cero coma sesenta y uno a cero coma setenta fuera de estación. Esa es la vara realista con la que vamos a evaluar nuestras superficies.
+
+\diapo{D8}{Semana 3}{4:00 a 4:30}
+\paso{3} En resumen, esta semana construimos la matriz de contaminante por método con referencias verificadas, actualizamos la bibliografía del repositorio y fijamos las líneas base. \paso{4} Los desafíos: la literatura de dióxido de azufre y monóxido de carbono es escasa, las métricas no siempre son comparables entre estudios, y hay que traducir resoluciones de uno a diez kilómetros a comunas muy heterogéneas. \paso{5} La próxima semana es la defensa de tema: presentación formal del problema, congelar el diseño metodológico e iniciar los paneles de modelamiento.
+
+\diapo{D9}{Cierre}{4:30 a 4:40}
+La revisión completa, con cada referencia y su identificador, está en el repositorio del proyecto; pueden escanear el código QR. Muchas gracias.
+
+\section{Notas de grabación}
+
+\begin{nota}
+\small
+Ensayen con cronómetro; si se pasan de 4:50, recorten primero en las diapositivas 3 y 6. Al leer las cifras, digan «R cuadrado» de corrido y sin apuro: son el corazón de este video. Suban el video a OneDrive con el correo UC y verifiquen el enlace en una ventana de incógnito antes de publicarlo en Coursera.
+\end{nota}
+
+\vspace{0.4cm}
+{\color{gris}\small Guion de apoyo elaborado para el Equipo 2 sobre la presentación \texttt{AFG1\_Video2\_Presentacion\_UC.pptx}. Estructura conforme al recurso del curso «How to: video de avance»: duración máxima 5 minutos y cinco pasos obligatorios.\par}
+
+\end{document}

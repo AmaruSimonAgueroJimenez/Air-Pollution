@@ -75,7 +75,23 @@ def buscar_y_descargar(short_name, bbox, desde, hasta, dest, *,
 
     limite = limite_bytes_s()
     if not limite:
-        files = earthaccess.download(results, str(dest))
+        try:
+            files = earthaccess.download(results, str(dest))
+        except Exception as e:  # noqa: BLE001
+            # Un gránulo que CMR indexa pero el DAAC ya no sirve (404) abortaba
+            # la colección entera; en ese caso se baja de a uno y se saltan los
+            # rotos, dejando constancia en el log.
+            log.warning("Descarga en lote falló (%s); paso a modo uno-a-uno",
+                        str(e)[:120])
+            files, rotos = [], []
+            for g in results:
+                try:
+                    files += [f for f in (earthaccess.download([g], str(dest)) or []) if f]
+                except Exception as e2:  # noqa: BLE001
+                    rotos.append(str(e2)[:90])
+            if rotos:
+                log.warning("%d gránulos no disponibles en el DAAC (se omiten): %s",
+                            len(rotos), rotos[0])
         log.info("Descargados %d archivos a %s", len(files), dest)
         return files
 

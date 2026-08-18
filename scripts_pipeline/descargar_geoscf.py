@@ -59,7 +59,22 @@ def resolver_vars(ds):
     return presentes
 
 
-@retry(n=3, base=5.0)
+DIAS_TROZO = 5   # trozos cortos: el servidor corta las transferencias largas
+REINTENTOS = 8
+
+
+@retry(n=REINTENTOS, base=5.0)
+def _bajar_trozo(ds, cols, desde, hasta):
+    """Un tramo corto de días. Reintenta agresivamente: el OPeNDAP del NCCS
+    corta con 'Response ended prematurely' de forma aleatoria."""
+    lon_min, lat_min, lon_max, lat_max = CHILE_BBOX
+    sub = (ds[list(cols.values())]
+           .sel(time=slice(str(desde.date()), str(hasta.date())))
+           .sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max)))
+    sub.load()          # fuerza la transferencia aquí, dentro del retry
+    return sub
+
+
 def bajar_mes(ds, cols, ini, fin, dry_run=False):
     """Baja un mes. Escribe a .tmp y solo renombra si el archivo trae datos.
 
@@ -68,7 +83,6 @@ def bajar_mes(ds, cols, ini, fin, dry_run=False):
     el nombre final y el reintento lo daba por bueno vía `destino.exists()`,
     dejando 72 archivos vacíos de 239 bytes que se reportaron como éxito.
     """
-    lon_min, lat_min, lon_max, lat_max = CHILE_BBOX
     destino = DEST / f"geoscf_{ini:%Y%m}.nc"
     if destino.exists():
         log.info("  ya existe %s", destino.name)
@@ -76,9 +90,13 @@ def bajar_mes(ds, cols, ini, fin, dry_run=False):
     if dry_run:
         log.info("  [dry-run] %s vars=%s", destino.name, list(cols))
         return
-    sub = (ds[list(cols.values())]
-           .sel(time=slice(str(ini.date()), str(fin.date())))
-           .sel(lat=slice(lat_min, lat_max), lon=slice(lon_min, lon_max)))
+    import xarray as xr
+    trozos, cursor = [], ini
+    while cursor <= fin:
+        hasta = min(cursor + pd.Timedelta(days=DIAS_TROZO - 1), fin)
+        trozos.append(_bajar_trozo(ds, cols, cursor, hasta))
+        cursor = hasta + pd.Timedelta(days=1)
+    sub = xr.concat(trozos, dim="time") if len(trozos) > 1 else trozos[0]
     ensure_dir(DEST)
     tmp = destino.with_suffix(".tmp")
     try:

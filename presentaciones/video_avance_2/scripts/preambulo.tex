@@ -1,0 +1,48 @@
+% Preámbulo común de los guiones (estilo de la casa AFG)
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noindentfirst]{babel}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[a4paper,margin=2cm,top=2.3cm,bottom=2.3cm]{geometry}
+\usepackage{xcolor}
+\definecolor{azul}{HTML}{184F95}
+\definecolor{azulclaro}{HTML}{EAF2FD}
+\definecolor{tinta}{HTML}{1A1A1A}
+\definecolor{tinta2}{HTML}{52514E}
+\definecolor{gris}{HTML}{898781}
+\definecolor{naranja}{HTML}{B24E1C}
+\definecolor{verde}{HTML}{0F7D57}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{titlesec}
+\usepackage{setspace}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\titleformat{\section}{\color{azul}\bfseries\large}{\thesection}{0.6em}{}
+\titlespacing*{\section}{0pt}{2.2ex plus 1ex minus .2ex}{1.2ex plus .2ex}
+
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+\newtcolorbox{ficha}[1]{colback=azulclaro,colframe=azul,boxrule=0.8pt,
+  arc=2mm,left=3mm,right=3mm,top=2mm,bottom=2mm,
+  title={\textbf{#1}},fonttitle=\color{white}\bfseries,colbacktitle=azul}
+\newtcolorbox{nota}{colback=white,colframe=gris,boxrule=0.6pt,
+  arc=2mm,left=3mm,right=3mm,top=2mm,bottom=2mm}
+
+% Bloque de diapositiva del guion
+\newcommand{\diapo}[3]{%
+\vspace{0.55em}
+\noindent\colorbox{azul}{\color{white}\bfseries\small\,#1\,}\;
+{\color{azul}\bfseries #2}\hfill{\color{gris}\small #3}\par
+\vspace{0.25em}\noindent{\color{azul}\rule{\textwidth}{0.5pt}}\par
+\vspace{0.35em}}
+\newcommand{\paso}[1]{\noindent\colorbox{naranja}{\color{white}\scriptsize\bfseries\,PASO #1\,}\;}
+\newcommand{\acot}[1]{{\color{gris}\small\itshape [#1]}}

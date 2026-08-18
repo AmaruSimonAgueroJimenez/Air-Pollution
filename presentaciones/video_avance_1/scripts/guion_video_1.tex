@@ -1,0 +1,71 @@
+\input{preambulo}
+
+\fancyhead[L]{\small\color{azul}\textbf{AFG 1 · Equipo 2}}
+\fancyhead[R]{\small\color{gris}Guion del video de avance N.º 1}
+\fancyfoot[L]{\small\color{gris}Estimación multi-contaminante de la calidad del aire en Chile}
+\fancyfoot[R]{\small\color{gris}Página \thepage\ de \pageref{LastPage}}
+
+\begin{document}
+
+\begin{center}
+{\color{azul}\LARGE\bfseries Guion del video de avance N.º 1}\\[0.15cm]
+{\large Definición del problema}\\[0.25cm]
+{\color{tinta2}Actividad Final de Graduación 1 · MDS3050 · Equipo 2 (Team2)}\\
+{\color{gris}\small José Jesús Romero Fuenmayor · Roberto Ignacio Ávila Escobar · Amaru Simón Agüero Jiménez · Esteban Adolfo González Rodríguez}\\[0.2cm]
+{\color{azul}\rule{\textwidth}{0.8pt}}
+\end{center}
+
+\begin{ficha}{Ficha del guion}
+\small
+\begin{tabular}{@{}L{4.2cm}L{11.6cm}@{}}
+\textbf{Material} & \texttt{AFG1\_Video1\_Presentacion\_UC.pptx} (9 diapositivas) \\
+\textbf{Duración objetivo} & 4:40 (máximo permitido: 5:00) \\
+\textbf{Quién graba} & Un integrante \acot{completar nombre en la diapositiva 1}. El curso exige que cada estudiante participe en al menos uno de los videos de avance; se evalúan las capacidades expositivas y de síntesis de quien graba. \\
+\textbf{Estructura oficial} & El guion cubre, en orden, los 5 pasos exigidos: 1 presentación, 2 objetivos de la semana, 3 cómo se abordaron y tareas realizadas, 4 desafíos, 5 tareas de la próxima semana. Cada paso está marcado donde se cumple. \\
+\end{tabular}
+\end{ficha}
+
+\begin{nota}
+\small \textbf{Cómo usar este guion.} Está escrito para un solo presentador, que es el formato que pide el curso. Si prefieren aparecer los cuatro, los cortes naturales de relevo son el inicio de la diapositiva 4 y el inicio de la diapositiva 8. Hablen a ritmo tranquilo, alrededor de 150 palabras por minuto; los tiempos de cada bloque ya lo consideran. Las indicaciones entre corchetes no se leen en voz alta.
+\end{nota}
+
+\section{Guion por diapositiva}
+
+\diapo{D1}{Portada}{0:00 a 0:25}
+\paso{1} Hola, mi nombre es \acot{nombre de quien graba} y este es el primer video de avance del Equipo 2, integrado por José Romero, Roberto Ávila, Esteban González y quien les habla \acot{ajustar según quién grabe}. Nuestro proyecto de Actividad Final de Graduación se llama «Estimación multi-contaminante de la calidad del aire en Chile»: queremos construir superficies de exposición para seis contaminantes, a nivel de comuna y hora, para todo el país, validadas contra la red de monitoreo SINCA.
+
+\diapo{D2}{¿Por qué importa?}{0:25 a 1:05}
+\paso{2} El objetivo de estas dos primeras semanas fue definir el problema: justificar su relevancia, delimitar los objetivos y dejar operativa la obtención de datos. Partamos por la relevancia. La contaminación del aire se asocia a cerca de ocho millones de muertes al año en el mundo según el estudio de carga global de enfermedad. En 2021 la OMS endureció sus guías de calidad del aire y hoy la norma anual chilena de material particulado fino cuadruplica el valor que la OMS considera seguro. En Chile el problema tiene dos caras bien documentadas: la leña residencial en el centro-sur y las fuentes vehiculares e industriales en Santiago y las zonas industriales.
+
+\diapo{D3}{El problema}{1:05 a 1:50}
+\paso{3} Ahora, el problema concreto que abordamos. La vigilancia de calidad del aire en Chile descansa en unas ciento nueve estaciones concentradas en centros urbanos, y para los gases, como dióxido de nitrógeno, ozono, dióxido de azufre y monóxido de carbono, la cobertura es aún menor que para el material particulado. No existe una superficie pública, continua y validada de estos contaminantes para todo el territorio. Nuestra propuesta es estimarla a resolución comuna por hora combinando satélites, reanálisis y predictores locales, con SINCA como única verdad-terreno. El alcance es acotado a propósito: estimar bien y validar contra las estaciones, sin validación epidemiológica, siguiendo la recomendación docente.
+
+\diapo{D4}{La evidencia dice que se puede}{1:50 a 2:25}
+Esto no parte de cero: hay precedentes internacionales sólidos. Existen estimaciones globales de material particulado fino con incertidumbre cuantificada, modelos globales de regresión de uso de suelo para dióxido de nitrógeno, y productos diarios sin huecos para toda China construidos con inteligencia artificial espaciotemporal. La brecha que abordamos es que para Chile no existe un producto multi-gas continuo, público y validado por estación.
+
+\diapo{D5}{Objetivo general y específicos}{2:25 a 3:05}
+Con ese contexto, nuestro objetivo general es generar y validar superficies de exposición de los seis contaminantes normados, a resolución comuna por hora y día, para todo Chile y agregadas por macrozona, mediante un pipeline reproducible. Los objetivos específicos siguen el ciclo completo: consolidar la descarga multi-fuente, construir los paneles de modelamiento, entrenar y comparar motores de estimación, producir las superficies con sus métricas por contaminante y macrozona, y publicar todo como repositorio abierto.
+
+\diapo{D6}{Flujograma de datos}{3:05 a 3:50}
+Este flujograma resume de dónde salen los datos y cómo se transforman. A la izquierda están las fuentes: satélites como TROPOMI, OMI, MOPITT y MODIS; reanálisis como CAMS, GEOS-CF y MERRA-2; predictores comunes como meteorología, uso de suelo y censo; y abajo, en naranjo, la red SINCA, que usamos solo como verdad-terreno. Al centro, el pipeline: descarga programática, recorte a Chile al vuelo, que reduce el volumen a cerca del cinco por ciento, agregación por comuna y hora, y el panel de modelamiento. Los motores que compararemos son regresión geográficamente ponderada, gradient boosting y kriging, con validación cruzada dejando una estación fuera. A la derecha, los productos: las superficies, la agregación por macrozona y las métricas de validación.
+
+\diapo{D7}{Fuentes por contaminante}{3:50 a 4:05}
+Esta tabla muestra la trazabilidad por contaminante: qué satélite y qué reanálisis respaldan cada uno, con coberturas que parten entre el año 2000 y 2018 según la fuente. Cada producto está citado al pie con su identificador digital.
+
+\diapo{D8}{Semanas 1 y 2}{4:05 a 4:40}
+\paso{3} En concreto, estas dos semanas dejamos el repositorio público con estructura reproducible, los descargadores con identificadores verificados, el recorte a Chile y la configuración de SINCA con sus ciento nueve estaciones. \paso{4} Los mayores desafíos fueron el volumen de datos, ya que TROPOMI sin recorte bordea los trece terabytes, la gestión de credenciales y cuotas, y la cobertura temporal heterogénea entre fuentes. \paso{5} La próxima semana haremos la revisión de literatura por contaminante, que es el tema del segundo video, definiremos métricas objetivo y líneas base por macrozona, y comenzaremos a preparar la defensa de tema de la semana cuatro.
+
+\diapo{D9}{Cierre}{4:40 a 4:50}
+Todo el proyecto vive en el repositorio abierto que ven en pantalla; pueden escanear el código QR para revisar el pipeline y la documentación. Muchas gracias.
+
+\section{Notas de grabación}
+
+\begin{nota}
+\small
+Antes de grabar, ensayen el guion completo al menos una vez con cronómetro; si se pasan de 4:50, recorten primero en las diapositivas 2 y 4. Graben con pantalla compartida en presentación completa y cámara de quien expone si el equipo lo prefiere. Revisen el audio en los primeros diez segundos. Suban el video a OneDrive con el correo UC y verifiquen que el enlace abra en una ventana de incógnito antes de publicarlo en Coursera.
+\end{nota}
+
+\vspace{0.4cm}
+{\color{gris}\small Guion de apoyo elaborado para el Equipo 2 sobre la presentación \texttt{AFG1\_Video1\_Presentacion\_UC.pptx}. Estructura conforme al recurso del curso «How to: video de avance»: duración máxima 5 minutos y cinco pasos obligatorios.\par}
+
+\end{document}
