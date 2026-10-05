@@ -1,0 +1,22 @@
+% El documento usa subíndices y símbolos Unicode en la prosa (PM₂.₅, NO₂, O₃, ≥, −, →). La fuente
+% por defecto de LaTeX no los tiene y saldrían como huecos: "PM ." en vez de "PM₂.₅". Cada uno se
+% mapea a su equivalente de LaTeX para que el PDF diga lo mismo que el HTML.
+\usepackage{newunicodechar}
+\newunicodechar{₂}{\textsubscript{2}}
+\newunicodechar{₃}{\textsubscript{3}}
+\newunicodechar{₅}{\textsubscript{5}}
+\newunicodechar{⁵}{\textsuperscript{5}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{√}{\ensuremath{\surd}}
+\newunicodechar{Σ}{\ensuremath{\Sigma}}
+\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{β}{\ensuremath{\beta}}
+\newunicodechar{γ}{\ensuremath{\gamma}}
+\newunicodechar{ν}{\ensuremath{\nu}}
+\newunicodechar{ρ}{\ensuremath{\rho}}
+\newunicodechar{ŷ}{\ensuremath{\hat{y}}}
+\newunicodechar{…}{\ldots}

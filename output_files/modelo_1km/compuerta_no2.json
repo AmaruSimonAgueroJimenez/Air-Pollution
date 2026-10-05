@@ -1,0 +1,20 @@
+{
+ "r2_loso_horario": {
+  "nuevo": 0.4874817831887196,
+  "definitivo": 0.4803365210189536
+ },
+ "franja_norte": {
+  "nuevo": {
+   "dias": 2,
+   "costa_menos_80km": 9.870880126953125,
+   "interior_mas_80km": 11.142536163330078,
+   "razon": 1.1288290426002245
+  },
+  "definitivo": {
+   "dias": 2,
+   "costa_menos_80km": 6.277393341064453,
+   "interior_mas_80km": 9.966404914855957,
+   "razon": 1.5876661495240891
+  }
+ }
+}

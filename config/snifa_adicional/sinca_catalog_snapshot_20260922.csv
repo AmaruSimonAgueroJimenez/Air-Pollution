@@ -1,0 +1,220 @@
+region,codigo,nombre,comuna,gases_objetivo,ficha
+XV,F01,Arica,Arica,,https://sinca.mma.gob.cl/index.php/estacion/index/id/232
+I,117,Alto Hospicio,Alto Hospicio,,https://sinca.mma.gob.cl/index.php/estacion/index/id/157
+II,237,Antofagasta,Antofagasta,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/259
+II,224,Oncológico,Antofagasta,,https://sinca.mma.gob.cl/index.php/estacion/index/id/154
+II,226,Playa Blanca,Antofagasta,,https://sinca.mma.gob.cl/index.php/estacion/index/id/70
+II,225,Rendic,Antofagasta,,https://sinca.mma.gob.cl/index.php/estacion/index/id/33
+II,213,Sur,Antofagasta,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/46
+II,228,Chiu Chiu,Calama,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/234
+II,233,Club Deportivo 23 de Marzo,Calama,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/207
+II,235,Colegio Pedro Vergara Keller,Calama,,https://sinca.mma.gob.cl/index.php/estacion/index/id/222
+II,236,Estación Centro,Calama,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/275
+II,217,Hospital del Cobre,Calama,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/124
+II,253,Nueva ChiuChiu,Calama,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/282
+II,234,Oasis,Calama,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/134
+II,227,Servicio Médico Legal,Calama,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/12
+II,219,Aukahuasi,Calama,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/108
+II,220,San José,Calama,"SO2,CO",https://sinca.mma.gob.cl/index.php/estacion/index/id/69
+II,218,Villa Caspana,Calama,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/3
+II,210,Hospital,María Elena,,https://sinca.mma.gob.cl/index.php/estacion/index/id/68
+II,211,Iglesia,María Elena,,https://sinca.mma.gob.cl/index.php/estacion/index/id/2
+II,209,Jardín Infantil Integra,Mejillones,NO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/1
+II,252,Juan Jose Latorre,Mejillones,NO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/279
+II,221,Compañía de Bomberos,Mejillones,"NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/4
+II,207,Ferrocarriles,Mejillones,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/66
+II,204,Sierra Gorda,Sierra Gorda,,https://sinca.mma.gob.cl/index.php/estacion/index/id/255
+II,216,Paposo,Taltal,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/71
+II,215,Punto de Máximo Impacto,Taltal,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/72
+II,230,Bomberos,Tocopilla,,https://sinca.mma.gob.cl/index.php/estacion/index/id/178
+II,201,Gobernación,Tocopilla,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/270
+II,251,Super Site,Tocopilla,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/172
+II,231,Tres Marias,Tocopilla,,https://sinca.mma.gob.cl/index.php/estacion/index/id/169
+II,222,Escuela E-10,Tocopilla,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/274
+II,205,Centro,Tocopilla,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/128
+II,203,Escuela E-12,Tocopilla,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/39
+II,202,Escuela Gabriela Mistral,Tocopilla,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/130
+II,206,Sur,Tocopilla,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/51
+III,334,Chañaral,Chañaral,,https://sinca.mma.gob.cl/index.php/estacion/index/id/305
+III,332,Copiapo Sivica,Copiapó,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/176
+III,311,Copiapó,Copiapó,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/223
+III,315,Los Volcanes,Copiapó,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/248
+III,314,Paipote,Copiapó,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/196
+III,313,San Fernando,Copiapó,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/139
+III,320,CAP,Diego de Almagro,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/45
+III,,Cine Inca,Diego de Almagro,,https://sinca.mma.gob.cl/index.php/estacion/index/id/38
+III,321,Doña Ines,Diego de Almagro,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/114
+III,,Intelec,Diego de Almagro,,https://sinca.mma.gob.cl/index.php/estacion/index/id/44
+III,306,SM6,Freirina,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/258
+III,307,SM7,Freirina,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/187
+III,308,SM8,Freirina,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/265
+III,333,Huasco Sivica,Huasco,,https://sinca.mma.gob.cl/index.php/estacion/index/id/219
+III,330,21 de Mayo,Huasco,,https://sinca.mma.gob.cl/index.php/estacion/index/id/201
+III,310,EME F,Huasco,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/205
+III,309,EME M,Huasco,"SO2,NO2",https://sinca.mma.gob.cl/index.php/estacion/index/id/175
+III,324,EME ME,Huasco,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/163
+III,329,Huasco II,Huasco,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/179
+III,301,SM1,Huasco,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/243
+III,302,SM2,Huasco,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/192
+III,303,SM3,Huasco,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/252
+III,304,SM4,Huasco,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/214
+III,305,SM5,Huasco,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/121
+III,312,Tierra Amarilla,Tierra Amarilla,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/224
+III,316,Pabellón,Tierra Amarilla,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/40
+IV,420,Andacollo,Andacollo,,https://sinca.mma.gob.cl/index.php/estacion/index/id/171
+IV,411,Chepiquilla,Andacollo,,https://sinca.mma.gob.cl/index.php/estacion/index/id/156
+IV,412,El Sauce,Andacollo,,https://sinca.mma.gob.cl/index.php/estacion/index/id/150
+IV,414,Hospital,Andacollo,,https://sinca.mma.gob.cl/index.php/estacion/index/id/268
+IV,415,Urmeneta - Plaza Centenario,Andacollo,,https://sinca.mma.gob.cl/index.php/estacion/index/id/148
+IV,426,Coquimbo,Coquimbo,,https://sinca.mma.gob.cl/index.php/estacion/index/id/194
+IV,425,La Serena,Coquimbo,,https://sinca.mma.gob.cl/index.php/estacion/index/id/95
+IV,407,Caimanes,Los Vilos,,https://sinca.mma.gob.cl/index.php/estacion/index/id/32
+IV,402,Chacay,Los Vilos,,https://sinca.mma.gob.cl/index.php/estacion/index/id/9
+IV,406,El Mauro,Los Vilos,,https://sinca.mma.gob.cl/index.php/estacion/index/id/15
+IV,408,Punta Chungo,Los Vilos,,https://sinca.mma.gob.cl/index.php/estacion/index/id/144
+IV,424,Cuncumen,Salamanca,,https://sinca.mma.gob.cl/index.php/estacion/index/id/257
+IV,405,Camisas,Salamanca,,https://sinca.mma.gob.cl/index.php/estacion/index/id/8
+IV,404,Coiron,Salamanca,,https://sinca.mma.gob.cl/index.php/estacion/index/id/137
+IV,401,Hotel Mina,Salamanca,,https://sinca.mma.gob.cl/index.php/estacion/index/id/16
+IV,409,Quelen Alto,Salamanca,,https://sinca.mma.gob.cl/index.php/estacion/index/id/17
+V,534,"La Cruz, Colbún",Calera,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/13
+V,517,La Calera,Calera,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/7
+V,518,Rural 1,Calera,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/145
+V,522,Catemu,Catemu,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/165
+V,,Chagres Meteorologia,Catemu,,https://sinca.mma.gob.cl/index.php/estacion/index/id/131
+V,523,Romeral,Catemu,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/253
+V,524,Santa Margarita,Catemu,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/132
+V,560,Concón MMA,Concón,,https://sinca.mma.gob.cl/index.php/estacion/index/id/202
+V,511,Colmo,Concón,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/177
+V,509,Concón,Concón,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/185
+V,535,Junta de Vecinos,Concón,"SO2,CO",https://sinca.mma.gob.cl/index.php/estacion/index/id/89
+V,512,Las Gaviotas,Concón,"SO2,CO",https://sinca.mma.gob.cl/index.php/estacion/index/id/193
+V,510,Concón sur,Concón,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/140
+V,519,"La Cruz, Melón",La Cruz,"SO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/14
+V,532,Los Andes,Los Andes,"NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/266
+V,521,Lo Campo,Panquehue,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/210
+V,501,Campiche,Puchuncaví,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/182
+V,505,Puchuncaví,Puchuncaví,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/200
+V,503,La Greda,Puchuncaví,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/278
+V,504,Los Maitenes,Puchuncaví,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/136
+V,548,Ventanas,Puchuncaví,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/188
+V,,Meteorológica Principal,Puchuncaví,,https://sinca.mma.gob.cl/index.php/estacion/index/id/109
+V,502,Terminal Concentrados,Puchuncaví,"NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/73
+V,513,Cuerpo de Bomberos,Quillota,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/141
+V,515,La Palma,Quillota,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/142
+V,514,San Pedro,Quillota,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/41
+V,533,Manzanar,Quillota,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/6
+V,,Quilpue,Quilpué,,https://sinca.mma.gob.cl/index.php/estacion/index/id/155
+V,551,Quilpue Gimnasio,Quilpué,,https://sinca.mma.gob.cl/index.php/estacion/index/id/297
+V,525,ARMAT,Quilpué,,https://sinca.mma.gob.cl/index.php/estacion/index/id/5
+V,539,Centro Quintero,Quintero,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/204
+V,547,Loncura,Quintero,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/208
+V,,Central Quintero,Quintero,,https://sinca.mma.gob.cl/index.php/estacion/index/id/129
+V,540,Quintero,Quintero,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/183
+V,506,Sur,Quintero,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/251
+V,507,Valle Alegre,Quintero,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/203
+V,550,Valparaiso,Valparaíso,,https://sinca.mma.gob.cl/index.php/estacion/index/id/174
+V,529,Viña del Mar,Viña del Mar,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/247
+M,D31,Cerrillos,Cerrillos,,https://sinca.mma.gob.cl/index.php/estacion/index/id/206
+M,D35,Cerrillos II,Cerrillos,,https://sinca.mma.gob.cl/index.php/estacion/index/id/290
+M,D16,Cerrillos I,Cerrillos,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/116
+M,D18,Cerro Navia,Cerro Navia,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/228
+M,D17,El Bosque (Acreditada),El Bosque,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/260
+M,D11,Independencia,Independencia,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/272
+M,D12,La Florida (Acreditada),La Florida,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/262
+M,D32,La Pintana,La Pintana,,https://sinca.mma.gob.cl/index.php/estacion/index/id/289
+M,D13,Las Condes (Acreditada),Las Condes,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/239
+M,D15,Pudahuel (Acreditada),Pudahuel,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/190
+M,D27,Puente Alto,Puente Alto,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/233
+M,D30,Quilicura,Quilicura,,https://sinca.mma.gob.cl/index.php/estacion/index/id/271
+M,D29,Quilicura I,Quilicura,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/149
+M,D14,Parque O'Higgins,Santiago,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/273
+M,D28,Talagante,Talagante,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/197
+VI,601,Codegua,Codegua,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/113
+VI,,Subestación Candelaria,Codegua,,https://sinca.mma.gob.cl/index.php/estacion/index/id/59
+VI,606,Cauquenes,Machalí,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/173
+VI,605,Cipreses,Machalí,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/246
+VI,604,Coya Población,Machalí,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/225
+VI,608,Sewell,Machalí,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/65
+VI,603,Casas de Peuco,Mostazal,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/58
+VI,602,San Francisco de Mostazal,Mostazal,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/112
+VI,609,Rancagua I,Rancagua,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/250
+VI,615,Rancagua II,Rancagua,,https://sinca.mma.gob.cl/index.php/estacion/index/id/220
+VI,611,Rengo,Rengo,O3,https://sinca.mma.gob.cl/index.php/estacion/index/id/212
+VI,613,MVC,Requinoa,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/152
+VI,614,Totihue,Requinoa,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/47
+VI,612,San Fernando,San Fernando,O3,https://sinca.mma.gob.cl/index.php/estacion/index/id/244
+VII,714,Cauquenes Sivica,Cauquenes,,https://sinca.mma.gob.cl/index.php/estacion/index/id/287
+VII,709,Curicó,Curicó,,https://sinca.mma.gob.cl/index.php/estacion/index/id/269
+VII,706,El Boldo,Curicó,,https://sinca.mma.gob.cl/index.php/estacion/index/id/53
+VII,713,Linares,Linares,,https://sinca.mma.gob.cl/index.php/estacion/index/id/181
+VII,703,La Florida,Talca,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/276
+VII,710,U.C. Maule,Talca,,https://sinca.mma.gob.cl/index.php/estacion/index/id/230
+VII,711,Universidad de Talca,Talca,,https://sinca.mma.gob.cl/index.php/estacion/index/id/217
+VII,704,"Teno, CEMENTOS BIO BIO",Teno,"SO2,NO2,CO",https://sinca.mma.gob.cl/index.php/estacion/index/id/31
+VII,705,"Teno, ENLASA",Teno,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/30
+XVI,810,"INIA, Chillán",Chillán,CO,https://sinca.mma.gob.cl/index.php/estacion/index/id/215
+XVI,873,Puren,Chillán,,https://sinca.mma.gob.cl/index.php/estacion/index/id/216
+XVI,871,Cayumanqui,Quillón,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/231
+XVI,850,Quillón,Quillón,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/254
+XVI,846,Nueva  Aldea,Ránquil,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/184
+XVI,884,San Carlos,San Carlos,,https://sinca.mma.gob.cl/index.php/estacion/index/id/288
+VIII,876,Colicheu,Cabrero,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/226
+VIII,854,Punteras,Chiguayante,"SO2,NO2",https://sinca.mma.gob.cl/index.php/estacion/index/id/235
+VIII,833,"Meteorológica, Chiguayante",Chiguayante,,https://sinca.mma.gob.cl/index.php/estacion/index/id/83
+VIII,827,Kingston College,Concepción,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/261
+VIII,831,Cerro Merquín,Coronel,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/227
+VIII,809,Calabozo,Coronel,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/118
+VIII,878,Coronel Norte,Coronel,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/280
+VIII,816,Coronel Sur,Coronel,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/221
+VIII,880,"Escuadron, ENEL",Coronel,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/286
+VIII,881,"Escuadron, ENESA",Coronel,,https://sinca.mma.gob.cl/index.php/estacion/index/id/283
+VIII,879,"Lagunillas, ENEL",Coronel,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/285
+VIII,859,Lota rural,Coronel,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/135
+VIII,860,Lota urbana,Coronel,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/170
+VIII,832,Balneario Curanilahue,Curanilahue,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/189
+VIII,805,Bocatoma,Hualpén,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/277
+VIII,838,ENAP Price,Hualpén,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/105
+VIII,804,JUNJI,Hualpén,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/43
+VIII,841,Hualqui,Hualqui,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/242
+VIII,826,Laja,Laja,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/119
+VIII,875,21 de mayo,Los Angeles,,https://sinca.mma.gob.cl/index.php/estacion/index/id/236
+VIII,874,Los Ángeles Oriente,Los Angeles,,https://sinca.mma.gob.cl/index.php/estacion/index/id/211
+VIII,836,"CESFAM, Los Ángeles",Los Angeles,,https://sinca.mma.gob.cl/index.php/estacion/index/id/67
+VIII,818,Club de Empleados,Nacimiento,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/245
+VIII,852,Entre Ríos,Nacimiento,,https://sinca.mma.gob.cl/index.php/estacion/index/id/76
+VIII,870,Lautaro,Nacimiento,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/213
+VIII,819,MASISA Mapal,San Pedro de la Paz,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/27
+VIII,802,Consultorio - San Vicente,Talcahuano,"SO2,NO2",https://sinca.mma.gob.cl/index.php/estacion/index/id/241
+VIII,803,Libertad,Talcahuano,,https://sinca.mma.gob.cl/index.php/estacion/index/id/127
+VIII,801,"San Vicente, Bomberos",Talcahuano,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/91
+VIII,807,Indura,Talcahuano,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/104
+VIII,806,Inpesca,Talcahuano,SO2,https://sinca.mma.gob.cl/index.php/estacion/index/id/209
+VIII,837,Nueva Libertad,Talcahuano,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/240
+VIII,830,Liceo Polivalente,Tomé,"SO2,NO2,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/195
+IX,902,Padre Las Casas II,Padre las Casas,"NO2,CO",https://sinca.mma.gob.cl/index.php/estacion/index/id/263
+IX,903,Padre Las Casas,Padre las Casas,,https://sinca.mma.gob.cl/index.php/estacion/index/id/18
+IX,901,Las Encinas Temuco,Temuco,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/186
+IX,905,Ñielol,Temuco,,https://sinca.mma.gob.cl/index.php/estacion/index/id/237
+IX,904,Museo Ferroviario,Temuco,,https://sinca.mma.gob.cl/index.php/estacion/index/id/110
+IX,906,Villarrica,Villarrica,,https://sinca.mma.gob.cl/index.php/estacion/index/id/304
+XIV,E06,CESFAM Lago Ranco,Lago Ranco,"SO2,NO2,CO",https://sinca.mma.gob.cl/index.php/estacion/index/id/115
+XIV,E04,La Union,La Unión,,https://sinca.mma.gob.cl/index.php/estacion/index/id/180
+XIV,E01,Consultorio Máfil,Máfil,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/126
+XIV,E05,Fundo La Ribera,Máfil,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/49
+XIV,E02,Vivero Los Castaños,Máfil,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/94
+XIV,E03,Valdivia,Valdivia,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/267
+XIV,E08,Valdivia 2,Valdivia,,https://sinca.mma.gob.cl/index.php/estacion/index/id/218
+X,A01,Osorno,Osorno,,https://sinca.mma.gob.cl/index.php/estacion/index/id/229
+X,AA2,Universidad de Los Lagos,Osorno,,https://sinca.mma.gob.cl/index.php/estacion/index/id/298
+X,A04,Entre Lagos,Osorno,"SO2,NO2,CO",https://sinca.mma.gob.cl/index.php/estacion/index/id/111
+X,A08,Alerce,Puerto Montt,,https://sinca.mma.gob.cl/index.php/estacion/index/id/198
+X,A07,Mirasol,Puerto Montt,,https://sinca.mma.gob.cl/index.php/estacion/index/id/54
+X,A02,Trapén Norte,Puerto Montt,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/74
+X,A03,Trapén Sur,Puerto Montt,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/93
+X,A09,Puerto Varas,Puerto Varas,,https://sinca.mma.gob.cl/index.php/estacion/index/id/281
+XI,B05,Vialidad,Aysén,,https://sinca.mma.gob.cl/index.php/estacion/index/id/166
+XI,B06,Cochrane,Cochrane,,https://sinca.mma.gob.cl/index.php/estacion/index/id/296
+XI,B03,Coyhaique,Coyhaique,,https://sinca.mma.gob.cl/index.php/estacion/index/id/238
+XI,B04,Coyhaique II,Coyhaique,"SO2,NO2,CO,O3",https://sinca.mma.gob.cl/index.php/estacion/index/id/264
+XII,C05,Punta Arenas,Punta Arenas,,https://sinca.mma.gob.cl/index.php/estacion/index/id/191

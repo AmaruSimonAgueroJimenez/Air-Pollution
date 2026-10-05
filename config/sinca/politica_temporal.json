@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "sinca": {
+    "reloj_fuente": "hora_local_civil_sinca_sin_offset",
+    "utc_salida": "datetime_naive_que_representa_utc",
+    "zona_iana_default": "America/Santiago",
+    "zonas_iana_por_region": {
+      "RXI": "America/Coyhaique",
+      "RXII": "America/Punta_Arenas"
+    },
+    "hora_ambigua": "conservar_hora_local_asumir_ocurrencia_estandar_y_registrar_utc_alternativo",
+    "hora_inexistente": "conservar_hora_local_desplazar_adelante_y_marcar_qc",
+    "colision_misma_utc_en_panel": "media_con_conteo_y_bandera_manteniendo_el_lector_crudo_sin_agregar"
+  },
+  "merra2_comunal": {
+    "reloj_fuente": "utc_menos_3_fijo_no_hora_civil",
+    "horas_para_recuperar_utc": 3,
+    "politica_duplicados_comuna_utc": "error_sin_agregacion"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "codigo": "c03a5704d8862284",
+  "config": {
+    "alertas": {
+      "alpha": 0.8,
+      "feature_fraction": 0.8,
+      "learning_rate": 0.025,
+      "min_data_in_leaf": 30,
+      "num_iterations": 900,
+      "num_leaves": 127,
+      "objective": "quantile",
+      "seed": 42,
+      "verbose": -1
+    },
+    "gp": {
+      "alpha": 1e-06,
+      "bloque_prediccion": 50000,
+      "features": {
+        "no2": [
+          "gcf_no2",
+          "cams_no2",
+          "obs_vec",
+          "el_t2m",
+          "el_rh",
+          "el_wind",
+          "inv_blh",
+          "vias_km_km2",
+          "pob_dens",
+          "hora_sin",
+          "hora_cos",
+          "doy_sin",
+          "doy_cos",
+          "lat",
+          "lon",
+          "elev_m"
+        ],
+        "pm25": [
+          "gcf_pm25",
+          "cams_pm25",
+          "m2_pm25",
+          "acag_pm25",
+          "m2_aod_pblh",
+          "obs_vec",
+          "el_t2m",
+          "el_rh",
+          "el_wind",
+          "inv_blh",
+          "hora_sin",
+          "hora_cos",
+          "doy_sin",
+          "doy_cos",
+          "lat",
+          "lon",
+          "elev_m"
+        ]
+      },
+      "noise_level": 0.5,
+      "normalize_y": true,
+      "nu": 1.5
+    },
+    "lme": {
+      "acotar_a_rango_entrenamiento": true,
+      "grupos": "hora_local",
+      "log_concentraciones": true,
+      "maxiter": 200,
+      "pendiente_aleatoria": {
+        "no2": "cams_no2",
+        "pm25": "m2_pm25"
+      }
+    },
+    "nn": {
+      "acotar_entradas": true,
+      "activation": "relu",
+      "alpha": 0.1,
+      "batch_size": 256,
+      "early_stopping": true,
+      "hidden_layer_sizes": [
+        128,
+        64
+      ],
+      "learning_rate_init": 0.001,
+      "max_iter": 300,
+      "n_iter_no_change": 10,
+      "recorte_log": [
+        0.005,
+        0.99
+      ],
+      "solver": "adam",
+      "validation_fraction": 0.1
+    },
+    "rf": {
+      "max_features": "sqrt",
+      "min_samples_leaf": 20,
+      "n_estimators": 300
+    }
+  },
+  "documento": "a62dd5bae7e68b40",
+  "filas": {
+    "alertas": 1500000,
+    "gp": 3000,
+    "lme": 300000,
+    "nn": 300000,
+    "rf": 750000
+  },
+  "motores": [
+    "alertas",
+    "rf",
+    "nn",
+    "gp",
+    "lme"
+  ],
+  "oof_sha256": "b9bd11d68cb9f06c36aed3f0463ee5e9c284bf94a7ac99e24859978b06224a85",
+  "panel_sha256": "955ed14469dce75e2c6da6452fbd5749ff3f391345a910758b5550330a9f56cb",
+  "pliegues_con_respaldo": {
+    "loso_alertas": 0,
+    "loso_gp": 0,
+    "loso_lme": 0,
+    "loso_nn": 0,
+    "loso_rf": 0
+  },
+  "protocolos": [
+    "loso"
+  ],
+  "retransformacion": "duan_oof_macrozona",
+  "version_ml": 3
+}

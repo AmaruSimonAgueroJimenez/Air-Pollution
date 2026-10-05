@@ -1,0 +1,1 @@
+{"version": 4, "motores": ["lgbm", "ensemble", "rf", "nn", "gp", "lme", "alertas", "gwr", "rk", "idw"], "motores_ml": [], "oof": "c5020550312d1b06f17c68fa30428a10e6a7a9a504594fba2c9e4e5035376b9d", "oof_lineales": "d747daf4a276e2e9b69af16a2dad99a2159ec048f5ec60014dfd24f3f5d7a042", "oof_ml": null, "ajuste": "d9299c1b97ed4b12a76b35e22222d8c58a791616bc66181c7a4b3b78289bbbd3"}

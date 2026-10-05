@@ -1,0 +1,18 @@
+{
+ "20260902_informe_modelos_estimacion.html": "docs/modelos_estimacion.html",
+ "20260902_informe_modelos_estimacion.qmd": "docs/modelos_estimacion.qmd",
+ "20260902_nota_auditoria_lulc_topografia.md": "docs/auditoria_lulc_topografia.md",
+ "20260902_nota_auditoria_reanalisis_nativos.md": "docs/auditoria_reanalisis_nativos.md",
+ "20260906_nota_auditoria_procedencia_modis_maiac.md": "docs/auditoria_procedencia_modis_maiac_20260906.md",
+ "20260914_nota_correccion_procedencia_antes_borrado.md": "docs/correccion_procedencia_antes_borrado_20260914.md",
+ "20260915_nota_preparar_sinca_modelado.md": "docs/preparar_sinca_modelado.md",
+ "20260915_prueba_preparar_sinca_modelado.json": "docs/prueba_preparar_sinca_modelado_20260915.json",
+ "20260915_prueba_verificacion_merra2_retiro_estricto.json": "docs/verificacion_merra2_retiro_estricto_20260915.json",
+ "20260917_nota_actualizacion_era5land.md": "docs/ACTUALIZACION_ERA5LAND_20260917.md",
+ "20260918_nota_goes_abi_aod_nativo_v1.md": "Claude outputs/GOES_ABI_AOD_NATIVO.md",
+ "20260918_nota_goes_abi_aod_nativo_v2.md": "docs/GOES_ABI_AOD_NATIVO.md",
+ "20260918_script_descargar_goes_abi_aod.py": "Claude outputs/descargar_goes_abi_aod.py",
+ "20260919_informe_modelo_1km_previoenlace.html": "docs/modelo_1km_horario_previoenlace.html",
+ "20260919_informe_modelo_1km_smoke.html": "docs/modelo_1km_horario_smoke.html",
+ "20260919_informe_modelo_1km_smoke_preview.html": "Claude outputs/modelo_1km_horario_smoke_preview.html"
+}

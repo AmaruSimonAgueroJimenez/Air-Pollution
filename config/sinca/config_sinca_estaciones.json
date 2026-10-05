@@ -1,0 +1,1092 @@
+[
+  {
+    "region": "RXV",
+    "estacion": "F01",
+    "nombre": "Arica",
+    "comuna": "Arica",
+    "lat": -18.483527,
+    "lon": -70.290549,
+    "nombre_region": "Arica y Parinacota",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RI",
+    "estacion": "117",
+    "nombre": "Alto Hospicio",
+    "comuna": "Alto Hospicio",
+    "lat": -20.290499,
+    "lon": -70.100224,
+    "nombre_region": "Tarapacá",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "237",
+    "nombre": "Antofagasta",
+    "comuna": "Antofagasta",
+    "lat": -23.613552,
+    "lon": -70.383327,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "233",
+    "nombre": "Club Deportivo 23 de Marzo",
+    "comuna": "Calama",
+    "lat": -22.460124,
+    "lon": -68.937804,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "235",
+    "nombre": "Colegio Pedro Vergara Keller",
+    "comuna": "Calama",
+    "lat": -22.44218,
+    "lon": -68.933011,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "236",
+    "nombre": "Estación Centro",
+    "comuna": "Calama",
+    "lat": -22.461818,
+    "lon": -68.928181,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "217",
+    "nombre": "Hospital del Cobre",
+    "comuna": "Calama",
+    "lat": -22.454013,
+    "lon": -68.910175,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "204",
+    "nombre": "Sierra Gorda",
+    "comuna": "Sierra Gorda",
+    "lat": -22.890232,
+    "lon": -69.318843,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "230",
+    "nombre": "Bomberos",
+    "comuna": "Tocopilla",
+    "lat": -22.107845,
+    "lon": -70.208757,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "251",
+    "nombre": "Super Site",
+    "comuna": "Tocopilla",
+    "lat": -22.085846,
+    "lon": -70.188361,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "231",
+    "nombre": "Tres Marias",
+    "comuna": "Tocopilla",
+    "lat": -22.060235,
+    "lon": -70.187362,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RII",
+    "estacion": "222",
+    "nombre": "Escuela E-10",
+    "comuna": "Tocopilla",
+    "lat": -22.085607,
+    "lon": -70.188863,
+    "nombre_region": "Antofagasta",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIII",
+    "estacion": "333",
+    "nombre": "Huasco Sivica",
+    "comuna": "Huasco",
+    "lat": -28.469975,
+    "lon": -71.219658,
+    "nombre_region": "Atacama",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIII",
+    "estacion": "330",
+    "nombre": "21 de Mayo",
+    "comuna": "Huasco",
+    "lat": -28.467939,
+    "lon": -71.227212,
+    "nombre_region": "Atacama",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIII",
+    "estacion": "310",
+    "nombre": "EME F",
+    "comuna": "Huasco",
+    "lat": -28.466352,
+    "lon": -71.221583,
+    "nombre_region": "Atacama",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIII",
+    "estacion": "309",
+    "nombre": "EME M",
+    "comuna": "Huasco",
+    "lat": -28.470313,
+    "lon": -71.218837,
+    "nombre_region": "Atacama",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIV",
+    "estacion": "426",
+    "nombre": "Coquimbo",
+    "comuna": "Coquimbo",
+    "lat": -29.970648,
+    "lon": -71.335911,
+    "nombre_region": "Coquimbo",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIV",
+    "estacion": "425",
+    "nombre": "La Serena",
+    "comuna": "Coquimbo",
+    "lat": -29.920396,
+    "lon": -71.256011,
+    "nombre_region": "Coquimbo",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIV",
+    "estacion": "424",
+    "nombre": "Cuncumen",
+    "comuna": "Salamanca",
+    "lat": -31.889271,
+    "lon": -70.629332,
+    "nombre_region": "Coquimbo",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "560",
+    "nombre": "Concón MMA",
+    "comuna": "Concón",
+    "lat": Infinity,
+    "lon": Infinity,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "509",
+    "nombre": "Concón",
+    "comuna": "Concón",
+    "lat": -32.924756,
+    "lon": -71.515479,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "532",
+    "nombre": "Los Andes",
+    "comuna": "Los Andes",
+    "lat": -32.846426,
+    "lon": -70.586475,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "505",
+    "nombre": "Puchuncaví",
+    "comuna": "Puchuncaví",
+    "lat": -32.718731,
+    "lon": -71.407326,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "503",
+    "nombre": "La Greda",
+    "comuna": "Puchuncaví",
+    "lat": -32.748276,
+    "lon": -71.474214,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "504",
+    "nombre": "Los Maitenes",
+    "comuna": "Puchuncaví",
+    "lat": -32.764345,
+    "lon": -71.454509,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "548",
+    "nombre": "Ventanas",
+    "comuna": "Puchuncaví",
+    "lat": -31.840542,
+    "lon": -71.456405,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "513",
+    "nombre": "Cuerpo de Bomberos",
+    "comuna": "Quillota",
+    "lat": -32.885508,
+    "lon": -71.247424,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "515",
+    "nombre": "La Palma",
+    "comuna": "Quillota",
+    "lat": -30.391714,
+    "lon": -44.052555,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "514",
+    "nombre": "San Pedro",
+    "comuna": "Quillota",
+    "lat": -32.937288,
+    "lon": -71.274291,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "549",
+    "nombre": "Quilpue",
+    "comuna": "Quilpué",
+    "lat": -33.047441,
+    "lon": -71.4345,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "551",
+    "nombre": "Quilpue Gimnasio",
+    "comuna": "Quilpué",
+    "lat": -33.047498,
+    "lon": -71.438977,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "539",
+    "nombre": "Centro Quintero",
+    "comuna": "Quintero",
+    "lat": -32.787721,
+    "lon": -71.532226,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "547",
+    "nombre": "Loncura",
+    "comuna": "Quintero",
+    "lat": -32.794914,
+    "lon": -71.49642,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "540",
+    "nombre": "Quintero",
+    "comuna": "Quintero",
+    "lat": 56.574398,
+    "lon": 114.86628,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "550",
+    "nombre": "Valparaiso",
+    "comuna": "Valparaíso",
+    "lat": -33.049537,
+    "lon": -71.614235,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RV",
+    "estacion": "529",
+    "nombre": "Viña del Mar",
+    "comuna": "Viña del Mar",
+    "lat": -33.020335,
+    "lon": -71.550097,
+    "nombre_region": "Valparaíso",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D35",
+    "nombre": "Cerrillos II",
+    "comuna": "Cerrillos",
+    "lat": -33.495781,
+    "lon": -70.704209,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D16",
+    "nombre": "Cerrillos I",
+    "comuna": "Cerrillos",
+    "lat": -33.492884,
+    "lon": -70.719329,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D18",
+    "nombre": "Cerro Navia",
+    "comuna": "Cerro Navia",
+    "lat": -33.43307,
+    "lon": -70.732055,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D17",
+    "nombre": "El Bosque (Acreditada)",
+    "comuna": "El Bosque",
+    "lat": -33.547016,
+    "lon": -70.666163,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D11",
+    "nombre": "Independencia",
+    "comuna": "Independencia",
+    "lat": -33.422261,
+    "lon": -70.651139,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D12",
+    "nombre": "La Florida (Acreditada)",
+    "comuna": "La Florida",
+    "lat": -33.516667,
+    "lon": -70.58816,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D13",
+    "nombre": "Las Condes (Acreditada)",
+    "comuna": "Las Condes",
+    "lat": -33.376776,
+    "lon": -70.523256,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D15",
+    "nombre": "Pudahuel (Acreditada)",
+    "comuna": "Pudahuel",
+    "lat": -33.437785,
+    "lon": -70.750144,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D27",
+    "nombre": "Puente Alto",
+    "comuna": "Puente Alto",
+    "lat": -33.591356,
+    "lon": -70.594431,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D30",
+    "nombre": "Quilicura",
+    "comuna": "Quilicura",
+    "lat": -33.349631,
+    "lon": -70.723846,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D29",
+    "nombre": "Quilicura I",
+    "comuna": "Quilicura",
+    "lat": -33.365857,
+    "lon": -70.748219,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D14",
+    "nombre": "Parque O'Higgins",
+    "comuna": "Santiago",
+    "lat": -33.464177,
+    "lon": -70.660702,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RM",
+    "estacion": "D28",
+    "nombre": "Talagante",
+    "comuna": "Talagante",
+    "lat": -33.673819,
+    "lon": -70.952996,
+    "nombre_region": "Metropolitana",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVI",
+    "estacion": "609",
+    "nombre": "Rancagua I",
+    "comuna": "Rancagua",
+    "lat": -34.162283,
+    "lon": -70.713931,
+    "nombre_region": "O'Higgins",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVI",
+    "estacion": "615",
+    "nombre": "Rancagua II",
+    "comuna": "Rancagua",
+    "lat": -34.143887,
+    "lon": -70.737126,
+    "nombre_region": "O'Higgins",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVI",
+    "estacion": "611",
+    "nombre": "Rengo",
+    "comuna": "Rengo",
+    "lat": -34.394527,
+    "lon": -70.852987,
+    "nombre_region": "O'Higgins",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVI",
+    "estacion": "612",
+    "nombre": "San Fernando",
+    "comuna": "San Fernando",
+    "lat": -34.579882,
+    "lon": -70.989671,
+    "nombre_region": "O'Higgins",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVII",
+    "estacion": "714",
+    "nombre": "Cauquenes Sivica",
+    "comuna": "Cauquenes",
+    "lat": -35.964507,
+    "lon": -72.317015,
+    "nombre_region": "Maule",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVII",
+    "estacion": "709",
+    "nombre": "Curicó",
+    "comuna": "Curicó",
+    "lat": -34.974944,
+    "lon": -71.233954,
+    "nombre_region": "Maule",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVII",
+    "estacion": "706",
+    "nombre": "El Boldo",
+    "comuna": "Curicó",
+    "lat": -34.972352,
+    "lon": -71.230259,
+    "nombre_region": "Maule",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVII",
+    "estacion": "713",
+    "nombre": "Linares",
+    "comuna": "Linares",
+    "lat": -35.836969,
+    "lon": -71.592874,
+    "nombre_region": "Maule",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVII",
+    "estacion": "703",
+    "nombre": "La Florida",
+    "comuna": "Talca",
+    "lat": -35.435223,
+    "lon": -71.678119,
+    "nombre_region": "Maule",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVII",
+    "estacion": "710",
+    "nombre": "U.C. Maule",
+    "comuna": "Talca",
+    "lat": -35.435772,
+    "lon": -71.619468,
+    "nombre_region": "Maule",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVII",
+    "estacion": "711",
+    "nombre": "Universidad de Talca",
+    "comuna": "Talca",
+    "lat": -35.406574,
+    "lon": -71.633253,
+    "nombre_region": "Maule",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "810",
+    "nombre": "INIA, Chillán",
+    "comuna": "Chillán",
+    "lat": -36.59484,
+    "lon": -72.08931,
+    "nombre_region": "Ñuble",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "873",
+    "nombre": "Puren",
+    "comuna": "Chillán",
+    "lat": -36.616218,
+    "lon": -72.09309,
+    "nombre_region": "Ñuble",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "884",
+    "nombre": "San Carlos",
+    "comuna": "San Carlos",
+    "lat": -36.526775,
+    "lon": -72.069846,
+    "nombre_region": "Ñuble",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "854",
+    "nombre": "Punteras",
+    "comuna": "Chiguayante",
+    "lat": -36.923316,
+    "lon": -73.036123,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "833",
+    "nombre": "Meteorológica, Chiguayante",
+    "comuna": "Chiguayante",
+    "lat": -36.913359,
+    "lon": -67.035705,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "827",
+    "nombre": "Kingston College",
+    "comuna": "Concepción",
+    "lat": -36.78465,
+    "lon": -73.052062,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "831",
+    "nombre": "Cerro Merquín",
+    "comuna": "Coronel",
+    "lat": -37.021191,
+    "lon": -73.149561,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "878",
+    "nombre": "Coronel Norte",
+    "comuna": "Coronel",
+    "lat": -37.009376,
+    "lon": -67.149612,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "880",
+    "nombre": "Escuadron, ENEL",
+    "comuna": "Coronel",
+    "lat": -36.953702,
+    "lon": -73.150792,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "881",
+    "nombre": "Escuadron, ENESA",
+    "comuna": "Coronel",
+    "lat": -36.933828,
+    "lon": -73.152518,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "879",
+    "nombre": "Lagunillas, ENEL",
+    "comuna": "Coronel",
+    "lat": -36.984457,
+    "lon": -73.153204,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "859",
+    "nombre": "Lota rural",
+    "comuna": "Coronel",
+    "lat": -37.100196,
+    "lon": -73.152187,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "860",
+    "nombre": "Lota urbana",
+    "comuna": "Coronel",
+    "lat": -37.074182,
+    "lon": -73.145147,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "832",
+    "nombre": "Balneario Curanilahue",
+    "comuna": "Curanilahue",
+    "lat": -37.485123,
+    "lon": -73.331608,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "805",
+    "nombre": "Bocatoma",
+    "comuna": "Hualpén",
+    "lat": -36.803109,
+    "lon": -73.12038,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "838",
+    "nombre": "ENAP Price",
+    "comuna": "Hualpén",
+    "lat": -36.791363,
+    "lon": -73.119109,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "804",
+    "nombre": "JUNJI",
+    "comuna": "Hualpén",
+    "lat": -36.780744,
+    "lon": -73.115615,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "841",
+    "nombre": "Hualqui",
+    "comuna": "Hualqui",
+    "lat": -36.97749,
+    "lon": -72.931943,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "826",
+    "nombre": "Laja",
+    "comuna": "Laja",
+    "lat": -37.267791,
+    "lon": -66.71089,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "875",
+    "nombre": "21 de mayo",
+    "comuna": "Los Angeles",
+    "lat": -37.471191,
+    "lon": -72.361471,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "874",
+    "nombre": "Los Ángeles Oriente",
+    "comuna": "Los Angeles",
+    "lat": -37.463088,
+    "lon": -72.324552,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "818",
+    "nombre": "Club de Empleados",
+    "comuna": "Nacimiento",
+    "lat": -37.502013,
+    "lon": -66.676393,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "870",
+    "nombre": "Lautaro",
+    "comuna": "Nacimiento",
+    "lat": -37.509146,
+    "lon": -72.656115,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "802",
+    "nombre": "Consultorio - San Vicente",
+    "comuna": "Talcahuano",
+    "lat": -36.72369,
+    "lon": -73.123695,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "803",
+    "nombre": "Libertad",
+    "comuna": "Talcahuano",
+    "lat": -36.717419,
+    "lon": -73.111355,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "807",
+    "nombre": "Indura",
+    "comuna": "Talcahuano",
+    "lat": -36.769998,
+    "lon": -73.113806,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "806",
+    "nombre": "Inpesca",
+    "comuna": "Talcahuano",
+    "lat": -36.737292,
+    "lon": -73.104382,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "837",
+    "nombre": "Nueva Libertad",
+    "comuna": "Talcahuano",
+    "lat": -36.736197,
+    "lon": -67.118855,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RVIII",
+    "estacion": "830",
+    "nombre": "Liceo Polivalente",
+    "comuna": "Tomé",
+    "lat": -36.601716,
+    "lon": -72.958522,
+    "nombre_region": "Biobío",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIX",
+    "estacion": "902",
+    "nombre": "Padre Las Casas II",
+    "comuna": "Padre las Casas",
+    "lat": -38.76473,
+    "lon": -72.598792,
+    "nombre_region": "Araucanía",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIX",
+    "estacion": "901",
+    "nombre": "Las Encinas Temuco",
+    "comuna": "Temuco",
+    "lat": -38.748637,
+    "lon": -72.618994,
+    "nombre_region": "Araucanía",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIX",
+    "estacion": "905",
+    "nombre": "Ñielol",
+    "comuna": "Temuco",
+    "lat": -38.72693,
+    "lon": -72.579895,
+    "nombre_region": "Araucanía",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIX",
+    "estacion": "904",
+    "nombre": "Museo Ferroviario",
+    "comuna": "Temuco",
+    "lat": -38.725253,
+    "lon": -72.571141,
+    "nombre_region": "Araucanía",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RIX",
+    "estacion": "906",
+    "nombre": "Villarrica",
+    "comuna": "Villarrica",
+    "lat": -39.289509,
+    "lon": -72.222433,
+    "nombre_region": "Araucanía",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXIV",
+    "estacion": "E06",
+    "nombre": "CESFAM Lago Ranco",
+    "comuna": "Lago Ranco",
+    "lat": -40.321518,
+    "lon": -72.471943,
+    "nombre_region": "Los Ríos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXIV",
+    "estacion": "E04",
+    "nombre": "La Union",
+    "comuna": "La Unión",
+    "lat": -40.286595,
+    "lon": -67.077206,
+    "nombre_region": "Los Ríos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXIV",
+    "estacion": "E03",
+    "nombre": "Valdivia",
+    "comuna": "Valdivia",
+    "lat": -39.831347,
+    "lon": -73.22847,
+    "nombre_region": "Los Ríos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXIV",
+    "estacion": "E08",
+    "nombre": "Valdivia 2",
+    "comuna": "Valdivia",
+    "lat": -39.810515,
+    "lon": -73.219473,
+    "nombre_region": "Los Ríos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RX",
+    "estacion": "A01",
+    "nombre": "Osorno",
+    "comuna": "Osorno",
+    "lat": -40.584498,
+    "lon": -73.118665,
+    "nombre_region": "Los Lagos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RX",
+    "estacion": "AA2",
+    "nombre": "Universidad de Los Lagos",
+    "comuna": "Osorno",
+    "lat": -40.581777,
+    "lon": -73.173044,
+    "nombre_region": "Los Lagos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RX",
+    "estacion": "A04",
+    "nombre": "Entre Lagos",
+    "comuna": "Osorno",
+    "lat": -40.683984,
+    "lon": -78.596447,
+    "nombre_region": "Los Lagos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RX",
+    "estacion": "A08",
+    "nombre": "Alerce",
+    "comuna": "Puerto Montt",
+    "lat": -41.399151,
+    "lon": -66.899563,
+    "nombre_region": "Los Lagos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RX",
+    "estacion": "A07",
+    "nombre": "Mirasol",
+    "comuna": "Puerto Montt",
+    "lat": -41.479529,
+    "lon": -72.968828,
+    "nombre_region": "Los Lagos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RX",
+    "estacion": "A09",
+    "nombre": "Puerto Varas",
+    "comuna": "Puerto Varas",
+    "lat": -41.329893,
+    "lon": -72.971119,
+    "nombre_region": "Los Lagos",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXI",
+    "estacion": "B05",
+    "nombre": "Vialidad",
+    "comuna": "Aysén",
+    "lat": -45.404183,
+    "lon": -72.687459,
+    "nombre_region": "Aysén",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXI",
+    "estacion": "B06",
+    "nombre": "Cochrane",
+    "comuna": "Cochrane",
+    "lat": -47.254832,
+    "lon": -72.57141,
+    "nombre_region": "Aysén",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXI",
+    "estacion": "B03",
+    "nombre": "Coyhaique",
+    "comuna": "Coyhaique",
+    "lat": -45.579936,
+    "lon": -72.061085,
+    "nombre_region": "Aysén",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXI",
+    "estacion": "B04",
+    "nombre": "Coyhaique II",
+    "comuna": "Coyhaique",
+    "lat": -45.579046,
+    "lon": -72.049967,
+    "nombre_region": "Aysén",
+    "param_pm25": "PM25"
+  },
+  {
+    "region": "RXII",
+    "estacion": "C05",
+    "nombre": "Punta Arenas",
+    "comuna": "Punta Arenas",
+    "lat": -53.158348,
+    "lon": -70.921507,
+    "nombre_region": "Magallanes",
+    "param_pm25": "PM25"
+  }
+]

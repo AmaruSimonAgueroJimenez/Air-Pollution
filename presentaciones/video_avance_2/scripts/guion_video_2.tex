@@ -9,7 +9,7 @@
 
 \begin{center}
 {\color{azul}\LARGE\bfseries Guion del video de avance N.º 2}\\[0.15cm]
-{\large Revisión de literatura}\\[0.25cm]
+{\large Definición del problema + trabajos relacionados}\\[0.25cm]
 {\color{tinta2}Actividad Final de Graduación 1 · MDS3050 · Equipo 2 (Team2)}\\
 {\color{gris}\small José Jesús Romero Fuenmayor · Roberto Ignacio Ávila Escobar · Amaru Simón Agüero Jiménez · Esteban Adolfo González Rodríguez}\\[0.2cm]
 {\color{azul}\rule{\textwidth}{0.8pt}}
@@ -18,54 +18,57 @@
 \begin{ficha}{Ficha del guion}
 \small
 \begin{tabular}{@{}L{4.2cm}L{11.6cm}@{}}
-\textbf{Material} & \texttt{AFG1\_Video2\_Presentacion\_UC.pptx} (9 diapositivas) \\
-\textbf{Duración objetivo} & 4:35 (máximo permitido: 5:00) \\
-\textbf{Quién graba} & Un integrante distinto del que grabó el video 1, para ir cumpliendo la regla de que cada estudiante participe en al menos uno de los videos del curso. \\
+\textbf{Material} & \texttt{AFG1\_Video2\_Presentacion\_UC.pptx} (10 diapositivas) \\
+\textbf{Duración objetivo} & 4:40 (máximo permitido: 5:00) \\
+\textbf{Quién graba} & Un integrante distinto del que grabó el video 1. Cada estudiante debe participar en al menos uno de los videos del curso. \\
 \textbf{Estructura oficial} & Cubre los 5 pasos exigidos: 1 presentación, 2 objetivos de la semana, 3 cómo se abordaron y tareas realizadas, 4 desafíos, 5 tareas de la próxima semana. \\
 \end{tabular}
 \end{ficha}
 
 \begin{nota}
-\small \textbf{Cómo usar este guion.} Formato de un solo presentador. Si prefieren relevos, los cortes naturales son el inicio de la diapositiva 5 y el inicio de la diapositiva 8. Las cifras que se mencionan (R² 0.81; R² 0.80 a 0.84; 0.61 a 0.70) están citadas al pie en las diapositivas correspondientes, por si el tutor pregunta por la fuente.
+\small \textbf{Indicaciones de grabación.} Usen el puntero o láser de PowerPoint para guiar la vista hacia lo que se está explicando, especialmente en la figura de la brecha y en las tablas. Todo lo metodológicamente relevante que aparece en pantalla se dice también en voz alta. Si prefieren relevos, los cortes naturales son el inicio de la diapositiva 5 y el inicio de la diapositiva 9.
 \end{nota}
 
 \section{Guion por diapositiva}
 
 \diapo{D1}{Portada}{0:00 a 0:20}
-\paso{1} Hola, mi nombre es \acot{nombre de quien graba}, integrante del Equipo 2 junto a \acot{nombrar a los otros tres}. Este es nuestro segundo video de avance. Nuestro proyecto busca estimar seis contaminantes del aire para todo Chile a nivel de comuna y hora, validando contra la red SINCA. Hoy toca contar qué dice la literatura.
+\paso{1} Hola, mi nombre es \acot{nombre de quien graba}, integrante del Equipo 2 junto a \acot{nombrar a los otros tres}. Este es nuestro segundo video de avance. En el video anterior definimos el problema; hoy lo presentamos completo: medimos la brecha con datos y lo posicionamos en la literatura internacional y chilena.
 
-\diapo{D2}{Cómo hicimos la revisión}{0:20 a 0:55}
-\paso{2} El objetivo de esta semana fue hacer la revisión de literatura por contaminante, fijar líneas base de desempeño y armar el marco para la defensa de tema. \paso{3} Seguimos el método visto en la sesión sincrónica del curso: búsqueda por palabras clave en Google Scholar, Scopus y Web of Science, criterios de inclusión explícitos, citation chaining hacia atrás y hacia adelante desde los trabajos ancla, y síntesis en una matriz de contaminante por método. Estructuramos la revisión por tema y por metodología, y todas las referencias que citamos tienen identificador digital verificado.
+\diapo{D2}{El problema}{0:20 a 0:50}
+\paso{2} Los objetivos de la semana fueron tres: profundizar la definición del problema, hacer la revisión de literatura y cuantificar la brecha de monitoreo. Partamos por el relato del proyecto, en una sola cadena: hay contaminación atmosférica; necesitamos conocer la exposición de las personas; existe una red de monitoreo, SINCA; esa red tiene una brecha de cobertura; eso produce una brecha de información; y nuestra propuesta de ciencia de datos busca cerrarla. Distinguimos tres cosas: el problema es que hay lugares y horas sin medición directa; importa por sus efectos en salud y decisiones; y ocurre por cómo está distribuida la red, las fuentes y el territorio. El proyecto no busca resolver las fuentes: busca estimar concentraciones donde no se miden.
 
-\diapo{D3}{Qué se sabe (1): PM$_{2.5}$}{0:55 a 1:35}
-Lo primero que muestra la literatura es que el material particulado fino es el contaminante mejor resuelto. Existen estimaciones globales mensuales con incertidumbre cuantificada, que son la base del producto que usamos. El salto metodológico fue combinar el satélite con un modelo químico y corregir contra estaciones mediante regresión geográficamente ponderada, con un R cuadrado de cero coma ochenta y uno en validación cruzada. Después llegaron los ensambles de aprendizaje automático, con Estados Unidos a un kilómetro y resolución diaria. Y para Chile hay estudios de composición y fuentes, como la leña en el sur, que nos dan el contexto local.
+\diapo{D3}{Conceptos clave}{0:50 a 1:10}
+Antes de seguir, seis términos en simple. SINCA es el sistema nacional que concentra la información de las estaciones de calidad del aire. Un contaminante normado es uno con límites legales en Chile. Un reanálisis reconstruye la atmósfera pasada combinando modelo y observaciones. Una columna satelital es el total del gas en la vertical, no la concentración en superficie. L2 y L3 son niveles de procesamiento del satélite. Y a las estaciones las llamaremos mediciones de referencia para entrenar y validar.
 
-\diapo{D4}{Qué se sabe (2): los gases}{1:35 a 2:15}
-Los gases van una década más atrás. Para dióxido de nitrógeno y ozono el camino está trazado: hay un modelo global de regresión de uso de suelo y productos diarios sin huecos para China construidos con inteligencia artificial interpretable. Pero dióxido de azufre y monóxido de carbono son los menos estudiados: el primer mapeo diario y sin huecos para China apareció recién en 2023. Un dato clave de ese trabajo es que, cuando se predice en estaciones que el modelo nunca vio, el desempeño cae a R cuadrado de cero coma seis a cero coma siete. Y el patrón geográfico es claro: casi toda esta literatura se concentra en China, Estados Unidos y Europa; Sudamérica no tiene un producto propio equivalente.
+\diapo{D4}{La brecha de monitoreo}{1:10 a 1:45}
+\paso{3} Ahora la brecha, medida con los números de la propia red. \acot{señalar el mapa} A la izquierda, dónde está cada estación: se concentran en el centro y sur. \acot{señalar el panel central} Al centro, estaciones por región: tres regiones, Biobío, Valparaíso y Metropolitana, concentran la mitad de las ciento nueve estaciones; Tarapacá y Magallanes tienen una cada una. \acot{señalar el panel derecho} Y a la derecha, la cobertura por contaminante: el material particulado se mide en casi toda la red, pero los gases solo en la mitad. En síntesis: doscientas ochenta y cuatro de las trescientas cuarenta y cinco comunas no tienen ninguna estación. La brecha es espacial y se ve espacialmente.
 
-\diapo{D5}{Cómo se ha hecho: metodologías}{2:15 a 2:50}
-En cuanto a métodos, la literatura se ordena en cuatro familias: la regresión de uso de suelo, la geoestadística con regresión geográficamente ponderada y kriging, el aprendizaje automático con boosting y ensambles, y los híbridos físico-estadísticos que combinan modelo químico, satélite y corrección con estaciones. La validación estándar del área es la cross-validation espacial dejando estaciones fuera. De ahí sale directamente nuestra elección: comparar GWR, gradient boosting y kriging bajo validación LOSO.
+\diapo{D5}{Trabajos relacionados en el mundo}{1:45 a 2:10}
+En el mundo el camino ya existe. Para el particulado fino hay superficies globales mensuales y productos diarios a un kilómetro, con R cuadrado del orden de cero coma ocho en validación cruzada. Para los gases hay productos diarios sin huecos en China, y el punto clave: fuera de estación el desempeño cae a cero coma seis a cero coma siete. Cuatro familias de métodos se repiten: regresión de uso de suelo, geoestadística, aprendizaje automático e híbridos físico-estadísticos.
 
-\diapo{D6}{Qué no se sabe: brechas}{2:50 a 3:30}
-Las brechas que encontramos son cuatro. Primero, cobertura geográfica: para Chile y Sudamérica no existe un producto multi-gas continuo, público y validado. Segundo, dióxido de azufre y monóxido de carbono están poco modelados en todo el mundo. Tercero, las redes ralas: el desempeño cae lejos de las estaciones, y las macrozonas extremas de Chile son justo ese caso difícil. Y cuarto, la resolución temporal: predominan los productos anuales o mensuales. Nuestro posicionamiento sale directo de esas brechas: aplicar la receta madura al territorio chileno completo, seis contaminantes, comuna por hora y día, cinco macrozonas, con SINCA como única verdad-terreno y sin validación epidemiológica, según la recomendación docente.
+\diapo{D6}{Trabajos relacionados en Chile}{2:10 a 2:45}
+Y en Chile, ¿qué había? Esta tabla resume los trabajos nacionales con su limitación principal. \acot{recorrer la tabla con el puntero} Desde el año dos mil hay redes neuronales prediciendo material particulado en Santiago, y trabajos más recientes con deep learning en Santiago y Coyhaique. Todos comparten un patrón: son pronósticos temporales en estaciones que ya existen, para una ciudad. El único intento espacio-temporal reporta que el desempeño cae fuerte al alejarse de lo observado, y el estudio satelital de dos mil catorce mostró que el AOD por sí solo no basta en Santiago. Existen trabajos que resuelven el pronóstico local y las fuentes; no encontramos ninguno que cubra una superficie continua, multi-contaminante y validada para todo el territorio. Esa es exactamente la contribución de este proyecto.
 
-\diapo{D7}{Implicancias y líneas base}{3:30 a 4:00}
-Esta revisión también fija decisiones de diseño: los predictores que la literatura repite, la validación por estación con reporte por macrozona, y los tres motores a comparar. Y nos deja líneas base honestas: R cuadrado de cero coma ochenta y uno para el particulado global, y para gases diarios entre cero coma ochenta y cero coma ochenta y cuatro en validación cruzada, pero de cero coma sesenta y uno a cero coma setenta fuera de estación. Esa es la vara realista con la que vamos a evaluar nuestras superficies.
+\diapo{D7}{Hipótesis y tipo de problema}{2:45 a 3:15}
+Nuestra hipótesis de trabajo, y vale la pena detenerse en ella: las variables satelitales, meteorológicas, territoriales y de reanálisis contienen información suficiente para estimar las concentraciones de superficie que observan las estaciones. Los objetivos dicen qué haremos; la hipótesis explica por qué creemos que el problema es resoluble con los datos disponibles. Y definimos el tipo de problema: es una regresión espacio-temporal predictiva, no explicativa ni causal. La variable objetivo es la concentración de superficie por contaminante, en microgramos por metro cúbico, a resolución de comuna por hora y día, con un modelo por contaminante.
 
-\diapo{D8}{Semana 3}{4:00 a 4:30}
-\paso{3} En resumen, esta semana construimos la matriz de contaminante por método con referencias verificadas, actualizamos la bibliografía del repositorio y fijamos las líneas base. \paso{4} Los desafíos: la literatura de dióxido de azufre y monóxido de carbono es escasa, las métricas no siempre son comparables entre estudios, y hay que traducir resoluciones de uno a diez kilómetros a comunas muy heterogéneas. \paso{5} La próxima semana es la defensa de tema: presentación formal del problema, congelar el diseño metodológico e iniciar los paneles de modelamiento.
+\diapo{D8}{Validación por escenarios}{3:15 a 3:45}
+La validación la elegimos pensando en el uso real. Una validación aleatoria engaña, porque la contaminación tiene autocorrelación espacial y temporal, y la red no es uniforme. Por eso: dejar una estación fuera como primera aproximación, y además bloques espaciales, macrozonas completas fuera, bloques temporales y validación hacia adelante. Y cada métrica que reportemos declarará su escenario: si predice una nueva hora, una estación nunca vista o un territorio donde nunca hubo estación.
 
-\diapo{D9}{Cierre}{4:30 a 4:40}
-La revisión completa, con cada referencia y su identificador, está en el repositorio del proyecto; pueden escanear el código QR. Muchas gracias.
+\diapo{D9}{Semana 3}{3:45 a 4:10}
+\paso{3} En resumen, esta semana medimos la brecha con los datos del repositorio, construimos la tabla de trabajos chilenos con identificadores verificados y dejamos definidos hipótesis, problema predictivo y plan de validación. \paso{4} Los desafíos: la literatura chilena está centrada en pronóstico temporal y no en superficies, las métricas entre estudios no siempre son comparables, y definir escenarios de validación honestos exige disciplina. \paso{5} La próxima semana viene la defensa de tema, con el documento de una plana, congelamos el diseño metodológico e iniciamos los paneles de modelamiento.
+
+\diapo{D10}{Cierre}{4:10 a 4:40}
+Cierro con la idea completa. Hay comunas y horas sin medición directa; la red cubre sesenta y una de las trescientas cuarenta y cinco comunas, y para los gases solo la mitad de las estaciones; el mundo ya resolvió problemas análogos con satélites y modelos, mientras que en Chile solo hay pronósticos por estación; creemos que los predictores disponibles contienen la información para estimar la superficie; y lo haremos con tres motores comparados y validación por bloques. Todo el detalle, con cada referencia y su identificador digital, está en el repositorio; pueden escanear el código. Muchas gracias.
 
 \section{Notas de grabación}
 
 \begin{nota}
 \small
-Ensayen con cronómetro; si se pasan de 4:50, recorten primero en las diapositivas 3 y 6. Al leer las cifras, digan «R cuadrado» de corrido y sin apuro: son el corazón de este video. Suban el video a OneDrive con el correo UC y verifiquen el enlace en una ventana de incógnito antes de publicarlo en Coursera.
+Ensayen con cronómetro; si se pasan de 4:50, recorten primero en las diapositivas 5 y 6. Usen el modo presentador con láser en las diapositivas 4 y 6. Suban el video a OneDrive con el correo UC y verifiquen el enlace en una ventana de incógnito antes de publicarlo en Coursera.
 \end{nota}
 
 \vspace{0.4cm}
-{\color{gris}\small Guion de apoyo elaborado para el Equipo 2 sobre la presentación \texttt{AFG1\_Video2\_Presentacion\_UC.pptx}. Estructura conforme al recurso del curso «How to: video de avance»: duración máxima 5 minutos y cinco pasos obligatorios.\par}
+{\color{gris}\small Guion de apoyo para el Equipo 2 sobre \texttt{AFG1\_Video2\_Presentacion\_UC.pptx}. Cumple la estructura oficial de 5 pasos y la duración máxima de 5 minutos.\par}
 
 \end{document}

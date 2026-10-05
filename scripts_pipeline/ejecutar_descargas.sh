@@ -3,9 +3,9 @@
 # reintentos automáticos cada ESPERA segundos (2 min por defecto).
 #
 # Uso:
-#   bash ejecutar_descargas.sh                                 # todo, 2019→2024
+#   bash ejecutar_descargas.sh                                  # todo, 2000→hoy
 #   DESDE=2019-01-01 HASTA=2024-12-31 bash ejecutar_descargas.sh
-#   SOLO=descargar_sinca.py,descargar_omi.py bash ejecutar_descargas.sh
+#   SOLO=descargar_sinca.py,descargar_tropomi.py bash ejecutar_descargas.sh
 #
 # Logs (en ../logs/):
 #   estado.txt        resumen vivo por fuente (ábrelo para ver el estado)
@@ -23,7 +23,8 @@
 #   - Solo puede correr una instancia a la vez (candado en ~/.air_pollution_descargas.pid).
 #
 # Ajustes por entorno: ESPERA (s entre reintentos), MAX_INTENTOS por fuente,
-# MIN_GB_LIBRES (aborta si el disco baja de ese umbral), PYTHON.
+# MIN_GB_LIBRES (100 GiB por defecto; aborta antes de comprometer espacio), PYTHON,
+# GOES_ABI_CADENCIA (nativa | 30min | horaria) para GOES-East ABI AOD.
 set -u
 cd "$(dirname "$0")"
 
@@ -32,40 +33,53 @@ if command -v caffeinate >/dev/null 2>&1; then
   caffeinate -i -s -w $$ &
 fi
 
-DESDE="${DESDE:-2019-01-01}"
-HASTA="${HASTA:-2024-12-31}"
+DESDE="${DESDE:-2000-01-01}"
+HASTA="${HASTA:-$(date +%F)}"
 PY="${PYTHON:-python3}"
 ESPERA="${ESPERA:-120}"
 MAX_INTENTOS="${MAX_INTENTOS:-10}"
-MIN_GB_LIBRES="${MIN_GB_LIBRES:-50}"
+MIN_GB_LIBRES="${MIN_GB_LIBRES:-100}"
 SOLO="${SOLO:-}"
 
 LOGDIR="$(cd .. && pwd)/logs"
 mkdir -p "$LOGDIR"
 ESTADO_LOG="$LOGDIR/estado.log"
 RESUMEN="$LOGDIR/estado.txt"
+DATA_DISK_TARGET="${AIR_POLLUTION_DATA_ROOT:-${ASESORIAS_DATA_ROOT:-/Volumes/Datos/Asesorias_Data}/AirPollution/data}"
+if [ ! -d "$DATA_DISK_TARGET" ]; then
+  echo "No existe el almacén externo: $DATA_DISK_TARGET" >&2
+  exit 4
+fi
 
 # Fuentes en orden liviano → pesado (las L2 satelitales, que pesan cientos de
 # GB, van al final para tener antes lo esencial).
+# Brecha Nightlights 2000–2012-01-18: World Bank Light Every Night DMSP-OLS.
+# `descargar_dmsp_len.py` es público, conserva cada segmento nocturno de todos
+# los satélites y lee sólo ventanas Chile de los COG; no descarga crudos globales.
 FUENTES=(
   "descargar_sinca.py --desde $DESDE --hasta $HASTA --resolucion horario"
-  "descargar_acag_pm25.py --temporal annual"
-  "descargar_omi.py --desde $DESDE --hasta $HASTA --contaminantes no2,o3,so2"
-  "descargar_mopitt.py --desde $DESDE --hasta $HASTA"
+  "../scripts_superficie/extractores/descargar_era5land.py --desde $DESDE --hasta $HASTA --espacio-minimo-gb $MIN_GB_LIBRES"
+  "retirar_legado_era5land.py --desde $DESDE --hasta $HASTA --min-gb-libres $MIN_GB_LIBRES"
+  "descargar_acag_pm25.py --temporal monthly --desde $DESDE --hasta $HASTA"
   "descargar_cams_eac4.py --desde $DESDE --hasta $HASTA"
   "descargar_geoscf.py --desde $DESDE --hasta $HASTA"
-  "descargar_merra2_aer.py --desde $DESDE --hasta $HASTA"
-  # solo NO2: es el gas donde TROPOMI (~5.5 km) aporta detalle que ninguna otra
-  # fuente da. O3/SO2/CO quedan cubiertos por OMI, MOPITT, CAMS y GEOS-CF, y los
-  # cuatro gases juntos no caben en disco (~975 GB)
-  "descargar_tropomi.py --desde $DESDE --hasta $HASTA --contaminantes no2"
+  "descargar_merra2_meteo.py --desde $DESDE --hasta $HASTA --espacio-minimo-gb $MIN_GB_LIBRES"
+  "descargar_tropomi.py --desde $DESDE --hasta $HASTA --contaminantes no2,o3,so2,co"
+  "descargar_omi_l2.py --desde $DESDE --hasta $HASTA --contaminantes no2,so2,o3"
+  "descargar_mopitt_l2.py --desde $DESDE --hasta $HASTA"
   "descargar_maiac_aod.py --desde $DESDE --hasta $HASTA"
   "descargar_modis_aod.py --desde $DESDE --hasta $HASTA"
+  "descargar_dmsp_len.py --desde $DESDE --hasta $HASTA --min-gb-libres $MIN_GB_LIBRES"
+  "descargar_nightlights.py --producto daily --desde $DESDE --hasta $HASTA --min-gb-libres $MIN_GB_LIBRES"
+  "descargar_goes_abi_aod.py --desde $DESDE --hasta $HASTA --cadencia ${GOES_ABI_CADENCIA:-nativa} --min-gb-libres $MIN_GB_LIBRES"
+  "descargar_lulc_esa_cci.py --desde 2000 --hasta 2022 --fuente cds --min-gb-libres $MIN_GB_LIBRES"
+  "descargar_topografia_nasadem.py --min-gb-libres $MIN_GB_LIBRES"
 )
 
 NOMBRES=(); ESTADOS=()
 for i in "${!FUENTES[@]}"; do
-  NOMBRES[$i]="${FUENTES[$i]%% *}"
+  ruta_script="${FUENTES[$i]%% *}"
+  NOMBRES[$i]="$(basename "$ruta_script")"
   ESTADOS[$i]="· pendiente"
 done
 
@@ -87,7 +101,7 @@ escribir_resumen() {
   } > "$RESUMEN.tmp" && mv "$RESUMEN.tmp" "$RESUMEN"
 }
 
-gb_libres() { df -g "$LOGDIR" | awk 'NR==2{print $4}'; }
+gb_libres() { df -g "$DATA_DISK_TARGET" | awk 'NR==2{print $4}'; }
 
 hay_que_detener() {
   if [ -e "$LOGDIR/DETENER" ]; then

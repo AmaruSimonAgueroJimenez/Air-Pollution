@@ -1,0 +1,10 @@
+{
+ "contaminante": "co",
+ "n_dias": 68560,
+ "r2_pearson": 0.809,
+ "r2_clasico": 0.7905,
+ "rmse": 0.265,
+ "ols_a": 0.16,
+ "ols_b": 0.69,
+ "m_origen": 0.828
+}

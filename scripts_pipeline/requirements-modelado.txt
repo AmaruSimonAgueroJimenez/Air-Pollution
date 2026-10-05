@@ -1,0 +1,19 @@
+# Entorno observado y probado: CPython 3.14.3, macOS, 2026-09-15.
+# No instala ni sustituye el entorno de los descargadores activos.
+# Los manifiestos registran además bibliotecas nativas y/o hashes de zona horaria.
+numpy==2.4.3
+pandas==2.3.3
+pyarrow==23.0.1
+xarray==2026.4.0
+netCDF4==1.7.4
+cftime==1.6.5
+geopandas==1.1.3
+shapely==2.1.2
+pyproj==3.7.2
+pyogrio==0.12.1
+packaging==26.0
+python-dateutil==2.9.0.post0
+pytz==2026.2
+tzdata==2025.3
+six==1.17.0
+certifi==2026.2.25

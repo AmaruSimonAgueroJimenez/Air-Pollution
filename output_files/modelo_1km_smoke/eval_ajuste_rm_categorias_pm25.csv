@@ -1,0 +1,5 @@
+criterio,n días,prevalencia obs %,acuerdo exacto %,kappa,kappa ponderado,sensibilidad %,especificidad %,valor predictivo + %,CSI,sesgo de frecuencia
+5 categorías,70,,100.0,,,,,,,
+≥ 15 µg/m³ (guía OMS 24 h),70,75.71428571428571,92.85714285714286,0.7933884297520662,,98.11320754716981,76.47058823529412,92.85714285714286,0.9122807017543859,1.0566037735849056
+≥ 50 µg/m³ (norma 24 h D.S. 12),70,0.0,100.0,,,,100.0,,,
+≥ 80 µg/m³ (alerta),70,0.0,100.0,,,,100.0,,,

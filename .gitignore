@@ -31,18 +31,14 @@ vignettes/*.pdf
 # Se REGENERAN con scripts_pipeline/ y scripts_superficie/, o se
 # comparten aparte (Zenodo/Drive). Se CONSERVAN resultados chicos + figuras.
 # ============================================================
-# data/* y no data/ : con la barra git ni siquiera entra al directorio y las
-# excepciones de abajo no se aplicarían.
-data/*
+# Todo ``data`` se regenera o vive en el disco externo (puede ser un symlink).
+# Los catálogos pequeños indispensables están fuera, en config/sinca/.
+/data
 papers/
 tesis/
 
-# ... salvo los INSUMOS chicos de configuración, sin los cuales el pipeline no
-# corre (no son datos descargados, son entradas del repo).
-!data/sinca/
-data/sinca/*
-!data/sinca/config_sinca_estaciones.json
-!data/sinca/estaciones.csv
+# Los insumos chicos necesarios para reproducir SINCA viven versionados en
+# config/sinca/. ``data`` puede ser un enlace al disco externo sin ocultarlos.
 
 # Bitácoras de ejecución y basura de trabajo (se regeneran solas)
 logs/
@@ -72,3 +68,20 @@ __pycache__/
 **/.DS_Store
 .ipynb_checkpoints/
 **/.ipynb_checkpoints/
+
+# El informe del modelo en HTML (docs/modelo_1km_horario.html) se versiona: con sus figuras incrustadas en
+# paleta de 256 colores (others_scripts/aligerar_html.py) queda bajo 50 MB. Subproductos de LaTeX de un render a PDF.
+docs/*.aux
+docs/*.log
+docs/*.toc
+
+# Copias de conflicto de Google Drive (archivos vacíos "nombre 2.png")
+* 2.png
+
+# Bitácoras de corrida del modelo: llevan rutas locales absolutas (con la cuenta de Google Drive). Quedan sólo
+# en disco; el estado de cada corrida está en los JSON y CSV de output_files/modelo_1km.
+output_files/**/*.log
+# Renders antiguos del informe (19-09), superados por docs/modelo_1km_horario.html, y un registro de prueba con
+# rutas locales. Quedan en disco y en el repositorio privado Air-Pollution-Health-Chile.
+others_files/20260919_informe_modelo_1km_*.html
+others_files/20260915_prueba_preparar_sinca_modelado.json

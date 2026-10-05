@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Air-Pollution · documentos</title>
+<style>
+:root { --fondo:#fcfcfb; --texto:#1d1d1b; --tenue:#6b6b66; --linea:#e3e2dd; --enlace:#1f5fa8; --codigo:#f1f0ec; }
+@media (prefers-color-scheme: dark) { :root { --fondo:#161716; --texto:#e9e8e3; --tenue:#a3a29b; --linea:#30312e; --enlace:#8ab8f0; --codigo:#232422; } }
+body { background:var(--fondo); color:var(--texto); font:16px/1.55 Arial, "Helvetica Neue", Helvetica, sans-serif;
+       max-width:54rem; margin:0 auto; padding:2rem 1rem 4rem; }
+h1 { font-size:1.6rem; margin:0 0 .3rem; } h2 { font-size:1.1rem; margin:2.2rem 0 .6rem; padding-bottom:.3rem; border-bottom:1px solid var(--linea); }
+p.s { color:var(--tenue); margin:0 0 1rem; } ul { list-style:none; padding:0; margin:0; }
+li { padding:.55rem 0; border-bottom:1px solid var(--linea); overflow-wrap:anywhere; }
+a { color:var(--enlace); font-weight:600; text-decoration:none; } a:hover { text-decoration:underline; }
+code { background:var(--codigo); padding:.05rem .3rem; border-radius:3px; font-size:.8rem; color:var(--tenue); }
+.m { color:var(--tenue); font-size:.8rem; margin-left:.4rem; white-space:nowrap; } .d { display:block; color:var(--tenue); font-size:.9rem; margin-top:.15rem; }
+</style></head><body>
+<h1>Air-Pollution · documentos</h1>
+<p class="s">Estimación multi-contaminante de la calidad del aire en Chile. Índice generado el 2026-10-05 01:05
+con <code>others_scripts/generar_indice_docs.py</code>.</p>
+<h2>Modelos vigentes</h2><ul><li><a href='modelo_1km_horario.html'>Informe: modelo horario de PM₂.₅ y NO₂ a 1 km</a> <code>modelo_1km_horario.html</code><span class='m'>36.0 MB · 2026-10-05</span><span class='d'>Descriptivo SINCA, descriptivo de todas las fuentes a resolución nativa, LightGBM con validación LOSO/LRO/LPO, comparación con GWR y regression-kriging, evaluación espacial y temporal, superficies.</span></li><li><a href='modelo_1km_horario.qmd'>Fuente del informe (Quarto)</a> <code>modelo_1km_horario.qmd</code><span class='m'>402 KB · 2026-10-05</span><span class='d'>Documento ejecutable donde vive el modelo; su librería, contrato, estado y resultados están en scripts_modelo_1km/ (README.md).</span></li></ul>
+<h2>Material antiguo</h2>
+<p class="s"><a href="../others_files/README.md">others_files/</a>, 17 archivos con código de fecha
+(<code>AAAAMMDD_tipo_nombre</code>): informes reemplazados, notas y scripts que ya no están en uso.</p>
+<h2>Notas del pipeline de datos que todavía no se pueden archivar</h2>
+<p class="s">No son caché: son la evidencia y los contratos de las descargas. Los ciclos del pipeline las comprueban
+en esta carpeta por ruta y por hash, así que moverlas ahora rompería su verificación. Se archivan solas, con
+<code>generar_indice_docs.py --archivar</code>, cuando dejan de citarse.</p><ul><li><a href='_tablas_compactas.tex'>_tablas_compactas.tex</a> <code>_tablas_compactas.tex</code><span class='m'>1 KB · 2026-10-05</span><span class='d'>Sigue aquí: modificada hace 1 h.</span></li></ul>
+</body></html>

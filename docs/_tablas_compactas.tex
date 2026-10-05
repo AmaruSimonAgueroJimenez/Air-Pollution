@@ -1,0 +1,12 @@
+% Tablas compactas para los informes con tablas largas (se escribió para los listados de trabajo del
+% muestreo, que viven en Air-Pollution-Health-Chile; quedó embebida en el PDF del informe del modelo).
+% Con el cuerpo del documento a tamaño normal las tablas largas ocupaban el doble de páginas.
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\scriptsize}
+\AtBeginEnvironment{tabular}{\scriptsize}
+\AtBeginEnvironment{tabularx}{\scriptsize}
+\setlength{\tabcolsep}{3.5pt}      % menos aire entre columnas (por defecto 6pt)
+\renewcommand{\arraystretch}{0.9}  % filas más juntas
+% El pie de tabla también baja de tamaño, para que no pese más que la tabla que describe.
+\usepackage{caption}
+\captionsetup[table]{font=footnotesize, skip=3pt}

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Video de avance N.º 2 (revisión de literatura) sobre la plantilla UC."""
+"""Video de avance N.º 2, reconstruido según el feedback del video 1
+(S. Contreras): narrativa ordenada, brecha cuantificada, conceptos definidos,
+estado del arte chileno, hipótesis explicada, problema predictivo y validación
+por escenarios. Menos cajas, más tablas y figuras."""
 
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -29,25 +32,27 @@ F = 'Calibri'
 A = lambda p: f'/home/claude/airppt/assets/{p}'
 
 REFS = {
-  'vand':   'van Donkelaar A. et al. Monthly global estimates of fine particulate matter and their uncertainty. Environ. Sci. Technol. 55 (2021). doi:10.1021/acs.est.1c05309',
   'vd16':   'van Donkelaar A. et al. Global estimates of fine particulate matter using a combined geophysical-statistical method with information from satellites, models, and monitors. Environ. Sci. Technol. 50 (2016). doi:10.1021/acs.est.5b05833',
+  'vand':   'van Donkelaar A. et al. Monthly global estimates of fine particulate matter and their uncertainty. Environ. Sci. Technol. 55 (2021). doi:10.1021/acs.est.1c05309',
   'di19':   'Di Q. et al. An ensemble-based model of PM2.5 concentration across the contiguous United States with high spatiotemporal resolution. Environment International (2019). doi:10.1016/j.envint.2019.104909',
-  'villa':  'Villalobos A.M. et al. Wood burning pollution in southern Chile: PM2.5 source apportionment using CMB and molecular markers. Environmental Pollution 225 (2017). doi:10.1016/j.envpol.2017.02.069',
-  'barraza':'Barraza F. et al. Temporal evolution of main ambient PM2.5 sources in Santiago, Chile, 1998–2012. Atmos. Chem. Phys. 17 (2017). doi:10.5194/acp-17-10093-2017',
   'larkin': 'Larkin A. et al. Global land use regression model for nitrogen dioxide air pollution. Environ. Sci. Technol. 51 (2017). doi:10.1021/acs.est.7b01148',
   'wei':    'Wei J. et al. Ground-level NO2 surveillance from space across China using interpretable spatiotemporally weighted artificial intelligence. Environ. Sci. Technol. 56 (2022). doi:10.1021/acs.est.2c03834',
-  'anen':   'Anenberg S.C. et al. Long-term trends in urban NO2 concentrations and associated paediatric asthma incidence. The Lancet Planetary Health 6 (2022). doi:10.1016/S2542-5196(21)00255-2',
-  'turner': 'Turner M.C. et al. Long-term ozone exposure and mortality in a large prospective study. Am. J. Respir. Crit. Care Med. 193 (2016). doi:10.1164/rccm.201508-1633OC',
   'wei23':  'Wei J. et al. Ground-level gaseous pollutants (NO2, SO2, and CO) in China: daily seamless mapping and spatiotemporal variations. Atmos. Chem. Phys. 23, 1511–1532 (2023). doi:10.5194/acp-23-1511-2023',
-  'theys':  'Theys N. et al. Sulfur dioxide retrievals from TROPOMI onboard Sentinel-5 Precursor: algorithm theoretical basis. Atmos. Meas. Tech. 10, 119–153 (2017). doi:10.5194/amt-10-119-2017',
-  'mopitt': 'Deeter M.N. et al. The MOPITT Version 9 CO product. Atmos. Meas. Tech. 15 (2022). doi:10.5194/amt-15-2325-2022',
   'hoek':   'Hoek G. et al. A review of land-use regression models to assess spatial variation of outdoor air pollution. Atmospheric Environment 42 (2008). doi:10.1016/j.atmosenv.2008.05.057',
-  'cams':   'Inness A. et al. The CAMS reanalysis of atmospheric composition. Atmos. Chem. Phys. 19 (2019). doi:10.5194/acp-19-3515-2019',
-  'geoscf': 'Keller C.A. et al. Description of the NASA GEOS-CF v1.0. J. Adv. Model. Earth Syst. 13 (2021). doi:10.1029/2020MS002413',
+  'perez00':'Pérez P. et al. Prediction of PM2.5 concentrations several hours in advance using neural networks in Santiago, Chile. Atmospheric Environment 34 (2000). doi:10.1016/S1352-2310(99)00316-7',
+  'perez16':'Pérez P. y Gramsch E. Forecasting hourly PM2.5 in Santiago de Chile with emphasis on night episodes. Atmospheric Environment 124 (2016). doi:10.1016/j.atmosenv.2015.11.016',
+  'menares':'Menares C. et al. Forecasting PM2.5 levels in Santiago de Chile using deep learning neural networks. Urban Climate 38 (2021). doi:10.1016/j.uclim.2021.100906',
+  'peralta':'Peralta B. et al. Space-time prediction of PM2.5 concentrations in Santiago de Chile using LSTM networks. Applied Sciences 12, 11317 (2022). doi:10.3390/app122211317',
+  'perez20':'Pérez P. y Menares C. PM2.5 forecasting in Coyhaique, the most polluted city in the Americas. Urban Climate 32 (2020). doi:10.1016/j.uclim.2020.100608',
+  'escrib': 'Escribano J. et al. Satellite retrievals of aerosol optical depth over a subtropical urban area: the role of stratification and surface reflectance. Aerosol and Air Quality Research 14 (2014). doi:10.4209/aaqr.2013.03.0082',
+  'villa':  'Villalobos A.M. et al. Wood burning pollution in southern Chile: PM2.5 source apportionment using CMB and molecular markers. Environmental Pollution 225 (2017). doi:10.1016/j.envpol.2017.02.069',
+  'barraza':'Barraza F. et al. Temporal evolution of main ambient PM2.5 sources in Santiago, Chile, 1998–2012. Atmos. Chem. Phys. 17 (2017). doi:10.5194/acp-17-10093-2017',
 }
 SUP = ['¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹']
 
-prs = Presentation('base.pptx')
+prs = Presentation('base11.pptx')
+_sldIdLst = prs.slides._sldIdLst
+_sldIdLst.remove(list(_sldIdLst)[9])  # sin diapositiva de síntesis: 10 en total
 S = prs.slides
 
 
@@ -73,19 +78,6 @@ def box(slide, x, y, w, h, fill, line=None, radius=0.10):
     no_shadow(sp)
     sp.text_frame.paragraphs[0].text = ''
     return sp
-
-
-def oval(slide, x, y, d, fill):
-    sp = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(x), Inches(y), Inches(d), Inches(d))
-    sp.fill.solid(); sp.fill.fore_color.rgb = fill
-    no_line(sp); no_shadow(sp)
-    return sp
-
-
-def icono(slide, name, x, y, d, circ):
-    oval(slide, x, y, d, circ)
-    pad = d * 0.24
-    slide.shapes.add_picture(A(f'icons/{name}_w.png'), Inches(x + pad), Inches(y + pad), Inches(d - 2 * pad), Inches(d - 2 * pad))
 
 
 def text(slide, x, y, w, h, runs, size=10, color=INK, bold=False, align=PP_ALIGN.LEFT,
@@ -134,7 +126,7 @@ def bullets(slide, x, y, w, h, items, size=9, color=INK2, gap=4, leading=1.0):
     return tb
 
 
-def footnotes(slide, keys, y, w=7.05, x=0.5, size=6.2, two_cols=False):
+def footnotes(slide, keys, y, w=9.0, x=0.5, size=6.0, two_cols=False):
     def block(ks, sup0, bx, bw):
         paras = [[(f'{SUP[sup0 + i]} {REFS[k]}', {})] for i, k in enumerate(ks)]
         text(slide, bx, y, bw, 5.35 - y, paras, size=size, color=MUTED, leading=1.0, space_after=1)
@@ -174,7 +166,7 @@ for ph in s.placeholders:
         tf = ph.text_frame; tf.word_wrap = True
         p = tf.paragraphs[0]
         p.alignment = PP_ALIGN.LEFT
-        r = p.add_run(); r.text = 'Revisión de literatura: estimar la calidad del aire desde el espacio'
+        r = p.add_run(); r.text = 'Estimación multi-contaminante de la calidad del aire en Chile'
         r.font.name = F; r.font.size = Pt(26); r.font.bold = True; r.font.color.rgb = DARK
     elif 'Subtítulo' in ph.name:
         ph.left = Inches(0.67); ph.width = Inches(8.5); ph.top = Inches(3.02); ph.height = Inches(1.2)
@@ -182,11 +174,11 @@ for ph in s.placeholders:
         p = tf.paragraphs[0]
         p.alignment = PP_ALIGN.LEFT
         r = p.add_run()
-        r.text = ('Qué se sabe, con qué métodos se ha hecho y qué brecha abordamos para estimar '
-                  'PM₂.₅ · PM₁₀ · NO₂ · O₃ · SO₂ · CO en todo Chile, validado contra la red SINCA')
+        r.text = ('El problema ordenado, la brecha de monitoreo cuantificada con la red SINCA y lo que dicen '
+                  'la literatura internacional y chilena para estimar PM₂.₅ · PM₁₀ · NO₂ · O₃ · SO₂ · CO')
         r.font.name = F; r.font.size = Pt(13); r.font.color.rgb = INK2
-text(s, 0.67, 1.30, 8.5, 0.3, [( 'ACTIVIDAD FINAL DE GRADUACIÓN 1  ·  MDS3050  ·  VIDEO DE AVANCE N.º 2: REVISIÓN DE LITERATURA', {})],
-     size=10.5, color=UCBLUE, bold=True)
+text(s, 0.67, 1.30, 8.5, 0.3, [( 'ACTIVIDAD FINAL DE GRADUACIÓN 1  ·  MDS3050  ·  VIDEO DE AVANCE N.º 2: DEFINICIÓN DEL PROBLEMA + TRABAJOS RELACIONADOS', {})],
+     size=9.5, color=UCBLUE, bold=True)
 equipo = ['José Jesús Romero Fuenmayor', 'Roberto Ignacio Ávila Escobar',
           'Amaru Simón Agüero Jiménez', 'Esteban Adolfo González Rodríguez']
 for i, n in enumerate(equipo):
@@ -197,111 +189,105 @@ for i, n in enumerate(equipo):
 text(s, 0.67, 4.88, 8.5, 0.26, 'Equipo 2 (Team2)  ·  agosto de 2026', size=9.5, color=MUTED)
 
 # =====================================================================
-# S1: cómo hicimos la revisión
+# S1: el problema, ordenado (narrativa del feedback)
 # =====================================================================
 s = S[1]
-set_title(s, 'Cómo hicimos la revisión: método antes que lista de papers')
+set_title(s, 'El problema: de la contaminación a la propuesta', size=19)
 drop_content_placeholders(s)
-pasos = [
-    ('Búsqueda por palabras clave', 'Google Scholar, Scopus y Web of Science; términos en inglés por contaminante: satellite, surface estimation, LUR, machine learning', 'explore', NAVY),
-    ('Criterios de inclusión', 'trabajos 2000+; estimación de superficies con validación contra estaciones; guías OMS y normas como literatura oficial', 'checklist', UCBLUE),
-    ('Citation chaining', 'desde los trabajos ancla, hacia atrás (sus referencias) y hacia adelante (quién los cita hoy)', 'science', AQUA),
-    ('Síntesis y gestión', 'matriz contaminante × método; bibliografía en formato APA consolidada en el repositorio', 'storage', ORANGE),
+cadena = ['Contaminación atmosférica', 'Necesidad de conocer la exposición', 'Red de monitoreo SINCA',
+          'Brecha de cobertura', 'Brecha de información', 'Propuesta de Ciencia de Datos']
+bw, gap = 1.34, 0.192
+for i, t in enumerate(cadena):
+    x = 0.5 + i * (bw + gap)
+    fill = DARK if i == len(cadena) - 1 else CARD
+    col = WHITE if i == len(cadena) - 1 else NAVY
+    box(s, x, 1.30, bw, 0.78, fill, radius=0.14)
+    text(s, x + 0.06, 1.30, bw - 0.12, 0.78, t, size=8.2, bold=True, color=col,
+         align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE, leading=0.9)
+    if i < len(cadena) - 1:
+        text(s, x + bw - 0.015, 1.30, gap + 0.03, 0.78, '→', size=12, bold=True, color=UCBLUE,
+             align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
+sep = [
+    ('El problema', 'Existen lugares y horas donde no conocemos directamente la concentración de ciertos contaminantes.'),
+    ('Por qué importa', 'La contaminación tiene efectos sobre la salud, el ambiente y la toma de decisiones públicas.'),
+    ('Por qué ocurre', 'Distribución de las estaciones, fuentes de emisión, características del territorio y meteorología.'),
 ]
-for i, (t, d, ic, c) in enumerate(pasos):
-    x = 0.5 + i * 2.32
-    box(s, x, 1.22, 2.20, 2.44, CARD)
-    icono(s, ic, x + 0.14, 1.36, 0.42, c)
-    text(s, x + 0.64, 1.34, 1.5, 0.5, t, size=9.5, bold=True, color=c, anchor=MSO_ANCHOR.MIDDLE, leading=0.9)
-    text(s, x + 0.16, 2.02, 1.9, 1.55, d, size=7.9, color=INK2, leading=0.98)
-box(s, 0.5, 3.86, 9.0, 0.62, ICE)
-text(s, 0.68, 3.94, 8.65, 0.5,
-     [(('Estructura elegida: '), {'bold': True, 'color': NAVY}),
-      (('por tema (cada contaminante) y por metodología, dos de las formas recomendadas en la sesión '
-        'sincrónica del curso. La revisión busca qué se sabe, cómo se llegó y qué no se sabe.'), {'color': INK2})],
-     size=9.2, leading=1.0)
-text(s, 0.5, 4.62, 9.0, 0.3, 'Todas las referencias citadas en esta presentación tienen DOI o ISBN verificado y están en la bibliografía del repositorio.',
-     size=8.2, color=MUTED)
+for i, (t, d) in enumerate(sep):
+    x = 0.5 + i * 3.07
+    box(s, x, 2.42, 2.93, 1.22, WHITE, line=BORDER)
+    text(s, x + 0.16, 2.54, 2.6, 0.24, t, size=10, bold=True, color=UCBLUE)
+    text(s, x + 0.16, 2.82, 2.6, 0.76, d, size=8.6, color=INK2, leading=1.0)
+box(s, 0.5, 3.90, 9.0, 0.66, ICE)
+text(s, 0.68, 3.99, 8.65, 0.5,
+     [(('Alcance: '), {'bold': True, 'color': NAVY}),
+      (('el proyecto no busca resolver las fuentes de contaminación; busca estimar concentraciones en '
+        'lugares y momentos donde no existe una medición directa, usando las estaciones como mediciones '
+        'de referencia para entrenar y validar.'), {'color': INK2})],
+     size=9.4, leading=1.0)
 
 # =====================================================================
-# S2: qué se sabe PM2.5
+# S2: conceptos clave
 # =====================================================================
 s = S[2]
-set_title(s, 'Qué se sabe (1): PM₂.₅ es el contaminante mejor resuelto', size=19)
+set_title(s, 'Conceptos clave en 30 segundos')
 drop_content_placeholders(s)
-cards = [
-    ('Global, mensual y con incertidumbre', 'van Donkelaar 2021 · ACAG', 'Estimaciones globales de PM₂.₅ combinando satélite, modelo químico y estaciones; es la base del producto de superficie que usamos.¹'),
-    ('El salto: híbrido geofísico + estadístico', 'van Donkelaar 2016', 'AOD satelital + GEOS-Chem, corregido con regresión geográficamente ponderada contra estaciones: R² 0.81 en validación cruzada global.²'),
-    ('Ensambles de aprendizaje automático', 'Di 2019', 'EE. UU. a 1 km y resolución diaria con un ensamble de redes neuronales, boosting y bosques aleatorios: el estándar de ingeniería actual.³'),
-    ('Chile: composición y fuentes locales', 'Villalobos 2017 · Barraza 2017', 'La leña domina el PM₂.₅ invernal del centro-sur⁴ y las fuentes de Santiago evolucionaron durante 15 años⁵: contexto para interpretar nuestras superficies.'),
+defs = [
+    ('SINCA', 'Sistema de Información Nacional de Calidad del Aire (MMA): concentra la información de las estaciones que monitorean el aire en Chile.'),
+    ('Contaminante normado', 'Contaminante con norma de calidad ambiental vigente en Chile, es decir, con límites legales de concentración.'),
+    ('Reanálisis', 'Reconstrucción retrospectiva de la atmósfera que combina un modelo físico con observaciones históricas (p. ej. CAMS, MERRA-2).'),
+    ('Columna satelital', 'Cantidad total de un gas en la vertical que observa el satélite; no es la concentración a nivel de superficie.'),
+    ('Nivel L2 / L3', 'L2: producto por pasada del satélite, en su grilla original. L3: producto regrillado y agregado en el tiempo, listo para análisis.'),
+    ('Mediciones de referencia', 'Observaciones de las estaciones de monitoreo que se usan para entrenar los modelos y evaluar su desempeño.'),
 ]
-for i, (t, tag, d) in enumerate(cards):
-    col, row = i % 2, i // 2
-    x, y = 0.5 + col * 4.62, 1.22 + row * 1.38
-    box(s, x, y, 4.38, 1.24, CARD)
-    text(s, x + 0.16, y + 0.10, 2.55, 0.4, t, size=9.8, bold=True, color=NAVY, leading=0.9)
-    box(s, x + 2.72, y + 0.10, 1.52, 0.24, ICE, radius=0.3)
-    text(s, x + 2.72, y + 0.10, 1.52, 0.24, tag, size=6.2, bold=True, color=NAVY,
-         align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE)
-    text(s, x + 0.16, y + 0.48, 4.06, 0.72, d, size=8.0, color=INK2, leading=0.95)
-text(s, 0.5, 4.06, 9.0, 0.3,
-     [(('La receta madura: '), {'bold': True, 'color': NAVY}),
-      (('AOD satelital + modelo químico + predictores locales + calibración contra estaciones.'), {'color': INK2})],
-     size=9.3)
-footnotes(s, ['vand', 'vd16', 'di19', 'villa', 'barraza'], y=4.42)
+for i, (t, d) in enumerate(defs):
+    col, row = i % 3, i // 3
+    x, y = 0.5 + col * 3.07, 1.30 + row * 1.62
+    box(s, x, y, 2.93, 1.48, CARD)
+    text(s, x + 0.16, y + 0.12, 2.6, 0.26, t, size=10.5, bold=True, color=NAVY)
+    text(s, x + 0.16, y + 0.42, 2.62, 1.0, d, size=8.2, color=INK2, leading=0.98)
 
 # =====================================================================
-# S3: qué se sabe gases
+# S3: la brecha cuantificada
 # =====================================================================
 s = S[3]
-set_title(s, 'Qué se sabe (2): los gases van una década más atrás', size=19)
+set_title(s, 'La brecha de monitoreo: qué cubre la red SINCA', size=19)
 drop_content_placeholders(s)
-box(s, 0.5, 1.22, 4.42, 2.60, CARD)
-text(s, 0.68, 1.34, 4.1, 0.26, 'NO₂ y O₃: el camino ya está trazado', size=10.5, bold=True, color=UCBLUE)
-bullets(s, 0.68, 1.68, 4.06, 2.0, [
-    'LUR global de NO₂ anual: el precedente de escalar un gas a todo el planeta¹',
-    'NO₂ diario sin huecos para China con IA espaciotemporal interpretable²',
-    'Las superficies alimentan decisiones: asma pediátrica por NO₂³ y mortalidad por O₃ de largo plazo⁴',
-], size=8.4, gap=5, leading=0.98)
-box(s, 5.08, 1.22, 4.42, 2.60, CREAM, line=ORANGE)
-text(s, 5.26, 1.34, 4.1, 0.26, 'SO₂ y CO: los menos estudiados', size=10.5, bold=True, color=ORANGE)
-bullets(s, 5.26, 1.68, 4.06, 2.0, [
-    'Primer mapeo diario y sin huecos de NO₂, SO₂ y CO para China recién en 2023⁵',
-    'La base instrumental existe: algoritmo SO₂ de TROPOMI⁶ y 20+ años de CO desde MOPITT⁷',
-    'Fuera de estación el desempeño cae a R² 0.6 a 0.7⁵: medir esa caída importa',
-], size=8.4, gap=5, leading=0.98)
-box(s, 0.5, 4.00, 9.0, 0.44, ICE)
-text(s, 0.68, 4.06, 8.65, 0.32,
-     [(('Patrón geográfico: '), {'bold': True, 'color': NAVY}),
-      (('casi toda esta literatura se concentra en China, EE. UU. y Europa; Sudamérica no tiene un producto propio equivalente.'), {'color': INK2})],
-     size=9.2)
-footnotes(s, ['larkin', 'wei', 'anen', 'turner', 'wei23', 'theys', 'mopitt'], y=4.50, size=5.9, two_cols=True)
+text(s, 0.5, 1.20, 9.0, 0.35,
+     [(('284 de las 345 comunas no tienen ninguna estación; '), {'bold': True, 'color': NAVY}),
+      (('y para los gases la red efectiva es cerca de la mitad que para el material particulado.'), {'color': INK2})],
+     size=11)
+from PIL import Image
+iw, ih = Image.open(A('brecha_sinca.png')).size
+ar = iw / ih
+y0 = 1.62
+w = min(9.2, (5.10 - y0) * ar)
+h = w / ar
+s.shapes.add_picture(A('brecha_sinca.png'), Inches((10 - w) / 2), Inches(y0), Inches(w), Inches(h))
 
 # =====================================================================
-# S4: metodologías
+# S4: qué se ha hecho afuera
 # =====================================================================
 s = S[4]
-set_title(s, 'Cómo se ha hecho: cuatro familias de métodos', size=19)
+set_title(s, 'Trabajos relacionados (1): estado del arte internacional', size=19)
 drop_content_placeholders(s)
 rows = [
-    ['Familia', 'Idea central', 'Ejemplos verificados'],
-    ['Regresión de uso de suelo (LUR)', 'predictores de suelo, vías y población explican el gradiente espacial', 'Hoek 2008 (revisión canónica)¹ · Larkin 2017²'],
-    ['Geoestadística y GWR', 'coeficientes que varían en el espacio; kriging de residuos', 'van Donkelaar 2016³'],
-    ['Aprendizaje automático', 'boosting, bosques y ensambles espaciotemporales', 'Di 2019⁴ · Wei 2022⁵ · Wei 2023⁶'],
-    ['Híbridos físico-estadísticos', 'modelo químico + satélite + corrección con estaciones', 'van Donkelaar 2016³ y 2021⁷ · CAMS⁸ / GEOS-CF⁹ como insumo'],
+    ['Contaminante', 'Qué existe hoy', 'Desempeño reportado'],
+    ['PM₂.₅', 'Superficies globales mensuales con incertidumbre¹ ² y EE. UU. diario a 1 km con ensambles de aprendizaje automático³', 'R² 0.81 en validación cruzada global²'],
+    ['NO₂ y O₃', 'Regresión de uso de suelo global⁴ y productos diarios sin huecos para China con IA espaciotemporal⁵', 'R² ≈ 0.84 diario en CV⁶'],
+    ['SO₂ y CO', 'Los menos estudiados: el primer mapeo diario continuo (China) apareció recién en 2023⁶', 'R² 0.80 a 0.84 en CV; 0.61 a 0.70 fuera de estación⁶'],
 ]
-tw = [2.30, 3.45, 3.25]
-tbl_shape = s.shapes.add_table(5, 3, Inches(0.5), Inches(1.22), Inches(9.0), Inches(2.10))
+tw = [1.30, 5.10, 2.60]
+tbl_shape = s.shapes.add_table(4, 3, Inches(0.5), Inches(1.24), Inches(9.0), Inches(2.20))
 tbl = tbl_shape.table
 tbl.first_row = True; tbl.horz_banding = True
 for j, wcol in enumerate(tw):
     tbl.columns[j].width = Inches(wcol)
-for i in range(5):
-    tbl.rows[i].height = Inches(0.40 if i else 0.30)
+for i in range(4):
+    tbl.rows[i].height = Inches(0.34 if i == 0 else 0.60)
     for j in range(3):
         c = tbl.cell(i, j)
         c.margin_left = Inches(0.07); c.margin_right = Inches(0.05)
-        c.margin_top = Inches(0.02); c.margin_bottom = Inches(0.02)
+        c.margin_top = Inches(0.03); c.margin_bottom = Inches(0.03)
         c.vertical_anchor = MSO_ANCHOR.MIDDLE
         p = c.text_frame.paragraphs[0]
         r = p.add_run(); r.text = rows[i][j]
@@ -314,110 +300,167 @@ for i in range(5):
             r.font.bold = (j == 0)
             c.fill.solid()
             c.fill.fore_color.rgb = CARD if i % 2 == 0 else WHITE
-box(s, 0.5, 3.56, 9.0, 0.50, ICE)
-text(s, 0.68, 3.63, 8.65, 0.38,
-     [(('Validación estándar del área: '), {'bold': True, 'color': NAVY}),
-      (('cross-validation espacial dejando estaciones fuera. Nuestra elección de LOSO y de los motores GWR, '
-        'boosting y kriging sale directamente de estas cuatro familias.'), {'color': INK2})],
+box(s, 0.5, 3.70, 9.0, 0.60, ICE)
+text(s, 0.68, 3.78, 8.65, 0.46,
+     [(('Cuatro familias de métodos se repiten: '), {'bold': True, 'color': NAVY}),
+      (('regresión de uso de suelo⁷, geoestadística (GWR y kriging)², aprendizaje automático³ ⁵ e híbridos '
+        'físico-estadísticos¹ ². La validación estándar es espacial, dejando estaciones fuera.'), {'color': INK2})],
      size=9.0, leading=0.98)
-footnotes(s, ['hoek', 'larkin', 'vd16', 'di19', 'wei', 'wei23', 'vand', 'cams', 'geoscf'], y=4.22, two_cols=True)
+footnotes(s, ['vd16', 'vand', 'di19', 'larkin', 'wei', 'wei23', 'hoek'], y=4.44, size=5.9, two_cols=True)
 
 # =====================================================================
-# S5: brechas y posicionamiento
+# S5: qué se ha hecho en Chile
 # =====================================================================
 s = S[5]
-set_title(s, 'Qué no se sabe: brechas y nuestro posicionamiento', size=19)
+set_title(s, 'Trabajos relacionados (2): estado del arte en Chile', size=19)
 drop_content_placeholders(s)
-brechas = [
-    ('Cobertura geográfica', 'Hay productos multi-gas continuos para China, EE. UU. y Europa; para Chile y Sudamérica no existe un equivalente público y validado.', 'map'),
-    ('SO₂ y CO', 'Son los contaminantes menos modelados: el primer producto diario chino apareció recién en 2023.¹', 'warning'),
-    ('Redes ralas', 'Fuera de estación el R² cae a 0.6 a 0.7 incluso en China¹; las macrozonas extremas de Chile son justo ese caso difícil.', 'target'),
-    ('Resolución temporal', 'Predominan productos anuales o mensuales²; lo diario y horario es la frontera actual.³', 'calendar'),
+rows = [
+    ['Trabajo', 'Contaminante', 'Zona', 'Datos', 'Método', 'Principal limitación'],
+    ['Pérez 2000¹', 'PM₂.₅', 'Santiago', '1 estación, horario', 'red neuronal', 'pronóstico temporal en un punto'],
+    ['Pérez y Gramsch 2016²', 'PM₂.₅', 'Santiago', 'estaciones + meteorología', 'red neuronal', 'episodios nocturnos; sin superficie espacial'],
+    ['Menares 2021³', 'PM₂.₅', 'Santiago', '10 años, 3 zonas', 'LSTM / deep learning', 'solo zonas ya monitoreadas'],
+    ['Peralta 2022⁴', 'PM₂.₅', 'Santiago', '7 estaciones', 'LSTM espacio-temporal', 'R² cae de 0.74 (1 h) a 0.38 (24 h)'],
+    ['Pérez y Menares 2020⁵', 'PM₂.₅', 'Coyhaique', 'estaciones + meteorología', 'red neuronal', 'una ciudad; episodios de leña'],
+    ['Escribano 2014⁶', 'AOD · PM', 'Santiago', 'MODIS + AERONET', 'modelo físico simple', 'el AOD solo no basta como proxy en Santiago'],
+    ['Villalobos 2017⁷ · Barraza 2017⁸', 'PM₂.₅ (fuentes)', 'Temuco · Santiago', 'filtros, especiación', 'modelo receptor (CMB)', 'caracterizan fuentes; no estiman superficies'],
 ]
-for i, (t, d, ic) in enumerate(brechas):
-    y = 1.22 + i * 0.82
-    box(s, 0.5, y, 4.70, 0.72, CARD)
-    icono(s, ic, 0.62, y + 0.14, 0.44, NAVY)
-    text(s, 1.22, y + 0.07, 3.9, 0.22, t, size=9.3, bold=True, color=NAVY)
-    text(s, 1.22, y + 0.28, 3.86, 0.42, d, size=7.5, color=INK2, leading=0.92)
-box(s, 5.42, 1.22, 4.08, 3.28, DARK)
-text(s, 5.62, 1.38, 3.7, 0.3, 'NUESTRO POSICIONAMIENTO', size=10, bold=True, color=GOLD)
-text(s, 5.62, 1.74, 3.68, 2.65,
-     [[('Aplicar la receta madura de PM₂.₅ y la frontera de los gases al territorio chileno completo: ', {'color': WHITE}),
-       ('6 contaminantes, comuna × hora / día, 5 macrozonas', {'bold': True, 'color': WHITE}),
-       (', con SINCA como única verdad-terreno y validación LOSO por estación.', {'color': WHITE})],
-      [('El aporte es la superficie validada y reproducible; la validación epidemiológica queda '
-        'explícitamente fuera del alcance, según la recomendación docente.', {'color': LIGHTBLUE})]],
-     size=9.6, leading=1.04, space_after=8)
-footnotes(s, ['wei23', 'vand', 'wei'], y=4.62)
+tw = [1.72, 1.02, 0.92, 1.52, 1.42, 2.40]
+tbl_shape = s.shapes.add_table(8, 6, Inches(0.5), Inches(1.20), Inches(9.0), Inches(2.30))
+tbl = tbl_shape.table
+tbl.first_row = True; tbl.horz_banding = True
+for j, wcol in enumerate(tw):
+    tbl.columns[j].width = Inches(wcol)
+for i in range(8):
+    tbl.rows[i].height = Inches(0.30 if i == 0 else 0.27)
+    for j in range(6):
+        c = tbl.cell(i, j)
+        c.margin_left = Inches(0.05); c.margin_right = Inches(0.03)
+        c.margin_top = Inches(0.01); c.margin_bottom = Inches(0.01)
+        c.vertical_anchor = MSO_ANCHOR.MIDDLE
+        p = c.text_frame.paragraphs[0]
+        r = p.add_run(); r.text = rows[i][j]
+        r.font.name = F
+        if i == 0:
+            r.font.size = Pt(8.2); r.font.bold = True; r.font.color.rgb = WHITE
+            c.fill.solid(); c.fill.fore_color.rgb = NAVY
+        else:
+            r.font.size = Pt(7.2); r.font.color.rgb = INK
+            r.font.bold = (j == 0)
+            c.fill.solid()
+            c.fill.fore_color.rgb = CARD if i % 2 == 0 else WHITE
+box(s, 0.5, 3.72, 9.0, 0.62, DARK)
+text(s, 0.68, 3.80, 8.65, 0.48,
+     [(('La contribución: '), {'bold': True, 'color': GOLD}),
+      (('en Chile existen pronósticos temporales por estación y estudios de fuentes, pero no una superficie '
+        'espacial continua, multi-contaminante y validada para todo el territorio. Eso es lo que este proyecto cubre.'), {'color': WHITE})],
+     size=9.2, leading=0.98)
+footnotes(s, ['perez00', 'perez16', 'menares', 'peralta', 'perez20', 'escrib', 'villa', 'barraza'],
+          y=4.48, size=5.7, two_cols=True)
 
 # =====================================================================
-# S6: implicancias y líneas base
+# S6: hipótesis y tipo de problema
 # =====================================================================
 s = S[6]
-set_title(s, 'Qué implica para nuestro diseño: decisiones y líneas base', size=19)
+set_title(s, 'Hipótesis de trabajo y tipo de problema', size=19)
 drop_content_placeholders(s)
-imps = [
-    ('Predictores', 'AOD y columnas troposféricas + meteorología + uso de suelo, vías y luces nocturnas: el conjunto que la literatura repite en las cuatro familias.¹ ²', 'satellite', NAVY),
-    ('Validación', 'CV espacial por estación (LOSO) y reporte por macrozona, porque el desempeño se degrada lejos de la red de monitoreo.³', 'checklist', UCBLUE),
-    ('Motores', 'GWR², boosting³ y kriging cubren las tres familias estadísticas con mejor evidencia; los comparamos bajo el mismo panel.', 'science', AQUA),
+box(s, 0.5, 1.22, 4.42, 2.68, DARK)
+text(s, 0.70, 1.38, 4.0, 0.28, 'HIPÓTESIS DE TRABAJO', size=10, bold=True, color=GOLD)
+text(s, 0.70, 1.72, 4.02, 2.05,
+     [[('Las variables satelitales, meteorológicas, territoriales y de reanálisis contienen información '
+        'suficiente para estimar las concentraciones de superficie que observan las estaciones.', {'color': WHITE})],
+      [('Los objetivos dicen qué vamos a hacer; la hipótesis explica por qué creemos que el problema '
+        'puede resolverse con los datos disponibles.', {'color': LIGHTBLUE})]],
+     size=9.6, leading=1.05, space_after=8)
+box(s, 5.08, 1.22, 4.42, 2.68, CARD)
+text(s, 5.26, 1.34, 4.1, 0.26, 'El problema predictivo, bien definido', size=10.5, bold=True, color=NAVY)
+filas = [
+    ('Tipo', 'regresión espacio-temporal predictiva; no busca explicar causas ni evaluar intervenciones'),
+    ('Variable objetivo', 'concentración de superficie por contaminante'),
+    ('Unidad', 'µg/m³ (CO en mg/m³)'),
+    ('Resolución', 'comuna × hora y día, todo Chile, agregable por macrozona'),
+    ('Modelos', 'un modelo por contaminante; sin enfoque multiobjetivo'),
 ]
-for i, (t, d, ic, c) in enumerate(imps):
-    x = 0.5 + i * 3.07
-    box(s, x, 1.22, 2.93, 1.74, CARD)
-    icono(s, ic, x + 0.16, 1.36, 0.44, c)
-    text(s, x + 0.70, 1.38, 2.1, 0.4, t, size=10.5, bold=True, color=c, anchor=MSO_ANCHOR.MIDDLE)
-    text(s, x + 0.18, 1.94, 2.6, 0.95, d, size=7.9, color=INK2, leading=0.96)
-box(s, 0.5, 3.16, 9.0, 1.06, DARK)
-text(s, 0.70, 3.30, 8.6, 0.3, 'LÍNEAS BASE DE DESEMPEÑO QUE FIJA LA LITERATURA', size=9.5, bold=True, color=GOLD)
-text(s, 0.70, 3.62, 8.6, 0.5,
-     [[('PM₂.₅ global con GWR: R² 0.81 en validación cruzada.² ', {'color': WHITE}),
-       ('Gases diarios en China: R² 0.80 a 0.84 en CV y 0.61 a 0.70 fuera de estación.³ ', {'color': WHITE}),
-       ('Esa es la vara realista para evaluar nuestras superficies por contaminante y macrozona.', {'color': LIGHTBLUE})]],
-     size=9.3, leading=1.05)
-footnotes(s, ['hoek', 'vd16', 'wei23'], y=4.44)
+yy = 1.70
+for t, d in filas:
+    text(s, 5.26, yy, 1.35, 0.4, t, size=8.6, bold=True, color=UCBLUE)
+    text(s, 6.66, yy, 2.74, 0.44, d, size=8.2, color=INK2, leading=0.94)
+    yy += 0.435
+box(s, 0.5, 4.10, 9.0, 0.54, ICE)
+text(s, 0.68, 4.17, 8.65, 0.4,
+     [(('La secuencia completa del proyecto: '), {'bold': True, 'color': NAVY}),
+      (('problema → brecha → evidencia → hipótesis → objetivos → metodología.'), {'color': INK2})],
+     size=9.6)
 
 # =====================================================================
-# S7: semana 3
+# S7: validación por escenarios
 # =====================================================================
 s = S[7]
+set_title(s, 'Estrategia de validación por escenarios', size=19)
+drop_content_placeholders(s)
+box(s, 0.5, 1.22, 4.42, 2.55, WHITE, line=BORDER)
+text(s, 0.68, 1.34, 4.1, 0.26, 'El desafío: dependencia espacial y temporal', size=10, bold=True, color=ORANGE)
+bullets(s, 0.68, 1.68, 4.06, 2.0, [
+    'La contaminación no es independiente entre lugares: hay autocorrelación espacial',
+    'Horas consecutivas están fuertemente correlacionadas',
+    'La red SINCA no es uniforme: 3 regiones concentran la mitad de las estaciones',
+    'Mezclar observaciones cercanas infla las métricas',
+], size=8.6, gap=4, leading=0.98)
+box(s, 5.08, 1.22, 4.42, 2.55, CARD)
+text(s, 5.26, 1.34, 4.1, 0.26, 'Nuestra estrategia, por bloques', size=10, bold=True, color=AQUA)
+bullets(s, 5.26, 1.68, 4.06, 2.0, [
+    'LOSO (dejar una estación fuera) como primera aproximación',
+    'Bloques espaciales y macrozonas completas fuera',
+    'Bloques temporales y validación hacia adelante',
+    'Reporte de métricas por contaminante, estación y macrozona',
+], size=8.6, gap=4, leading=0.98)
+box(s, 0.5, 3.96, 9.0, 0.72, DARK)
+text(s, 0.70, 4.05, 8.6, 0.56,
+     [(('Cada métrica declarará su escenario: '), {'bold': True, 'color': GOLD}),
+      (('¿predice una nueva hora en una estación conocida, una estación nunca vista o un territorio donde '
+        'nunca hubo estación? Fuera de estación, la literatura reporta caídas a R² 0.6 a 0.7.¹'), {'color': WHITE})],
+     size=9.4, leading=1.0)
+footnotes(s, ['wei23'], y=4.86)
+
+# =====================================================================
+# S8: semana 3
+# =====================================================================
+s = S[8]
 set_title(s, 'Semana 3: qué hicimos, qué costó y qué viene')
 drop_content_placeholders(s)
 colsx = [
-    ('Objetivos de la semana', 'checklist', NAVY, [
-        'Revisar literatura por contaminante y por método',
-        'Fijar líneas base de desempeño realistas',
-        'Armar el marco para la defensa de tema']),
-    ('Tareas realizadas', 'download', UCBLUE, [
-        'Matriz contaminante × método con referencias verificadas (DOI)',
-        'Bibliografía APA del repositorio actualizada',
-        'Líneas base: R² 0.8+ en CV; 0.6 a 0.7 fuera de estación']),
-    ('Desafíos', 'warning', ORANGE, [
-        'Literatura de SO₂ y CO escasa a nivel global',
-        'Métricas no comparables entre estudios (CV muestral vs espacial)',
-        'Traducir resoluciones de 1 a 10 km a comunas heterogéneas']),
-    ('Próxima semana', 'calendar', AQUA, [
-        'Defensa de tema (semana 4): presentación formal del problema',
+    ('Objetivos de la semana', NAVY, [
+        'Profundizar la definición del problema y su evidencia',
+        'Revisión de literatura internacional y chilena',
+        'Cuantificar la brecha con datos del repositorio']),
+    ('Tareas realizadas', UCBLUE, [
+        'Brecha medida: mapa SINCA, estaciones por región y cobertura por contaminante',
+        'Tabla de trabajos chilenos con DOI verificado',
+        'Hipótesis y problema predictivo definidos']),
+    ('Desafíos', ORANGE, [
+        'La literatura chilena es de pronóstico temporal, no de superficies',
+        'Métricas no comparables entre estudios',
+        'Definir escenarios de validación honestos']),
+    ('Próxima semana', AQUA, [
+        'Defensa de tema (semana 4): documento de una plana',
         'Congelar el diseño metodológico',
-        'Iniciar los paneles de modelamiento por contaminante']),
+        'Iniciar los paneles de modelamiento']),
 ]
-for i, (t, ic, c, items) in enumerate(colsx):
+for i, (t, c, items) in enumerate(colsx):
     x = 0.5 + i * 2.32
-    box(s, x, 1.22, 2.20, 2.82, CARD)
-    icono(s, ic, x + 0.14, 1.36, 0.42, c)
-    text(s, x + 0.64, 1.34, 1.5, 0.5, t, size=9.5, bold=True, color=c, anchor=MSO_ANCHOR.MIDDLE, leading=0.9)
-    bullets(s, x + 0.16, 1.98, 1.9, 2.0, items, size=7.6, gap=4, leading=0.95)
+    box(s, x, 1.22, 2.20, 2.86, CARD)
+    text(s, x + 0.16, 1.36, 1.95, 0.5, t, size=9.8, bold=True, color=c, leading=0.9)
+    bullets(s, x + 0.16, 1.92, 1.9, 2.1, items, size=7.8, gap=5, leading=0.96)
 
 # =====================================================================
-# S8: cierre con QR
+# S9: cierre con QR
 # =====================================================================
-s = S[8]
-text(s, 0.55, 1.02, 5.9, 0.75, 'La revisión completa vive\nen el repositorio', size=19, bold=True, color=WHITE, leading=1.0)
+s = S[9]
+text(s, 0.55, 1.02, 5.9, 0.75, 'Todo el detalle vive\nen el repositorio', size=19, bold=True, color=WHITE, leading=1.0)
 bullets(s, 0.55, 1.95, 5.9, 1.7, [
-    'docs/: bibliografía APA consolidada y trazable',
-    'Matriz contaminante × método con cada DOI verificado',
-    'Líneas base de desempeño por contaminante',
-    'Todo listo para la defensa de tema de la semana 4',
+    'Bibliografía APA con cada DOI verificado',
+    'Datos y scripts de la brecha SINCA (mapa y coberturas)',
+    'Matriz contaminante × método y líneas base',
+    'Pipeline reproducible de descarga y procesamiento',
 ], size=9.5, color=LIGHTBLUE, gap=5)
 box(s, 0.55, 3.78, 5.9, 0.56, RGBColor(0x11, 0x3E, 0x8F))
 s.shapes.add_picture(A('icons/github_w.png'), Inches(0.72), Inches(3.92), Inches(0.28), Inches(0.28))

@@ -1,0 +1,29 @@
+{
+  "schema": "airpollution.merra2.strict-retirement-validation-smoke.v1",
+  "checked_utc": "2026-09-15T18:03:37.604491+00:00",
+  "mode": "read_only_direct_functions",
+  "period": "2000-01",
+  "source_files": 31,
+  "sources_present": 31,
+  "source_day_contract": "merra2.daily-exact-24-hh30.v1",
+  "values_compared": 2805624,
+  "hours": 744,
+  "pixels": 419,
+  "exact_values_including_nan": true,
+  "certificate_sha256": "58a62d86cfa28c405540fb08d8d8034b9d80126fe73fe4dc2bf968518cbe8238",
+  "output_sha256": "4e7efee357e9d0b3a6322b838ef69b24665ed9659deae76035629e19f5d64433",
+  "script_sha256": "9ffaf7b017016c302e8e924f904808e63909c800bb6057812b4449bf6cc7aaac",
+  "test_sha256": "a23652c43d29a0bd3f4de31361f0652cb9075d76f42c67093fcbac86414e09f9",
+  "normalizer_unchanged_sha256": "fe09a624a18483d270e416a45101327cd0764ccecef9f30458c938190e34d5d9",
+  "unit_tests": {"passed": 18, "failed": 0},
+  "protected_hashes_unchanged": true,
+  "protected_execution_actual_sha256": "f736de60357a8ab935ad9c69e71e4364be51f559adbb83fb7c5b6af80cbbfe73",
+  "protected_fin_sha256": "bf6c2c8fc312f911701f26eb59ec9d45dc68b469f4e511a837b3996a5b1e5ab0",
+  "retire_called": false,
+  "main_called": false,
+  "limitations": [
+    "Real-data strict comparison was performed for January 2000 only, not all 317 months.",
+    "Original legacy scientific metadata and derived fields were not reinterpreted.",
+    "Optional retirement still requires an explicit run; it was not enabled or executed."
+  ]
+}

@@ -1,0 +1,10 @@
+{
+ "contaminante": "pm25",
+ "n_dias": 185084,
+ "r2_pearson": 0.7433,
+ "r2_clasico": 0.7344,
+ "rmse": 12.177,
+ "ols_a": 5.515,
+ "ols_b": 0.668,
+ "m_origen": 0.783
+}

@@ -1,0 +1,7 @@
+contaminante,mejor motor (antes),mejor motor (ahora),R² horario antes,R² horario ahora,R² diario antes,R² diario ahora,LGBM R² horario antes,LGBM R² horario ahora,producto r² antes,producto r² ahora
+PM₂.₅,LGBM,LGBM,0.3721,0.368,0.5055,0.4994,0.3721,0.368,0.7412,0.7433
+PM₁₀,RK,RK,0.3727,0.3727,0.5117,0.5117,0.3686,0.3709,0.7737,0.7749
+NO₂,LGBM,LGBM,0.4679,0.4845,0.5289,0.5504,0.4679,0.4845,0.7782,0.7861
+O₃,LGBM,LGBM,0.5373,0.5437,0.2967,0.3176,0.5373,0.5437,0.8661,0.8648
+SO₂,GWR,GWR,0.0159,0.0159,0.0567,0.0567,-0.0035,-0.0125,0.5321,0.5283
+CO,LGBM,LGBM,0.2337,0.2231,0.247,0.2245,0.2337,0.2231,0.8063,0.809

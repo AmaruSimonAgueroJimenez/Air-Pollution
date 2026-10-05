@@ -1,0 +1,177 @@
+motor,estacion,n,r2,rmse,mae,sesgo,nombre,comuna,lat,lon,macrozona
+fisico,217,43427,-31.9197,13.532,9.447,9.142,Hospital del Cobre,Calama,-22.454013,-68.910175,norte_grande
+fisico,222,4673,-0.052,29.019,13.484,-1.387,Escuela E-10,Tocopilla,-22.085607,-70.188863,norte_grande
+fisico,233,44205,-20.6601,13.539,9.462,9.135,Club Deportivo 23 de Marzo,Calama,-22.460124,-68.937804,norte_grande
+fisico,236,51893,-26.6554,13.358,9.236,8.94,Estación Centro,Calama,-22.461818,-68.928181,norte_grande
+fisico,237,51892,-13345.5055,20.426,15.601,15.584,Antofagasta,Antofagasta,-23.613552,-70.383327,norte_grande
+fisico,251,38977,-0.4381,13.607,7.459,4.262,Super Site,Tocopilla,-22.085846,-70.188361,norte_grande
+fisico,309,49407,-8.2177,54.018,40.175,38.686,EME M,Huasco,-28.470313,-71.218837,norte_chico
+fisico,310,49588,-39.4828,52.31,40.236,39.59,EME F,Huasco,-28.466352,-71.221583,norte_chico
+fisico,503,52039,-351.8278,83.574,64.885,64.701,La Greda,Puchuncaví,-32.748276,-71.474214,centro
+fisico,504,51938,-36.8855,83.859,65.353,62.062,Los Maitenes,Puchuncaví,-32.764345,-71.454509,centro
+fisico,505,52078,-347.1462,83.143,64.074,63.511,Puchuncaví,Puchuncaví,-32.718731,-71.407326,centro
+fisico,509,52068,-4.0156,15.364,7.326,2.708,Concón,Concón,-32.924756,-71.515479,centro
+fisico,513,50908,-1.1622,9.872,6.893,-0.219,Cuerpo de Bomberos,Quillota,-32.885508,-71.247424,centro
+fisico,514,50998,-3.1551,10.889,6.863,5.823,San Pedro,Quillota,-32.937288,-71.274291,centro
+fisico,539,51995,-65.4958,81.358,63.677,63.551,Centro Quintero,Quintero,-32.787721,-71.532226,centro
+fisico,547,51065,-158.9954,84.316,66.531,66.368,Loncura,Quintero,-32.794914,-71.49642,centro
+fisico,548,52033,-0.6756,5.805,3.167,-0.172,Ventanas,Puchuncaví,-31.840542,-71.456405,centro
+fisico,609,51602,-74.2289,5.589,3.898,3.565,Rancagua I,Rancagua,-34.162283,-70.713931,centro
+fisico,703,51945,-1.4277,1.056,0.762,-0.004,La Florida,Talca,-35.435223,-71.678119,centro
+fisico,802,51655,-0.7869,2.844,1.914,0.787,Consultorio - San Vicente,Talcahuano,-36.72369,-73.123695,sur
+fisico,804,50388,-0.1894,10.261,5.332,-2.325,JUNJI,Hualpén,-36.780744,-73.115615,sur
+fisico,805,52040,-2.2344,3.059,2.258,1.795,Bocatoma,Hualpén,-36.803109,-73.12038,sur
+fisico,806,51595,-0.6337,3.724,2.578,1.293,Inpesca,Talcahuano,-36.737292,-73.104382,sur
+fisico,807,51509,-0.9602,3.204,2.214,1.199,Indura,Talcahuano,-36.769998,-73.113806,sur
+fisico,818,44637,-0.0159,8.214,1.053,-1.013,Club de Empleados,Nacimiento,-37.502013,-66.676393,sur
+fisico,826,43682,-0.025,5.989,0.954,-0.916,Laja,Laja,-37.267791,-66.71089,sur
+fisico,827,50687,-2.8869,2.549,1.855,1.475,Kingston College,Concepción,-36.78465,-73.052062,sur
+fisico,830,48742,-1.114,3.081,1.695,1.335,Liceo Polivalente,Tomé,-36.601716,-72.958522,sur
+fisico,837,13232,-0.8953,7.739,5.322,-5.321,Nueva Libertad,Talcahuano,-36.736197,-67.118855,sur
+fisico,838,51320,-0.2798,5.303,2.757,1.073,ENAP Price,Hualpén,-36.791363,-73.119109,sur
+fisico,841,49180,-10.5306,1.371,0.903,0.468,Hualqui,Hualqui,-36.97749,-72.931943,sur
+fisico,854,51092,-7.3575,1.378,0.913,0.397,Punteras,Chiguayante,-36.923316,-73.036123,sur
+fisico,859,25862,-0.0839,4.24,1.309,-0.526,Lota rural,Coronel,-37.100196,-73.152187,sur
+fisico,860,28143,-0.083,8.504,2.886,-2.385,Lota urbana,Coronel,-37.074182,-73.145147,sur
+fisico,870,40313,-0.1416,4.551,1.202,-0.522,Lautaro,Nacimiento,-37.509146,-72.656115,sur
+fisico,878,41668,-0.1636,6.202,2.325,-2.322,Coronel Norte,Coronel,-37.009376,-67.149612,sur
+fisico,879,24475,-0.0675,4.838,1.388,-0.669,"Lagunillas, ENEL",Coronel,-36.984457,-73.153204,sur
+fisico,880,21684,-0.0812,8.266,2.932,-2.27,"Escuadron, ENEL",Coronel,-36.953702,-73.150792,sur
+fisico,B04,51371,-0.4178,1.987,1.075,-1.072,Coyhaique II,Coyhaique,-45.579046,-72.049967,austral
+fisico,D12,41531,-23.2266,5.208,4.11,3.95,La Florida (Acreditada),La Florida,-33.516667,-70.58816,centro
+fisico,D17,50648,-492.2189,19.025,15.33,15.303,El Bosque (Acreditada),El Bosque,-33.547016,-70.666163,centro
+fisico,D27,24963,-8.3391,5.262,4.055,3.7,Puente Alto,Puente Alto,-33.591356,-70.594431,centro
+fisico,D28,8702,-5.0953,1.741,1.259,-0.476,Talagante,Talagante,-33.673819,-70.952996,centro
+fisico,E03,49060,-1.7698,1.384,1.094,-0.864,Valdivia,Valdivia,-39.831347,-73.22847,sur
+gwr,217,43427,-0.0928,2.465,1.215,0.723,Hospital del Cobre,Calama,-22.454013,-68.910175,norte_grande
+gwr,222,4673,-0.0683,29.243,9.744,-7.601,Escuela E-10,Tocopilla,-22.085607,-70.188863,norte_grande
+gwr,233,44205,-0.059,2.994,1.338,0.661,Club Deportivo 23 de Marzo,Calama,-22.460124,-68.937804,norte_grande
+gwr,236,51893,-0.0627,2.619,1.122,0.472,Estación Centro,Calama,-22.461818,-68.928181,norte_grande
+gwr,237,51892,-205.0948,2.538,2.367,2.365,Antofagasta,Antofagasta,-23.613552,-70.383327,norte_grande
+gwr,251,38977,-0.0224,11.473,3.692,-1.694,Super Site,Tocopilla,-22.085846,-70.188361,norte_grande
+gwr,309,49407,-0.0004,17.795,2.322,0.004,EME M,Huasco,-28.470313,-71.218837,norte_chico
+gwr,310,49588,-0.1122,8.67,2.16,1.133,EME F,Huasco,-28.466352,-71.221583,norte_chico
+gwr,503,52039,0.0107,4.425,2.225,0.547,La Greda,Puchuncaví,-32.748276,-71.474214,centro
+gwr,504,51938,-0.0194,13.756,4.821,-2.434,Los Maitenes,Puchuncaví,-32.764345,-71.454509,centro
+gwr,505,52078,-0.0938,4.66,2.502,-0.721,Puchuncaví,Puchuncaví,-32.718731,-71.407326,centro
+gwr,509,52068,0.0004,6.859,2.961,-1.434,Concón,Concón,-32.924756,-71.515479,centro
+gwr,513,50908,-0.3998,7.943,5.814,-4.26,Cuerpo de Bomberos,Quillota,-32.885508,-71.247424,centro
+gwr,514,50998,-0.4733,6.484,4.272,3.392,San Pedro,Quillota,-32.937288,-71.274291,centro
+gwr,539,51995,0.0108,9.923,3.85,-0.917,Centro Quintero,Quintero,-32.787721,-71.532226,centro
+gwr,547,51065,-0.0094,6.697,4.352,2.313,Loncura,Quintero,-32.794914,-71.49642,centro
+gwr,548,52033,-0.0444,4.583,2.733,1.462,Ventanas,Puchuncaví,-31.840542,-71.456405,centro
+gwr,609,51602,-12.6516,2.381,2.187,2.092,Rancagua I,Rancagua,-34.162283,-70.713931,centro
+gwr,703,51945,-2.389,1.248,1.044,0.805,La Florida,Talca,-35.435223,-71.678119,centro
+gwr,802,51655,-0.0619,2.192,1.235,-0.171,Consultorio - San Vicente,Talcahuano,-36.72369,-73.123695,sur
+gwr,804,50388,-0.1464,10.074,4.386,-3.648,JUNJI,Hualpén,-36.780744,-73.115615,sur
+gwr,805,52040,-0.7279,2.236,1.601,1.02,Bocatoma,Hualpén,-36.803109,-73.12038,sur
+gwr,806,51595,-0.0205,2.943,1.756,0.424,Inpesca,Talcahuano,-36.737292,-73.104382,sur
+gwr,807,51509,-0.0134,2.303,1.333,0.309,Indura,Talcahuano,-36.769998,-73.113806,sur
+gwr,818,44637,-0.0117,8.197,2.008,0.976,Club de Empleados,Nacimiento,-37.502013,-66.676393,sur
+gwr,826,43682,-0.022,5.98,1.791,1.001,Laja,Laja,-37.267791,-66.71089,sur
+gwr,827,50687,-0.7848,1.727,1.228,0.627,Kingston College,Concepción,-36.78465,-73.052062,sur
+gwr,830,48742,-0.1475,2.27,0.996,0.77,Liceo Polivalente,Tomé,-36.601716,-72.958522,sur
+gwr,837,13232,-0.4213,6.702,3.679,-3.334,Nueva Libertad,Talcahuano,-36.736197,-67.118855,sur
+gwr,838,51320,0.0038,4.679,1.915,0.197,ENAP Price,Hualpén,-36.791363,-73.119109,sur
+gwr,841,49180,-7.47,1.175,1.023,0.991,Hualqui,Hualqui,-36.97749,-72.931943,sur
+gwr,854,51092,-5.3982,1.206,1.011,0.931,Punteras,Chiguayante,-36.923316,-73.036123,sur
+gwr,859,25862,-0.0225,4.118,1.385,0.557,Lota rural,Coronel,-37.100196,-73.152187,sur
+gwr,860,28143,-0.0471,8.362,2.777,-1.592,Lota urbana,Coronel,-37.074182,-73.145147,sur
+gwr,870,40313,0.0048,4.25,1.186,0.246,Lautaro,Nacimiento,-37.509146,-72.656115,sur
+gwr,878,41668,-0.0014,5.753,1.784,-0.635,Coronel Norte,Coronel,-37.009376,-67.149612,sur
+gwr,879,24475,-0.0123,4.711,1.581,0.458,"Lagunillas, ENEL",Coronel,-36.984457,-73.153204,sur
+gwr,880,21684,-0.0373,8.096,2.897,-1.363,"Escuadron, ENEL",Coronel,-36.953702,-73.150792,sur
+gwr,B04,51371,-0.1109,1.759,0.593,0.049,Coyhaique II,Coyhaique,-45.579046,-72.049967,austral
+gwr,D12,41531,-1.373,1.63,1.302,0.503,La Florida (Acreditada),La Florida,-33.516667,-70.58816,centro
+gwr,D17,50648,-3.9459,1.905,1.549,1.32,El Bosque (Acreditada),El Bosque,-33.547016,-70.666163,centro
+gwr,D27,24963,-0.4811,2.096,1.308,0.405,Puente Alto,Puente Alto,-33.591356,-70.594431,centro
+gwr,D28,8702,-1.7398,1.167,0.888,0.413,Talagante,Talagante,-33.673819,-70.952996,centro
+gwr,E03,49060,-0.3533,0.968,0.714,0.027,Valdivia,Valdivia,-39.831347,-73.22847,sur
+rk,217,43427,-0.3319,2.722,1.779,1.411,Hospital del Cobre,Calama,-22.454013,-68.910175,norte_grande
+rk,222,4673,-0.0739,29.319,9.695,-7.857,Escuela E-10,Tocopilla,-22.085607,-70.188863,norte_grande
+rk,233,44205,-0.201,3.188,1.885,1.354,Club Deportivo 23 de Marzo,Calama,-22.460124,-68.937804,norte_grande
+rk,236,51893,-0.2366,2.825,1.587,1.16,Estación Centro,Calama,-22.461818,-68.928181,norte_grande
+rk,237,51892,-424.9234,3.649,3.523,3.522,Antofagasta,Antofagasta,-23.613552,-70.383327,norte_grande
+rk,251,38977,-0.0001,11.347,4.18,0.446,Super Site,Tocopilla,-22.085846,-70.188361,norte_grande
+rk,309,49407,-0.0021,17.81,2.213,-0.136,EME M,Huasco,-28.470313,-71.218837,norte_chico
+rk,310,49588,-0.1443,8.794,2.252,1.276,EME F,Huasco,-28.466352,-71.221583,norte_chico
+rk,503,52039,-0.0728,4.608,2.423,0.791,La Greda,Puchuncaví,-32.748276,-71.474214,centro
+rk,504,51938,-0.0267,13.805,5.037,-2.032,Los Maitenes,Puchuncaví,-32.764345,-71.454509,centro
+rk,505,52078,-0.1152,4.706,2.548,-0.414,Puchuncaví,Puchuncaví,-32.718731,-71.407326,centro
+rk,509,52068,-0.1019,7.202,3.032,-2.204,Concón,Concón,-32.924756,-71.515479,centro
+rk,513,50908,-0.494,8.206,5.924,-4.757,Cuerpo de Bomberos,Quillota,-32.885508,-71.247424,centro
+rk,514,50998,-0.1248,5.666,2.951,1.986,San Pedro,Quillota,-32.937288,-71.274291,centro
+rk,539,51995,0.0282,9.835,3.856,-0.739,Centro Quintero,Quintero,-32.787721,-71.532226,centro
+rk,547,51065,-0.062,6.87,4.464,2.33,Loncura,Quintero,-32.794914,-71.49642,centro
+rk,548,52033,0.024,4.43,1.85,-0.016,Ventanas,Puchuncaví,-31.840542,-71.456405,centro
+rk,609,51602,-7.0591,1.829,1.641,1.54,Rancagua I,Rancagua,-34.162283,-70.713931,centro
+rk,703,51945,-3.8435,1.491,1.284,1.117,La Florida,Talca,-35.435223,-71.678119,centro
+rk,802,51655,-0.036,2.166,1.209,-0.161,Consultorio - San Vicente,Talcahuano,-36.72369,-73.123695,sur
+rk,804,50388,-0.1256,9.982,4.436,-3.436,JUNJI,Hualpén,-36.780744,-73.115615,sur
+rk,805,52040,-0.4699,2.063,1.555,1.029,Bocatoma,Hualpén,-36.803109,-73.12038,sur
+rk,806,51595,0.0033,2.909,1.715,0.396,Inpesca,Talcahuano,-36.737292,-73.104382,sur
+rk,807,51509,-0.0489,2.344,1.358,0.298,Indura,Talcahuano,-36.769998,-73.113806,sur
+rk,818,44637,-0.0139,8.206,2.09,1.074,Club de Empleados,Nacimiento,-37.502013,-66.676393,sur
+rk,826,43682,-0.0777,6.14,2.432,1.677,Laja,Laja,-37.267791,-66.71089,sur
+rk,827,50687,-0.4206,1.541,1.155,0.662,Kingston College,Concepción,-36.78465,-73.052062,sur
+rk,830,48742,-0.1448,2.267,0.971,0.752,Liceo Polivalente,Tomé,-36.601716,-72.958522,sur
+rk,837,13232,-0.4984,6.881,3.927,-3.78,Nueva Libertad,Talcahuano,-36.736197,-67.118855,sur
+rk,838,51320,0.0035,4.679,1.923,0.247,ENAP Price,Hualpén,-36.791363,-73.119109,sur
+rk,841,49180,-7.6823,1.189,1.048,1.009,Hualqui,Hualqui,-36.97749,-72.931943,sur
+rk,854,51092,-5.0505,1.173,1.019,0.941,Punteras,Chiguayante,-36.923316,-73.036123,sur
+rk,859,25862,-0.0265,4.126,1.404,0.568,Lota rural,Coronel,-37.100196,-73.152187,sur
+rk,860,28143,-0.0288,8.288,2.716,-1.485,Lota urbana,Coronel,-37.074182,-73.145147,sur
+rk,870,40313,-0.0016,4.263,1.176,0.172,Lautaro,Nacimiento,-37.509146,-72.656115,sur
+rk,878,41668,0.0229,5.683,1.998,-0.163,Coronel Norte,Coronel,-37.009376,-67.149612,sur
+rk,879,24475,-0.0014,4.686,1.545,0.433,"Lagunillas, ENEL",Coronel,-36.984457,-73.153204,sur
+rk,880,21684,-0.0178,8.02,2.896,-1.289,"Escuadron, ENEL",Coronel,-36.953702,-73.150792,sur
+rk,B04,51371,-0.1699,1.805,0.664,-0.352,Coyhaique II,Coyhaique,-45.579046,-72.049967,austral
+rk,D12,41531,-0.8869,1.454,1.199,0.613,La Florida (Acreditada),La Florida,-33.516667,-70.58816,centro
+rk,D17,50648,-3.174,1.75,1.516,1.374,El Bosque (Acreditada),El Bosque,-33.547016,-70.666163,centro
+rk,D27,24963,-0.201,1.887,1.133,0.474,Puente Alto,Puente Alto,-33.591356,-70.594431,centro
+rk,D28,8702,-1.0291,1.005,0.819,0.26,Talagante,Talagante,-33.673819,-70.952996,centro
+rk,E03,49060,-0.7546,1.102,0.881,0.424,Valdivia,Valdivia,-39.831347,-73.22847,sur
+lgbm,217,43427,0.2239,2.078,0.672,0.115,Hospital del Cobre,Calama,-22.454013,-68.910175,norte_grande
+lgbm,222,4673,-0.0645,29.191,9.819,-7.451,Escuela E-10,Tocopilla,-22.085607,-70.188863,norte_grande
+lgbm,233,44205,0.2157,2.576,0.709,0.13,Club Deportivo 23 de Marzo,Calama,-22.460124,-68.937804,norte_grande
+lgbm,236,51893,0.1664,2.319,0.606,-0.35,Estación Centro,Calama,-22.461818,-68.928181,norte_grande
+lgbm,237,51892,-15.0869,0.709,0.503,0.48,Antofagasta,Antofagasta,-23.613552,-70.383327,norte_grande
+lgbm,251,38977,-0.032,11.527,3.937,-0.944,Super Site,Tocopilla,-22.085846,-70.188361,norte_grande
+lgbm,309,49407,-0.0059,17.844,1.984,-1.449,EME M,Huasco,-28.470313,-71.218837,norte_chico
+lgbm,310,49588,-0.01,8.262,1.501,0.16,EME F,Huasco,-28.466352,-71.221583,norte_chico
+lgbm,503,52039,-0.3422,5.155,2.364,0.6,La Greda,Puchuncaví,-32.748276,-71.474214,centro
+lgbm,504,51938,0.0222,13.472,4.547,-2.448,Los Maitenes,Puchuncaví,-32.764345,-71.454509,centro
+lgbm,505,52078,-0.222,4.926,2.564,-0.644,Puchuncaví,Puchuncaví,-32.718731,-71.407326,centro
+lgbm,509,52068,-0.2743,7.744,3.959,-3.95,Concón,Concón,-32.924756,-71.515479,centro
+lgbm,513,50908,-0.9184,9.299,6.734,-6.361,Cuerpo de Bomberos,Quillota,-32.885508,-71.247424,centro
+lgbm,514,50998,-1.1104,7.761,5.49,4.439,San Pedro,Quillota,-32.937288,-71.274291,centro
+lgbm,539,51995,-0.0146,10.05,3.545,-3.138,Centro Quintero,Quintero,-32.787721,-71.532226,centro
+lgbm,547,51065,0.1184,6.259,3.546,1.657,Loncura,Quintero,-32.794914,-71.49642,centro
+lgbm,548,52033,-0.0235,4.537,1.573,-0.989,Ventanas,Puchuncaví,-31.840542,-71.456405,centro
+lgbm,609,51602,-2.9591,1.282,1.19,1.012,Rancagua I,Rancagua,-34.162283,-70.713931,centro
+lgbm,703,51945,-0.5115,0.833,0.702,0.378,La Florida,Talca,-35.435223,-71.678119,centro
+lgbm,802,51655,-0.1202,2.252,1.147,-0.865,Consultorio - San Vicente,Talcahuano,-36.72369,-73.123695,sur
+lgbm,804,50388,-0.1601,10.134,4.41,-3.75,JUNJI,Hualpén,-36.780744,-73.115615,sur
+lgbm,805,52040,-0.7192,2.231,1.531,1.035,Bocatoma,Hualpén,-36.803109,-73.12038,sur
+lgbm,806,51595,0.0445,2.848,1.409,-0.035,Inpesca,Talcahuano,-36.737292,-73.104382,sur
+lgbm,807,51509,0.1101,2.159,0.955,-0.23,Indura,Talcahuano,-36.769998,-73.113806,sur
+lgbm,818,44637,-0.0014,8.155,1.218,0.032,Club de Empleados,Nacimiento,-37.502013,-66.676393,sur
+lgbm,826,43682,-0.0261,5.992,1.895,1.118,Laja,Laja,-37.267791,-66.71089,sur
+lgbm,827,50687,0.0249,1.277,0.617,-0.133,Kingston College,Concepción,-36.78465,-73.052062,sur
+lgbm,830,48742,-0.0368,2.158,0.707,0.44,Liceo Polivalente,Tomé,-36.601716,-72.958522,sur
+lgbm,837,13232,-0.3027,6.416,3.459,-3.263,Nueva Libertad,Talcahuano,-36.736197,-67.118855,sur
+lgbm,838,51320,-0.6828,6.081,3.177,1.525,ENAP Price,Hualpén,-36.791363,-73.119109,sur
+lgbm,841,49180,-0.3275,0.465,0.309,0.181,Hualqui,Hualqui,-36.97749,-72.931943,sur
+lgbm,854,51092,-0.6259,0.608,0.422,0.256,Punteras,Chiguayante,-36.923316,-73.036123,sur
+lgbm,859,25862,-0.0534,4.18,1.308,0.182,Lota rural,Coronel,-37.100196,-73.152187,sur
+lgbm,860,28143,-0.0869,8.519,2.636,-2.218,Lota urbana,Coronel,-37.074182,-73.145147,sur
+lgbm,870,40313,-0.0105,4.282,0.89,-0.464,Lautaro,Nacimiento,-37.509146,-72.656115,sur
+lgbm,878,41668,-0.0318,5.84,1.714,-0.992,Coronel Norte,Coronel,-37.009376,-67.149612,sur
+lgbm,879,24475,-0.0878,4.884,1.669,0.4,"Lagunillas, ENEL",Coronel,-36.984457,-73.153204,sur
+lgbm,880,21684,-0.0654,8.205,2.738,-2.015,"Escuadron, ENEL",Coronel,-36.953702,-73.150792,sur
+lgbm,B04,51371,-0.7645,2.216,1.53,1.446,Coyhaique II,Coyhaique,-45.579046,-72.049967,austral
+lgbm,D12,41531,0.1536,0.974,0.727,-0.137,La Florida (Acreditada),La Florida,-33.516667,-70.58816,centro
+lgbm,D17,50648,-1.121,1.248,1.009,0.644,El Bosque (Acreditada),El Bosque,-33.547016,-70.666163,centro
+lgbm,D27,24963,0.012,1.712,0.814,-0.462,Puente Alto,Puente Alto,-33.591356,-70.594431,centro
+lgbm,D28,8702,-1.5053,1.116,0.929,-0.879,Talagante,Talagante,-33.673819,-70.952996,centro
+lgbm,E03,49060,-0.3536,0.968,0.676,-0.254,Valdivia,Valdivia,-39.831347,-73.22847,sur

@@ -1,0 +1,25 @@
+# Modelo 1 km × hora. El modelo vive en docs/modelo_1km_horario.qmd (Quarto,
+# motor jupyter); esta carpeta es la librería de ingesta que el documento
+# importa. Parte del entorno `afg` de scripts_superficie/requirements.txt
+# (numpy, pandas, pyarrow, netCDF4, scipy, lightgbm, matplotlib, tabulate,
+# jupyter) más las dependencias geoespaciales de la grilla y las estáticas.
+numpy>=1.26
+pandas>=2.2
+pyarrow>=15
+netCDF4>=1.6
+scipy>=1.11
+lightgbm>=4.3        # API nativa (lgb.train): motor del producto y motor de alertas (cuantil)
+scikit-learn>=1.4    # motores de contraste del documento: Random Forest (NaN nativos desde 1.4), MLP y proceso gaussiano
+statsmodels>=0.14    # motor de contraste: modelo lineal mixto (MixedLM)
+joblib>=1.3          # pliegues en paralelo de los motores de contraste (return_as="generator")
+threadpoolctl>=3.1   # un hilo de BLAS por pliegue cuando los pliegues corren en paralelo
+lleaves>=1.3         # predicción compilada (LLVM) del mismo modelo_final.txt: 10,4x más rápido, idéntico
+llvmlite<0.45        # lleaves 1.3 usa PassManagerBuilder, que llvmlite quitó en 0.45
+matplotlib>=3.8      # figuras del documento
+tabulate>=0.9        # tablas Markdown del documento
+jupyter              # motor de ejecución de Quarto (kernel python3)
+shapely>=2.0
+pyproj>=3.6
+geopandas>=1.0
+pyogrio>=0.9         # lectura de comunas.shp y del shapefile OSM
+rasterio>=1.3        # ESA CCI (LULC) y NASADEM; sólo covariables_estaticas.py

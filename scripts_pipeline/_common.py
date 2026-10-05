@@ -9,21 +9,51 @@ import functools
 import logging
 import os
 import time
+from datetime import date
 from pathlib import Path
 
-# --- Rutas del repo -------------------------------------------------
-# scripts_pipeline/ cuelga un nivel bajo la raíz del repo.
+# --- Rutas del repo y de los datos ---------------------------------
+# El código y output_files/ permanecen en el repo. Los datos pesados viven en
+# el disco externo y pueden reubicarse sin modificar los scripts.
 SCRIPTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = SCRIPTS_DIR.parent
-DATA = REPO_ROOT / "data"
+_EXPLICIT_DATA_ROOT = os.environ.get("AIR_POLLUTION_DATA_ROOT")
+_DATOS_VOLUME = Path("/Volumes/Datos")
+
+
+def _require_fallback_volume(ruta: Path) -> None:
+    """Evita escribir en el Mac si el punto de montaje quedó vacío."""
+    if not _EXPLICIT_DATA_ROOT and \
+            (ruta == _DATOS_VOLUME or _DATOS_VOLUME in ruta.parents) and \
+            not _DATOS_VOLUME.is_mount():
+        raise SystemExit(
+            "El volumen externo /Volumes/Datos no está montado; se aborta "
+            "para no crear datos en el disco interno. Conecta el disco o "
+            "define AIR_POLLUTION_DATA_ROOT explícitamente."
+        )
+
+
+AIR_POLLUTION_DATA_ROOT = Path(
+    _EXPLICIT_DATA_ROOT
+    or Path(os.environ.get("ASESORIAS_DATA_ROOT", "/Volumes/Datos/Asesorias_Data"))
+    / "AirPollution" / "data"
+).expanduser().resolve()
+_require_fallback_volume(AIR_POLLUTION_DATA_ROOT)
+DATA = AIR_POLLUTION_DATA_ROOT
 CONTAMINANTES = DATA / "contaminantes"
 SINCA = DATA / "sinca"
 OUTPUT = REPO_ROOT / "output_files"
 
-# --- Bounding box de Chile continental (WGS84) ----------------------
-# (lon_min, lat_min, lon_max, lat_max). Incluye margen costero.
-# NO cubre Isla de Pascua ni Territorio Antártico (bajar aparte si se requiere).
+# --- Compatibilidad: caja continental histórica (WGS84) -------------
+# NO representa la cobertura total de Chile. Los descargadores satelitales
+# nuevos usan ``aois_chile()`` para derivar continente e islas desde la máscara.
 CHILE_BBOX = (-76.0, -56.5, -66.0, -17.0)
+
+
+def aois_chile(comunas_path: Path | None = None, margen: float = 0.05):
+    """AOIs administrativas derivadas de la máscara, excluyendo Antártica."""
+    from _chile_aoi import derivar
+    return derivar(comunas_path or (DATA / "comunas.shp"), margen=margen)
 
 
 def bbox_area_cds():
@@ -101,14 +131,16 @@ def retry(n: int = 4, base: float = 2.0, exc=Exception):
 
 
 def ensure_dir(p: Path) -> Path:
+    _require_fallback_volume(AIR_POLLUTION_DATA_ROOT)
     p.mkdir(parents=True, exist_ok=True)
     return p
 
 
 def add_common_args(parser):
     """--desde / --hasta / --dry-run comunes a todos los descargadores."""
-    parser.add_argument("--desde", default="2019-01-01", help="fecha inicio YYYY-MM-DD")
-    parser.add_argument("--hasta", default="2024-12-31", help="fecha fin YYYY-MM-DD")
+    parser.add_argument("--desde", default="2000-01-01", help="fecha inicio YYYY-MM-DD")
+    parser.add_argument("--hasta", default=date.today().isoformat(),
+                        help="fecha fin YYYY-MM-DD (por defecto hoy)")
     parser.add_argument("--dry-run", action="store_true",
                         help="lista lo que bajaría, sin descargar")
     return parser

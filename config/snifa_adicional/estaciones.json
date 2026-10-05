@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "network_id": "snifa_adicional",
+  "review_date": "2026-09-22",
+  "sources": [
+    {
+      "id": "el_penon",
+      "uf_id": 1256,
+      "station_ids": [
+        "el_penon"
+      ],
+      "name": "CENTRAL EL PEÑON",
+      "uf_url": "https://snifa.sma.gob.cl/UnidadFiscalizable/Ficha/1256",
+      "verified_report_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1099713"
+    },
+    {
+      "id": "los_guindos",
+      "uf_id": 9976,
+      "station_ids": [
+        "charrua",
+        "progreso"
+      ],
+      "name": "CT LOS GUINDOS",
+      "uf_url": "https://snifa.sma.gob.cl/UnidadFiscalizable/Ficha/9976",
+      "verified_report_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1086487"
+    },
+    {
+      "id": "masisa_cabrero",
+      "uf_id": 2443,
+      "station_ids": [
+        "sapu",
+        "quinel"
+      ],
+      "name": "PLANTA MASISA CABRERO",
+      "uf_url": "https://snifa.sma.gob.cl/UnidadFiscalizable/Ficha/2443",
+      "verified_report_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1074239"
+    }
+  ],
+  "stations": [
+    {
+      "id": "el_penon",
+      "name": "El Peñón",
+      "aliases": [
+        "El Penon",
+        "Estación El Peñón",
+        "Estacion El Penon"
+      ],
+      "source_id": "el_penon",
+      "pollutants": [
+        "no2",
+        "o3",
+        "so2",
+        "co"
+      ],
+      "utm_e": 286272,
+      "utm_n": 6663796,
+      "utm_zone": 19,
+      "coordinate_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1099713",
+      "coordinate_source_detail": "Informe julio 2026, Tabla 1, página interna 2 / física 9; fila Estación El Peñón, huso 19-J.",
+      "notes": "La cabecera XLS de julio 2026 usa E285379/N6663325, coordenadas de la CENTRAL según el PDF, a 1,01 km de la estación. Se conserva original y se usa aquí la posición del monitor. PM10 se reporta como muestreo discreto de unas 24 horas; no se verificó PM2.5. La fecha EMRP 2009-04-14 no se usa como inicio de datos.",
+      "verified_first_report": "2012-12-01",
+      "verified_first_report_source_url": "https://api-ssa.sma.gob.cl/api/v1/GetDocumentoById/1445",
+      "latitude": -30.138437489,
+      "longitude": -71.218808729,
+      "datum": "WGS84",
+      "utm_hemisphere": "S",
+      "timezone_status": "unverified",
+      "sinca_catalog_status": "not_found_name_location"
+    },
+    {
+      "id": "charrua",
+      "name": "Charrúa",
+      "aliases": [
+        "Charrua",
+        "Charrúa Sur",
+        "Charrua Sur",
+        "Estación Charrúa",
+        "Estacion Charrua"
+      ],
+      "source_id": "los_guindos",
+      "pollutants": [
+        "no2",
+        "o3",
+        "so2",
+        "co"
+      ],
+      "utm_e": 737869,
+      "utm_n": 5890948,
+      "utm_zone": 18,
+      "coordinate_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1086487",
+      "coordinate_source_detail": "Informe diciembre 2025, documento 1343780, páginas físicas 16-17; UTM WGS84 18S.",
+      "notes": "Los Carrera 448, Charrúa, Cabrero. Nombre antiguo Charrúa Sur. PDF diciembre 2025 contiene horarios y promedios móviles: estos últimos no son observaciones horarias independientes. También reporta PM10/PM2.5. Inicio declarado 2015-04-01 no garantiza cobertura continua.",
+      "verified_first_report": "2016-01-01",
+      "verified_first_report_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/45835",
+      "date_start_declared": "2015-04-01",
+      "latitude": -37.097598358,
+      "longitude": -72.323438083,
+      "datum": "WGS84",
+      "utm_hemisphere": "S",
+      "timezone_status": "unverified",
+      "sinca_catalog_status": "not_found_name_location"
+    },
+    {
+      "id": "progreso",
+      "name": "Progreso",
+      "aliases": [
+        "El Progreso",
+        "Estación Progreso",
+        "Estacion Progreso"
+      ],
+      "source_id": "los_guindos",
+      "pollutants": [
+        "no2",
+        "o3",
+        "so2",
+        "co"
+      ],
+      "utm_e": 740990,
+      "utm_n": 5894115,
+      "utm_zone": 18,
+      "coordinate_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1086487",
+      "coordinate_source_detail": "Informe diciembre 2025, documento 1343780, páginas físicas 16-17; UTM WGS84 18S.",
+      "notes": "Parcela 39, El Progreso, Cabrero. No confundir concentraciones horarias con promedios móviles. También reporta PM10/PM2.5. Inicio declarado 2015-04-01 no garantiza cobertura continua.",
+      "verified_first_report": "2015-12-01",
+      "verified_first_report_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/42874",
+      "date_start_declared": "2015-04-01",
+      "latitude": -37.068284477,
+      "longitude": -72.289371664,
+      "datum": "WGS84",
+      "utm_hemisphere": "S",
+      "timezone_status": "unverified",
+      "sinca_catalog_status": "not_found_name_location"
+    },
+    {
+      "id": "sapu",
+      "name": "SAPU",
+      "aliases": [
+        "SAPU Cabrero",
+        "Estación SAPU",
+        "Estacion SAPU"
+      ],
+      "source_id": "masisa_cabrero",
+      "pollutants": [
+        "no2",
+        "so2"
+      ],
+      "utm_e": 731368.66,
+      "utm_n": 5897676.2,
+      "utm_zone": 18,
+      "coordinate_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1074239",
+      "coordinate_source_detail": "Informe junio 2025, documento 1292945, página física 11; UTM WGS84 18S.",
+      "notes": "Centro de salud familiar de Cabrero. Planilla junio 2025 con NO2/SO2 y MP10. No se verificaron CO/O3. No confundir con estación Policlínico, otro punto de la misma unidad fiscalizable.",
+      "verified_first_report": "2012-12-01",
+      "verified_first_report_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1722",
+      "latitude": -37.03863889,
+      "longitude": -72.398583292,
+      "datum": "WGS84",
+      "utm_hemisphere": "S",
+      "timezone_status": "unverified",
+      "sinca_catalog_status": "not_found_name_location"
+    },
+    {
+      "id": "quinel",
+      "name": "Quinel",
+      "aliases": [
+        "QUINEL",
+        "Estación Quinel",
+        "Estacion Quinel"
+      ],
+      "source_id": "masisa_cabrero",
+      "pollutants": [
+        "no2"
+      ],
+      "utm_e": 730529.23,
+      "utm_n": 5898723.24,
+      "utm_zone": 18,
+      "coordinate_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1074239",
+      "coordinate_source_detail": "Informe junio 2025, documento 1292945, página física 11; UTM WGS84 18S.",
+      "notes": "Quinel con O’Higgins, Cabrero. Planilla junio 2025 con NO2 y MP10. No se verificaron SO2/CO/O3.",
+      "verified_first_report": "2012-12-01",
+      "verified_first_report_source_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1722",
+      "latitude": -37.02941666,
+      "longitude": -72.408333346,
+      "datum": "WGS84",
+      "utm_hemisphere": "S",
+      "timezone_status": "unverified",
+      "sinca_catalog_status": "not_found_name_location"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+observado,bueno (<50),regular (50–79),alerta (80–109),preemergencia (110–169),emergencia (≥170)
+bueno (<50),356480,11190,1123,289,25
+regular (50–79),9534,10815,1857,463,27
+alerta (80–109),1858,2814,1479,592,33
+preemergencia (110–169),786,1178,976,868,165
+emergencia (≥170),243,225,295,507,332

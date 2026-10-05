@@ -1,0 +1,161 @@
+{
+  "review_date": "2026-09-22",
+  "catalog_rows": 219,
+  "statistics_page_count": 225,
+  "statistics_url": "https://sinca.mma.gob.cl/index.php/estadisticas",
+  "catalog_snapshot_file": "sinca_catalog_snapshot_20260922.csv",
+  "catalog_snapshot_sha256": "31bef222385c63a701c76f0f21cb88688ae5a2b4b61f170c611506e79737a796",
+  "retrieval": {
+    "retrieved_at": "2026-09-22T15:17:10.316404+00:00",
+    "source": "Catalogo regional SINCA, sin filtros",
+    "regions": [
+      {
+        "region": "XV",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/XV",
+        "n": 1,
+        "sha256": "f5cbf00d692e5a0d55d85de194d525d54c1660ce57c712c6c74e917bc429c6fd"
+      },
+      {
+        "region": "I",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/I",
+        "n": 1,
+        "sha256": "d66baa870393a333ab7c347a339711ea88d6126690154b52b9279c8a5ac3f58b"
+      },
+      {
+        "region": "II",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/II",
+        "n": 34,
+        "sha256": "b16efa2baf6d91534c2f96d87555154b2f1ebdffc704a733317eb94654e652ef"
+      },
+      {
+        "region": "III",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/III",
+        "n": 26,
+        "sha256": "60efa172aa4193c0a9ca04501ecc6a0f52c61d29485423721db3cd81b67d025e"
+      },
+      {
+        "region": "IV",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/IV",
+        "n": 16,
+        "sha256": "e317abbac1a238018af85f4bf25c63154f43a1e4395ab24dba1775adf41cc5ed"
+      },
+      {
+        "region": "V",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/V",
+        "n": 38,
+        "sha256": "3d08492e845c4838017a0973e6004bbce2dbcb9dc1a796523922b64542e3bcfb"
+      },
+      {
+        "region": "M",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/M",
+        "n": 15,
+        "sha256": "49ab677c6ddb32ffdc7d58d4acc65883e75a86e176c01607a765a06619fcd9c1"
+      },
+      {
+        "region": "VI",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/VI",
+        "n": 14,
+        "sha256": "368cef42ee6752ea39b407ad3536c9b21f60905f465df7b043a5fb355d327b2c"
+      },
+      {
+        "region": "VII",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/VII",
+        "n": 9,
+        "sha256": "afa24fa8f4d80a953d28e381b6c242ce7b8b8114a726a03b5e738262c8509099"
+      },
+      {
+        "region": "XVI",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/XVI",
+        "n": 6,
+        "sha256": "3124f4ff40b0528cba6ffb5cbcc9bf91c266c788607e950d33ec409d25a22bc3"
+      },
+      {
+        "region": "VIII",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/VIII",
+        "n": 33,
+        "sha256": "924663e5dea7c22c6b946d5b935f6775efdc33508fe7f25c242e58c7cbbf6f14"
+      },
+      {
+        "region": "IX",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/IX",
+        "n": 6,
+        "sha256": "dcf01ce1f11b728ff60a4da94eaef0c2347c599cf7ca31e350aba1b00a9122a1"
+      },
+      {
+        "region": "XIV",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/XIV",
+        "n": 7,
+        "sha256": "2f8083aa71352b0b1bd0590ecc8348bf21bee0b3276fa0987c1700221c43e908"
+      },
+      {
+        "region": "X",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/X",
+        "n": 8,
+        "sha256": "6fb6269d84442cf1cf577a30d3bc14deb6db01707ea194898eee1d80762b2e82"
+      },
+      {
+        "region": "XI",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/XI",
+        "n": 4,
+        "sha256": "9271ed897be11c2d6dcf2a74dfe8ffb34ef52b38faa385243fe17e59560452a6"
+      },
+      {
+        "region": "XII",
+        "url": "https://sinca.mma.gob.cl/index.php/region/index/id/XII",
+        "n": 1,
+        "sha256": "4ea27c92d9d88de25daf097aa35521754d99753c5b46214cd1bfbbd68a4cb4a5"
+      }
+    ]
+  },
+  "absence_meaning": "No localizada por nombre/alias ni ubicación en el catálogo público consultado; no es certificación administrativa de ausencia ni prueba de no haber reportado nunca.",
+  "closest_sinca_stations": [
+    {
+      "station_id": "el_penon",
+      "nearest_name": "El Sauce",
+      "nearest_code": "412",
+      "distance_km": 15.918,
+      "sinca_url": "https://sinca.mma.gob.cl/index.php/estacion/index/id/150"
+    },
+    {
+      "station_id": "charrua",
+      "nearest_name": "Colicheu",
+      "nearest_code": "876",
+      "distance_km": 9.669,
+      "sinca_url": "https://sinca.mma.gob.cl/index.php/estacion/index/id/226"
+    },
+    {
+      "station_id": "progreso",
+      "nearest_name": "Colicheu",
+      "nearest_code": "876",
+      "distance_km": 5.377,
+      "sinca_url": "https://sinca.mma.gob.cl/index.php/estacion/index/id/226"
+    },
+    {
+      "station_id": "sapu",
+      "nearest_name": "Colicheu",
+      "nearest_code": "876",
+      "distance_km": 11.899,
+      "sinca_url": "https://sinca.mma.gob.cl/index.php/estacion/index/id/226"
+    },
+    {
+      "station_id": "quinel",
+      "nearest_name": "Colicheu",
+      "nearest_code": "876",
+      "distance_km": 12.666,
+      "sinca_url": "https://sinca.mma.gob.cl/index.php/estacion/index/id/226"
+    }
+  ],
+  "excluded_candidates": [
+    {
+      "name": "Club de Empleados",
+      "reason": "Presente en SINCA, código 818.",
+      "sinca_url": "https://sinca.mma.gob.cl/index.php/estacion/index/id/245"
+    },
+    {
+      "name": "Gultro antigua",
+      "reason": "Equivalente a MVC a 1 metro; reubicada desde 2026-06-16 a 1,683 km. No se agrega serie histórica duplicada.",
+      "sinca_url": "https://sinca.mma.gob.cl/index.php/estacion/index/id/152",
+      "snifa_url": "https://snifa.sma.gob.cl/SeguimientoAmbiental/Ficha/1100027"
+    }
+  ]
+}

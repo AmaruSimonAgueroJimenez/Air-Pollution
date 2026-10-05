@@ -1,0 +1,10 @@
+{
+ "contaminante": "so2",
+ "n_dias": 82248,
+ "r2_pearson": 0.5283,
+ "r2_clasico": 0.4801,
+ "rmse": 2.898,
+ "ols_a": 1.286,
+ "ols_b": 0.381,
+ "m_origen": 0.527
+}
