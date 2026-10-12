@@ -85,3 +85,9 @@ output_files/**/*.log
 # rutas locales. Quedan en disco y en el repositorio privado Air-Pollution-Health-Chile.
 others_files/20260919_informe_modelo_1km_*.html
 others_files/20260915_prueba_preparar_sinca_modelado.json
+
+# >>> pendiente de revisión antes de publicar (2026-10-12)
+# Copias de los informes de la auditoría del 12-10: nombran rutas del repositorio privado de salud. Quedan sólo en
+# disco hasta que el autor las revise. Se ignora la carpeta entera para cubrir auditorías de otras fechas.
+/auditoria/
+# <<< pendiente de revisión
