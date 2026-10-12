@@ -1,7 +1,7 @@
 {
   "esquema": "componentes-compartidos/v1",
   "descripcion": "Componentes ambientales compartidos entre Air-Pollution (canónico, público) y Air-Pollution-Health-Chile (espejo, privado). Todo cambio se hace primero en el canónico y se copia al espejo; las diferencias permitidas se declaran en «adaptado», con motivo y plan. Lo comprueba others_scripts/verificar_componentes_compartidos.py; el procedimiento está en others_scripts/README.md. Rutas relativas a la raíz de cada repositorio.",
-  "generado": "2026-10-12T17:42:53-03:00",
+  "generado": "2026-10-12T18:41:55-03:00",
   "generador": {
     "script": "others_scripts/verificar_componentes_compartidos.py",
     "sha256": "abf59f70943661ae8afbf4589b6f369f42bca3f84867ae82bda51216efce6d01"
@@ -9,7 +9,7 @@
   "canonico": {
     "repo": "Air-Pollution",
     "alias": "AP",
-    "commit_ancla": "d54012ca581fe11319bfea022d064b3bbda73df3",
+    "commit_ancla": "032b61b5c5af063ef827ff7791e4decb60f3f81a",
     "rama": "main",
     "rutas_sin_confirmar": {
       "sin_rastrear": [
@@ -20,17 +20,14 @@
         "config/meteorologia/arranque_dmc_20261011_optimizacion1.json",
         "config/meteorologia/arranque_dmc_20261012_reanudacion1.json",
         "config/meteorologia/recuperacion_automatica_dmc_20261009.json",
-        "others_scripts/tests/test_verificar_componentes_compartidos.py",
-        "others_scripts/verificar_componentes_compartidos.py",
+        "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
         "scripts_pipeline/_meteo_guard.py",
         "scripts_pipeline/descargar_meteo_chile_horaria.py",
         "scripts_pipeline/lanzar_meteo_al_conectar.py",
         "scripts_pipeline/tests/test_meteo_chile_horaria.py",
         "scripts_pipeline/tests/test_meteo_guard.py"
       ],
-      "modificadas": [
-        "others_scripts/README.md"
-      ]
+      "modificadas": []
     }
   },
   "espejos": [
@@ -216,6 +213,7 @@
         "scripts_modelo_1km/refrescar_retransformacion.sh": "2ca84413a3ddec74df2f88d6d0646176e015effed2a6a253413e842850867f13",
         "scripts_modelo_1km/requirements.txt": "a2d7315331413cbb7924dbe0848b12b66fa8852844e0029b149c61794eabb78a",
         "scripts_modelo_1km/tests/test_modelo_1km.py": "31b3f76fb3b28c51b18e9229ea7d433a0d2a58c219aefee485578c4736ef4cd6",
+        "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
         "scripts_modelo_1km/verificar_reloj_sinca.py": "a93a1eab928d032b1d83c0e32702f2f2b73fa6d9a0b228b47ef9abb3f632d446"
       }
     },
