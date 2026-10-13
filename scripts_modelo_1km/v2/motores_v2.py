@@ -1,4 +1,5 @@
-"""Motores de la comparación v2 (``DISENO_AMBIENTAL_V2.md`` §3 y §4), con recetas fijas y sin búsqueda.
+"""Motores de la comparación v2 (``DISENO_AMBIENTAL_V2.md`` §3 y §4, con la Enmienda 1), con recetas fijas y sin
+búsqueda.
 
 **Filas de entrenamiento (§4).** Una sola permutación por pliegue, ``numpy.random.default_rng(semilla)
 .permutation`` sobre los índices disponibles en orden ascendente del panel, con semilla ``[42, k]`` (réplica 0) o
@@ -11,15 +12,28 @@ exactamente las mismas filas. Con menos filas disponibles que el tope se usan to
 * LightGBM: receta v1 (``qmd:2187-2197``) con ``deterministic=True``, ``force_col_wise=True`` e hilos fijos.
 * XGBoost: receta equivalente (``hist``, ``lossguide``, 127 hojas, η 0,03, 800 rondas, subsample y
   colsample_bytree 0,8, λ 1, ``min_child_weight`` 50, ``max_bin`` 255, ``max_depth`` 0); hilos y semilla fijos.
+  ``min_child_weight`` = 50 es la «equivalencia con hessiana 1» de ``min_data_in_leaf`` (Enmienda 1, punto 1.2):
+  ``perdidas_v2.parametros_xgboost`` impide usarlo con un objetivo de hessiana no constante.
 * Random Forest: receta v1 (``qmd:3146`` y ``3218-3221``): 300 árboles, √p, hojas ≥ 20, NaN nativos,
   ``random_state = 42 + k``.
-* MLP: receta v1 (``qmd:3155-3157`` y ``3225-3242``) con **parada temprana agrupada por estación**: un 10 % de
-  las estaciones de entrenamiento (al menos una) se aparta para validar; se entrena época a época
-  (``partial_fit``), se mide el R² en log en esas estaciones y se detiene tras más de 10 épocas sin mejorar en
-  1e-4, restaurando la mejor época, como ``MLPRegressor`` pero sin partir filas al azar. Imputación por mediana
-  y escalado con todo el entrenamiento del pliegue; entradas de prueba acotadas al rango del entrenamiento;
-  salida log recortada a sus cuantiles 0,005–0,99.
-* Promedio simple de los cuatro, en log (provisional), lo arma la consolidación.
+* MLP: receta v1 (``qmd:3155-3157`` y ``3225-3242``) con **parada temprana agrupada** (Enmienda 1, punto 6). La
+  validación se sortea por **conglomerados LOSO-D** (``sortear_conglomerados_validacion``); en LRO y BLQ-75, por
+  **grupos completos del protocolo** hasta ~10 % de las filas, estratificado por macrozona
+  (``seleccionar_grupos_validacion``). El vecindario de esa fase se recalcula **sin las estaciones de
+  validación** (lo hace ``correr_v2``, que entrega la matriz en ``ValidacionMLP``). En BLQ-75 tampoco entrenan en
+  esa fase las estaciones a ≤ 10 km de las de validación (**amortiguador interno**, Complemento de la Enmienda 1,
+  punto 5; ``ValidacionMLP.fuera`` y ``estaciones_a_radio``). Se entrena época a época (``partial_fit``) sin las
+  filas de validación ni las del amortiguador, se mide el R² en log en las de validación y se detiene tras más de
+  10 épocas sin mejorar en 1e-4; después la red se **reajusta desde cero**, con la misma semilla, con todas las
+  estaciones del pliegue y su vecindario durante la época elegida, que queda registrada. Imputación por mediana y
+  escalado con todo el entrenamiento del pliegue (en cada fase, con su vecindario); entradas de prueba acotadas al
+  rango del entrenamiento; salida log recortada a sus cuantiles 0,005–0,99.
+* Promedio simple de los cuatro, en log, lo arma la consolidación.
+
+**Huber (Enmienda 1, punto 9).** ``particion_honesta`` reparte en dos mitades los conglomerados LOSO-D de las filas
+con tope; ``correr_v2`` predice cada mitad con el ``l2_original`` de LightGBM ajustado en la otra (en BLQ-75, sin las
+estaciones a ≤ 10 km de la mitad que se predice: Complemento, punto 5) y saca de esos residuos honestos el δ común a
+LightGBM y XGBoost (``perdidas_v2.deltas_honestos``).
 
 **Alertas**: LightGBM cuantílico τ = 0,80 sobre log1p (receta v1, ``qmd:3214-3217``, con determinismo e hilos
 fijos), vuelta con ``máx(expm1(ẑ), 0)``; se juzga aparte.
@@ -38,11 +52,15 @@ faltante > 5 % y escala— se ajusta con el entrenamiento del pliegue):
   en la base ``[1, x·(1−I), I, …]``, así que ``X'X`` del pliegue es ``Tᵀ (B'B) T``, exacto.
 
 **Apilado anidado** (sólo LRO y BLQ-75): predicciones de nivel 2 de pliegues internos agrupados dentro del
-entrenamiento del pliegue externo; pesos no negativos que suman 1, por mínimos cuadrados en log resueltos de
-forma exacta (enumeración de caras del símplex).
+entrenamiento del pliegue externo (en BLQ-75 con el amortiguador interno de 10 km); pesos no negativos que suman 1,
+por mínimos cuadrados en log resueltos de forma exacta (enumeración de caras del símplex).
 
-Los valores que el contrato deja pendientes se leen de ``config_v2.json`` con ``valor_vigente`` (provisionales).
-Este módulo no lee ni escribe archivos: ``correr_v2`` le entrega las matrices del pliegue.
+**Recortes del presupuesto** (Enmienda 1, punto 12; Complemento, punto 8): ``recetas_de`` lleva el orden de recortes
+de la configuración (``recortes_de``) para que ``correr_v2.plan_protocolo`` los aplique sin elección a mano.
+
+Los valores que el contrato no fijaba se leen de ``config_v2.json`` con ``valor_vigente`` (los ratificados por la
+Enmienda 1 y, donde siguen pendientes, sus provisionales). Este módulo no lee ni escribe archivos: ``correr_v2`` le
+entrega las matrices del pliegue.
 """
 from __future__ import annotations
 
@@ -57,16 +75,21 @@ import pandas as pd
 
 from _rutas_v2 import valor_vigente
 from perdidas_v2 import (
-    Variante, delta_huber, parametros_lightgbm, parametros_xgboost, transformar_blanco,
+    CUANTIL_FRIEDMAN, FACTOR_HUBER, Variante, parametros_lightgbm, parametros_xgboost, transformar_blanco,
 )
 
 MOTORES_EJE_A = ("lightgbm", "xgboost", "random_forest", "mlp")
 MOTORES_EJE_B = ("gp", "lme", "gwr", "rk", "idw")
 MOTORES_LINEALES = ("gwr", "rk", "idw")
 MOTORES_PERDIDAS = ("lightgbm", "xgboost")
+VARIANTE_REFERENCIA = "l2_log_smearing"   # cuadrática en log (Enmienda 1, punto 2: antes «l2_log_duan»)
 SEMILLA_BASE = 42
-PASO_SEMILLA_REPLICA = 1000          # semilla del motor en la réplica r: la de la receta + 1000·r (provisional)
-SEMILLA_INTERNOS = 1000              # pliegues internos: default_rng([42, k, 1000]) (provisional)
+PASO_SEMILLA_REPLICA = 1000          # semilla del motor en la réplica r: la de la receta + 1000·r (ruido.valores)
+SEMILLA_INTERNOS = 1000              # pliegues internos: default_rng([42, k, 1000]) (apilado_anidado.pliegues_internos)
+SEMILLA_PARTICION_HONESTA = 1001     # δ de Huber: default_rng([42, k, 1001]) (perdidas.variantes[2].delta.particion_honesta)
+PROTOCOLOS_VALIDACION_POR_GRUPOS = ("LRO", "BLQ-75")    # MLP: validación con grupos completos (Enmienda 1, punto 6)
+PROTOCOLOS_AMORTIGUADOR_INTERNO = ("BLQ-75",)            # Complemento, punto 5
+ELEMENTOS_RECORTE = ("curvas_de_aprendizaje", "mlp", "semillas", "perdidas")   # Enmienda 1, punto 12
 COBERTURA_MIN = 0.05                 # _features.py:564 (columnas_modelo)
 FALTANTE_INDICADORA = 0.05           # qmd:2935 y 3191: indicadora si falta más del 5 %
 
@@ -90,8 +113,9 @@ CALENDARIO = ("hora_sin", "hora_cos", "doy_sin", "doy_cos")
 # Recetas desde la configuración
 # ---------------------------------------------------------------------------
 def recetas_de(cfg: dict, hilos: int | None = None) -> dict:
-    """Recetas efectivas de todos los motores: lo fijado por el contrato y, donde está pendiente, el provisional
-    de ``config_v2.json``. ``hilos`` (≤ ``operacion.hilos_maximos``) reemplaza a los hilos de las recetas."""
+    """Recetas efectivas de todos los motores: lo fijado por el contrato, lo que la Enmienda 1 ratificó y, donde sigue
+    pendiente, el provisional de ``config_v2.json``. ``hilos`` (≤ ``operacion.hilos_maximos``) reemplaza a los hilos
+    de las recetas."""
     m = cfg["motores"]
     a = m["eje_A"]
     tope_hilos = int(cfg["operacion"]["hilos_maximos"])
@@ -110,17 +134,22 @@ def recetas_de(cfg: dict, hilos: int | None = None) -> dict:
 
     x = a["xgboost"]
     variante_col = valor_vigente(x["colsample"]["variante"], "motores.eje_A.xgboost.colsample.variante")
+    mcw = x["min_child_weight"]
     xgbr = {"params": {"tree_method": x["tree_method"], "max_leaves": int(x["max_leaves"]),
                        "grow_policy": x["grow_policy"], "eta": float(x["eta"]), "subsample": float(x["subsample"]),
                        variante_col: float(x["colsample"]["valor"]), "lambda": float(x["lambda"]),
-                       "min_child_weight": float(valor_vigente(x["min_child_weight"], "motores.eje_A.xgboost.min_child_weight")),
+                       "min_child_weight": float(valor_vigente(mcw, "motores.eje_A.xgboost.min_child_weight")),
                        "max_depth": int(valor_vigente(x["max_depth"], "motores.eje_A.xgboost.max_depth")),
                        "max_bin": int(valor_vigente(x["max_bin"], "motores.eje_A.xgboost.max_bin")),
                        "nthread": h, "seed": int(valor_vigente(x["seed"], "motores.eje_A.xgboost.seed")),
                        "verbosity": 0},
             "num_boost_round": int(x["num_boost_round"]),
+            # Enmienda 1, punto 1.2: el valor es la equivalencia de min_data_in_leaf con hessiana 1; la salvaguarda
+            # rige salvo que la configuración declare otra equivalencia.
+            "min_child_weight_equivalencia": ("hessiana_1" if not isinstance(mcw, dict) or "hessiana 1"
+                                              in str(mcw.get("equivalencia", "hessiana 1")) else str(mcw["equivalencia"])),
             "determinismo": valor_vigente(x["determinismo"], "motores.eje_A.xgboost.determinismo")}
-    valor_vigente(x["nthread"], "motores.eje_A.xgboost.nthread")          # que exista el provisional
+    valor_vigente(x["nthread"], "motores.eje_A.xgboost.nthread")          # que exista el valor
 
     f = a["random_forest"]
     valor_vigente(f["n_jobs"], "motores.eje_A.random_forest.n_jobs")
@@ -129,6 +158,11 @@ def recetas_de(cfg: dict, hilos: int | None = None) -> dict:
 
     n = a["mlp"]
     pt = n["parada_temprana"]
+    criterio = valor_vigente(pt["criterio"], "motores.eje_A.mlp.parada_temprana.criterio")
+    tol = float(criterio.get("tol", 1e-4)) if isinstance(criterio, dict) else 1e-4
+    sin_mejora = int(criterio.get("n_iter_no_change", n["n_iter_no_change"])) if isinstance(criterio, dict) else int(n["n_iter_no_change"])
+    if sin_mejora != int(n["n_iter_no_change"]):
+        raise ValueError("motores.eje_A.mlp: n_iter_no_change difiere entre la receta y el criterio de parada")
     mlp = {"params": {"hidden_layer_sizes": tuple(int(v) for v in n["hidden_layer_sizes"]), "activation": n["activation"],
                       "solver": n["solver"], "alpha": float(n["alpha"]), "batch_size": int(n["batch_size"]),
                       "learning_rate_init": float(n["learning_rate_init"])},
@@ -136,8 +170,15 @@ def recetas_de(cfg: dict, hilos: int | None = None) -> dict:
            "recorte_salida_log": [float(v) for v in n["recorte_salida_log"]],
            "acotar_entradas": bool(n["acotar_entradas_al_rango_del_entrenamiento"]),
            "fraccion_validacion": float(valor_vigente(pt["fraccion"], "motores.eje_A.mlp.parada_temprana.fraccion")),
-           "criterio": valor_vigente(pt["criterio"], "motores.eje_A.mlp.parada_temprana.criterio"),
-           "tol": 1e-4, "hilos": h}
+           "criterio": criterio,
+           "validacion": {"conglomerados": "conglomerados LOSO-D presentes en el entrenamiento: máx(1, round(f·n)), nunca todos",
+                          "grupos_en": list(PROTOCOLOS_VALIDACION_POR_GRUPOS),
+                          "seleccion_grupos": valor_vigente(pt["seleccion_en_LRO_y_BLQ-75"],
+                                                            "motores.eje_A.mlp.parada_temprana.seleccion_en_LRO_y_BLQ-75")
+                          if "seleccion_en_LRO_y_BLQ-75" in pt else None,
+                          "vecindario": "recalculado sin las estaciones de validación",
+                          "reajuste": "desde cero, misma semilla, todas las estaciones del pliegue, épocas elegidas"},
+           "tol": tol, "hilos": h}
 
     prom = valor_vigente(a["promedio_simple"]["escala"], "motores.eje_A.promedio_simple.escala")
 
@@ -164,9 +205,61 @@ def recetas_de(cfg: dict, hilos: int | None = None) -> dict:
             "alertas": alertas, "gp": {**GP_RECETA, "tope": _tope(topes_b["gp"])},
             "lme": {**LME_RECETA, "tope": _tope(topes_b["lme"])},
             "lineales": {"tope": _tope(topes_b["gwr"]), "k_vecinos": K_VECINOS_GWR, "ridge": RIDGE_LINEAL},
-            "apilado": apilado, "N_comun": int(fe["N_comun_eje_A"]),
+            "apilado": apilado, "huber": receta_huber(cfg), "N_comun": int(fe["N_comun_eje_A"]),
             "curvas": {k: [_tope(v) for v in fe["curvas_de_aprendizaje"][k]] for k in ("lightgbm", "xgboost", "random_forest")},
-            "protocolos_curvas": list(fe["curvas_de_aprendizaje"]["protocolos"]), "hilos": h}
+            "protocolos_curvas": list(fe["curvas_de_aprendizaje"]["protocolos"]),
+            "amortiguador_interno": amortiguador_interno_de(cfg), "recortes": recortes_de(cfg), "hilos": h}
+
+
+def amortiguador_interno_de(cfg: dict) -> dict:
+    """Amortiguador de las particiones internas de BLQ-75 (Complemento de la Enmienda 1, punto 5;
+    ``protocolos.BLQ-75.exclusion_adicional.particiones_internas``): radio (km, haversine), comparación «<=» y dónde
+    se aplica. Se mide desde las estaciones del conjunto interno de validación que tienen filas en el entrenamiento
+    del pliegue (las que validan; ``correr_v2.amortiguador_interno``)."""
+    ex = cfg["protocolos"]["BLQ-75"]["exclusion_adicional"]
+    pi = ex.get("particiones_internas") if isinstance(ex, dict) else None
+    if not isinstance(pi, dict) or "radio_km" not in pi:
+        raise ValueError("falta protocolos.BLQ-75.exclusion_adicional.particiones_internas (Complemento, punto 5)")
+    if pi.get("comparacion", "<=") != "<=":
+        raise ValueError("el amortiguador interno de BLQ-75 se mide con <=, como el externo")
+    return {"protocolos": list(PROTOCOLOS_AMORTIGUADOR_INTERNO), "radio_km": float(pi["radio_km"]), "comparacion": "<=",
+            "distancia": "haversine",
+            "medida_desde": ("cualquier estación del conjunto interno de validación con filas en el entrenamiento del "
+                             "pliegue (correr_v2.amortiguador_interno)"),
+            "se_aplica_en": list(pi.get("se_aplica_en", []))}
+
+
+def recortes_de(cfg: dict) -> list[dict]:
+    """Orden de recortes del presupuesto (``presupuesto.orden_de_recortes``; Enmienda 1, punto 12, con el recorte 4
+    del Complemento, punto 8): por orden, el elemento que se recorta y los protocolos donde se conserva. Exige los
+    cuatro elementos de la enmienda, en órdenes consecutivos desde 1."""
+    orden = sorted(cfg["presupuesto"]["orden_de_recortes"], key=lambda x: int(x["orden"]))
+    out = [{"orden": int(x["orden"]), "elemento": str(x["elemento"]), "recorte": str(x["recorte"]),
+            "se_conserva_en": list(x["se_conserva_en"])} for x in orden]
+    if [x["orden"] for x in out] != list(range(1, len(out) + 1)):
+        raise ValueError(f"presupuesto.orden_de_recortes: órdenes no consecutivos desde 1: {[x['orden'] for x in out]}")
+    if sorted(x["elemento"] for x in out) != sorted(ELEMENTOS_RECORTE):
+        raise ValueError(f"presupuesto.orden_de_recortes: los elementos deben ser {ELEMENTOS_RECORTE}: "
+                         f"{[x['elemento'] for x in out]}")
+    return out
+
+
+def receta_huber(cfg: dict) -> dict:
+    """Regla del δ de Huber (Enmienda 1, punto 9) tal como la fija la configuración: factor sobre el MAD normalizado
+    de residuos honestos del ``l2_original`` de LightGBM, común a los dos motores, y la sensibilidad de Friedman."""
+    v = next(x for x in cfg["perdidas"]["variantes"] if x["id"] == "huber")
+    d = v["delta"]
+    if float(d["factor"]) != FACTOR_HUBER:
+        raise ValueError(f"perdidas.variantes[huber].delta.factor = {d['factor']} no es {FACTOR_HUBER}")
+    ajuste = valor_vigente(d["ajuste_cuadratico"], "perdidas.variantes[2].delta.ajuste_cuadratico")
+    if isinstance(ajuste, dict) and ajuste.get("motor", "lightgbm") != "lightgbm":
+        raise ValueError("el δ común de Huber sale del l2_original de LightGBM (Enmienda 1, punto 9)")
+    return {"factor": FACTOR_HUBER, "mad": valor_vigente(d["mad"], "perdidas.variantes[2].delta.mad"),
+            "ajuste_cuadratico": ajuste, "comun_a_los_dos_motores": bool(d.get("comun_a_los_dos_motores", True)),
+            "particion_honesta": valor_vigente(d["particion_honesta"], "perdidas.variantes[2].delta.particion_honesta")
+            if "particion_honesta" in d else None,
+            "sensibilidad": {"regla": "friedman", "cuantil_de_abs_r": CUANTIL_FRIEDMAN},
+            "semilla_particion": [SEMILLA_BASE, "k", SEMILLA_PARTICION_HONESTA]}
 
 
 def _tope(v):
@@ -178,7 +271,7 @@ def _tope(v):
 # Filas: permutación común y topes anidados
 # ---------------------------------------------------------------------------
 def semilla_permutacion(k: int, replica: int = 0) -> list[int]:
-    """``[42, k]`` en la réplica 0 (§4); ``[42, k, r]`` en las réplicas de ruido (provisional)."""
+    """``[42, k]`` en la réplica 0 (§4); ``[42, k, r]`` en las réplicas de ruido (``ruido.valores``, ratificado)."""
     return [SEMILLA_BASE, int(k)] + ([int(replica)] if replica else [])
 
 
@@ -264,7 +357,9 @@ class ModeloLightGBM:
 
 
 class ModeloXGBoost:
-    """XGBoost ``hist`` sobre el blanco de la variante (Huber con el objetivo propio de ``perdidas_v2``)."""
+    """XGBoost ``hist`` sobre el blanco de la variante (Huber con el objetivo propio de ``perdidas_v2``). Con la
+    receta v2, ``min_child_weight`` es la «equivalencia con hessiana 1» y no se combina con un objetivo de hessiana
+    no constante (Enmienda 1, punto 1.2)."""
 
     def __init__(self, receta: dict, variante: Variante, semilla: int, num_boost_round: int | None = None):
         self.receta, self.variante, self.semilla = receta, variante, int(semilla)
@@ -276,12 +371,15 @@ class ModeloXGBoost:
     def ajustar(self, X, y, estaciones=None) -> "ModeloXGBoost":
         import xgboost as xgb
         yb = transformar_blanco(y, self.variante)
-        params, obj = parametros_xgboost({**self.receta["params"], "seed": self.semilla}, self.variante, yb)
+        exigir = self.receta.get("min_child_weight_equivalencia", "hessiana_1") == "hessiana_1"
+        params, obj = parametros_xgboost({**self.receta["params"], "seed": self.semilla}, self.variante, yb,
+                                         exigir_hessiana_constante=exigir)
         t0 = time.perf_counter()
         dtrain = xgb.QuantileDMatrix(X, label=yb, max_bin=int(params["max_bin"]), nthread=int(params["nthread"]))
         self.modelo = xgb.train(params, dtrain, num_boost_round=self.rondas, obj=obj)
         self.info.update({"params": {k: v for k, v in params.items() if k != "verbosity"}, "rondas": self.rondas,
                           "objetivo_propio": None if obj is None else obj.__name__,
+                          "min_child_weight_equivalencia": self.receta.get("min_child_weight_equivalencia"),
                           "segundos_ajuste": round(time.perf_counter() - t0, 3), "filas": int(len(yb))})
         return self
 
@@ -301,7 +399,7 @@ class ModeloRF:
 
     def ajustar(self, X, y, estaciones=None) -> "ModeloRF":
         from sklearn.ensemble import RandomForestRegressor
-        ylog = transformar_blanco(y, Variante("l2_log_duan"))
+        ylog = transformar_blanco(y, Variante(VARIANTE_REFERENCIA))
         t0 = time.perf_counter()
         self.modelo = RandomForestRegressor(**self.receta["params"], random_state=self.semilla).fit(X, ylog)
         self.info.update({"params": dict(self.receta["params"]), "random_state": self.semilla,
@@ -328,8 +426,103 @@ class ModeloRF:
         return np.concatenate(partes).astype("float64")
 
 
+# ---------------------------------------------------------------------------
+# MLP: validación agrupada de la parada temprana (Enmienda 1, punto 6)
+# ---------------------------------------------------------------------------
+@dataclass
+class ValidacionMLP:
+    """Validación de la parada temprana de una MLP.
+
+    ``filas``: máscara booleana sobre las filas de entrenamiento (las de validación). ``X``: las mismas filas de
+    entrenamiento, en el mismo orden, con el vecindario recalculado **sin las estaciones de validación** (``None``
+    reutiliza la matriz del ajuste, sólo para usos aislados y pruebas). ``fuera``: máscara de las filas que tampoco
+    entrenan en la fase de validación (en BLQ-75, las de las estaciones a ≤ 10 km de las de validación: el
+    amortiguador interno del Complemento, punto 5); ``None`` = ninguna. ``registro``: unidad del sorteo, unidades
+    elegidas, estaciones, macrozonas, amortiguador, fracción de filas y huella del vecindario."""
+
+    filas: np.ndarray
+    X: np.ndarray | None = None
+    registro: dict = field(default_factory=dict)
+    fuera: np.ndarray | None = None
+
+    def entrenan(self) -> np.ndarray:
+        """Filas que entrenan en la fase de validación: ni de validación ni del amortiguador."""
+        f = np.asarray(self.filas, dtype=bool)
+        return ~f if self.fuera is None else ~f & ~np.asarray(self.fuera, dtype=bool)
+
+    @property
+    def agrupada(self) -> bool:
+        f = np.asarray(self.filas, dtype=bool)
+        return bool(f.any() and self.entrenan().any())
+
+
+def estaciones_a_radio(D: np.ndarray, internas, fuera_de_juego, radio_km: float) -> np.ndarray:
+    """Máscara (por estación) de las estaciones a ``<= radio_km`` de alguna estación de ``internas`` (índices), que
+    no son de ``internas`` ni de ``fuera_de_juego`` (índices ya excluidos). ``D``: distancias haversine entre las
+    estaciones (km). Es el amortiguador de una partición interna de BLQ-75 (Complemento, punto 5)."""
+    D = np.asarray(D, dtype="float64")
+    internas = np.asarray(internas, dtype="int64")
+    out = np.zeros(D.shape[0], dtype=bool)
+    if len(internas) == 0:
+        return out
+    out = (D[internas] <= float(radio_km)).any(axis=0)
+    out[internas] = False
+    out[np.asarray(fuera_de_juego, dtype="int64")] = False
+    return out
+
+
+def sortear_conglomerados_validacion(conglomerados_presentes, semilla, fraccion: float) -> list[str]:
+    """Conglomerados LOSO-D de validación (LOSO-D, LBO-10 y LPO): ``máx(1, round(fraccion·n))`` de los n presentes
+    en el entrenamiento, nunca todos, sorteados con ``default_rng(semilla)`` sobre las etiquetas ordenadas."""
+    u = np.array(sorted({str(x) for x in conglomerados_presentes}))
+    n_val = max(1, int(round(float(fraccion) * len(u))))
+    if len(u) < 2 or n_val >= len(u):
+        return []
+    return sorted(str(x) for x in np.random.default_rng(semilla).choice(u, n_val, replace=False))
+
+
+def seleccionar_grupos_validacion(grupo_de_fila, macrozona_de_fila, semilla, fraccion: float) -> tuple[list[str], dict]:
+    """Grupos completos del protocolo para validar la MLP en LRO y BLQ-75 (ratificado por el Complemento, punto 4.1:
+    ``motores.eje_A.mlp.parada_temprana.seleccion_en_LRO_y_BLQ-75``): (1) se permutan con ``default_rng(semilla)``
+    las etiquetas ordenadas de los grupos presentes en el entrenamiento; (2) se recorren en ese orden y un grupo
+    entra si su macrozona (la de la mayoría de sus filas) todavía no aporta ninguno y si con él las filas de
+    validación no pasan de ``fraccion`` de las filas de entrenamiento; (3) si ninguno cabe, entra el grupo con menos
+    filas (desempate: etiqueta); nunca entran todos. Devuelve los grupos y su registro."""
+    g = np.asarray(grupo_de_fila).astype(str)
+    mz = np.asarray(macrozona_de_fila, dtype="int64")
+    total = len(g)
+    tope = float(fraccion) * total
+    etiquetas, inv, filas = np.unique(g, return_inverse=True, return_counts=True)
+    inv = inv.ravel()
+    mayoria = {}
+    for i, e in enumerate(etiquetas):
+        valores, cuentas = np.unique(mz[inv == i], return_counts=True)
+        mayoria[str(e)] = int(valores[int(np.argmax(cuentas))])           # empate: la macrozona de código menor
+    registro = {"unidad": "grupos completos del protocolo", "grupos_presentes": int(len(etiquetas)),
+                "filas_entrenamiento": int(total), "tope_filas": tope, "estratificado_por": "macrozona"}
+    if len(etiquetas) < 2:
+        return [], {**registro, "motivo": "menos de dos grupos en el entrenamiento: sin validación agrupada"}
+    elegidos, usadas, n_val = [], set(), 0
+    for i in np.random.default_rng(semilla).permutation(len(etiquetas)):
+        e, n = str(etiquetas[i]), int(filas[i])
+        if mayoria[e] in usadas or n_val + n > tope or len(elegidos) + 1 >= len(etiquetas):
+            continue
+        elegidos.append(e)
+        usadas.add(mayoria[e])
+        n_val += n
+    respaldo = not elegidos
+    if respaldo:
+        i = min(range(len(etiquetas)), key=lambda j: (int(filas[j]), str(etiquetas[j])))
+        elegidos, n_val = [str(etiquetas[i])], int(filas[i])
+    elegidos = sorted(elegidos)
+    registro.update({"grupos": elegidos, "macrozonas": {e: mayoria[e] for e in elegidos}, "filas_validacion": int(n_val),
+                     "fraccion_filas": n_val / total if total else float("nan"), "respaldo_grupo_con_menos_filas": respaldo})
+    return elegidos, registro
+
+
 class ModeloMLP:
-    """MLP de la v1 con parada temprana agrupada por estación (§3)."""
+    """MLP de la v1 con parada temprana agrupada (Enmienda 1, punto 6): fase de validación con el vecindario sin las
+    estaciones de validación y reajuste desde cero con todas las estaciones durante la época elegida."""
 
     escala = "log"
 
@@ -337,66 +530,86 @@ class ModeloMLP:
         self.receta, self.semilla = receta, int(semilla)
         self.info: dict = {}
 
-    def ajustar(self, X, y, estaciones) -> "ModeloMLP":
-        from sklearn.impute import SimpleImputer
-        from sklearn.metrics import r2_score
+    def _red(self):
         from sklearn.neural_network import MLPRegressor
+        rc = self.receta
+        return MLPRegressor(**rc["params"], max_iter=1, shuffle=True, early_stopping=False, tol=rc["tol"],
+                            n_iter_no_change=rc["n_iter_no_change"], random_state=np.random.RandomState(self.semilla))
+
+    @staticmethod
+    def _escalar(X):
+        from sklearn.impute import SimpleImputer
         from sklearn.preprocessing import StandardScaler
-        if estaciones is None:
-            raise ValueError("la MLP necesita la estación de cada fila para validar agrupado")
+        imp = SimpleImputer(strategy="median", keep_empty_features=True).fit(X)
+        Xi = imp.transform(X)
+        esc = StandardScaler().fit(Xi)
+        return imp, esc, esc.transform(Xi).astype("float32")
+
+    def ajustar(self, X, y, estaciones=None, validacion: ValidacionMLP | None = None) -> "ModeloMLP":
+        from sklearn.metrics import r2_score
+        if validacion is None:
+            raise ValueError("la MLP necesita su validación agrupada (ValidacionMLP; Enmienda 1, punto 6)")
         rc = self.receta
         X = np.asarray(X, dtype="float32")
-        ylog = transformar_blanco(y, Variante("l2_log_duan"))
+        ylog = transformar_blanco(y, Variante(VARIANTE_REFERENCIA))
+        val = np.asarray(validacion.filas, dtype=bool)
+        if val.shape != (len(ylog),):
+            raise ValueError("la máscara de validación debe tener una entrada por fila de entrenamiento")
+        if validacion.fuera is not None and np.asarray(validacion.fuera).shape != (len(ylog),):
+            raise ValueError("la máscara del amortiguador debe tener una entrada por fila de entrenamiento")
+        entrenan = validacion.entrenan()
         t0 = time.perf_counter()
         self.vacias = np.isnan(X).all(axis=0)                     # sin dato en el entrenamiento (qmd:3230-3232)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", RuntimeWarning)
             self.bajo, self.alto = np.nanmin(X, axis=0), np.nanmax(X, axis=0)
         self.lo, self.hi = (float(v) for v in np.quantile(ylog, rc["recorte_salida_log"]))
-        with limitar_hilos(rc["hilos"]):
-            self.imp = SimpleImputer(strategy="median", keep_empty_features=True).fit(X)
-            Xi = self.imp.transform(X)
-            self.esc = StandardScaler().fit(Xi)
-            Xs = self.esc.transform(Xi).astype("float32")
-            est = np.asarray(estaciones).astype(str)
-            unicas = np.unique(est)
-            rng = np.random.default_rng(self.semilla)
-            n_val = max(1, int(round(rc["fraccion_validacion"] * len(unicas))))
-            agrupada = len(unicas) >= 2 and n_val < len(unicas)
-            if agrupada:
-                val_est = np.sort(rng.choice(unicas, n_val, replace=False))
-                val = np.isin(est, val_est)
-            else:
-                val_est, val = np.array([], dtype=str), np.zeros(len(est), dtype=bool)
-            mlp = MLPRegressor(**rc["params"], max_iter=1, shuffle=True, early_stopping=False, tol=rc["tol"],
-                               n_iter_no_change=rc["n_iter_no_change"],
-                               random_state=np.random.RandomState(self.semilla))
-            mejor, sin_mejora, mejor_epoca, curva = -np.inf, 0, 0, []
-            mejores = None
-            lote_recortado = int((~val).sum()) < int(rc["params"]["batch_size"])   # scikit-learn lo recorta (se registra)
+        agrupada = validacion.agrupada
+        mejor, mejor_epoca, epocas_validacion, motivo = -np.inf, 0, 0, None
+        with limitar_hilos(rc["hilos"]), warnings.catch_warnings():
             warnings.filterwarnings("ignore", message="Got `batch_size` less than 1 or larger than sample size")
-            for epoca in range(1, rc["max_iter"] + 1):
-                mlp.partial_fit(Xs[~val], ylog[~val])
-                if not agrupada:
-                    continue
-                s = float(r2_score(ylog[val], mlp.predict(Xs[val])))
-                curva.append(s)
-                sin_mejora = sin_mejora + 1 if s < mejor + rc["tol"] else 0          # MLPRegressor (_update_no_improvement_count)
-                if s > mejor:
-                    mejor, mejor_epoca = s, epoca
-                    mejores = ([c.copy() for c in mlp.coefs_], [b.copy() for b in mlp.intercepts_])
-                if sin_mejora > rc["n_iter_no_change"]:
-                    break
-            if mejores is not None:
-                mlp.coefs_, mlp.intercepts_ = mejores
-        self.modelo = mlp
+            if agrupada:
+                Xv = X if validacion.X is None else np.asarray(validacion.X, dtype="float32")
+                if Xv.shape != X.shape:
+                    raise ValueError("la matriz de validación no tiene la forma de la de entrenamiento")
+                _, _, Xs_v = self._escalar(Xv)                          # imputación y escala: todo el entrenamiento
+                red_v, sin_mejora = self._red(), 0
+                for epoca in range(1, rc["max_iter"] + 1):
+                    red_v.partial_fit(Xs_v[entrenan], ylog[entrenan])  # sin validación ni amortiguador
+                    s = float(r2_score(ylog[val], red_v.predict(Xs_v[val])))
+                    if not np.isfinite(s):
+                        s = -np.inf
+                    sin_mejora = sin_mejora + 1 if s < mejor + rc["tol"] else 0      # MLPRegressor (_update_no_improvement_count)
+                    if s > mejor:
+                        mejor, mejor_epoca = s, epoca
+                    epocas_validacion = epoca
+                    if sin_mejora > rc["n_iter_no_change"]:
+                        break
+                del red_v, Xs_v
+                epocas = mejor_epoca if mejor_epoca >= 1 else epocas_validacion
+                if mejor_epoca < 1:
+                    motivo = "el R² de validación nunca fue finito: se reajusta con las épocas recorridas"
+            else:
+                epocas = int(rc["max_iter"])
+                motivo = validacion.registro.get("motivo", "sin unidades de validación: sin parada temprana")
+            # Reajuste desde cero, con la misma semilla y todas las estaciones del pliegue (y su vecindario).
+            self.imp, self.esc, Xs = self._escalar(X)
+            red = self._red()
+            for _ in range(int(epocas)):
+                red.partial_fit(Xs, ylog)
+        self.modelo = red
         self.info.update({"params": {k: (list(v) if isinstance(v, tuple) else v) for k, v in rc["params"].items()},
                           "random_state": self.semilla, "validacion_agrupada": agrupada,
-                          "estaciones_validacion": [str(s) for s in val_est], "filas_validacion": int(val.sum()),
-                          "epocas": int(epoca), "mejor_epoca": int(mejor_epoca),
+                          "validacion": validacion.registro, "filas_validacion": int(val.sum()),
+                          "filas_amortiguador": 0 if validacion.fuera is None else int(np.asarray(validacion.fuera).sum()),
+                          "filas_entrenamiento_validacion": int(entrenan.sum()),
+                          "vecindario_validacion_recalculado": validacion.X is not None,
+                          "epocas_validacion": int(epocas_validacion), "mejor_epoca": int(mejor_epoca),
+                          "epocas_reajuste": int(epocas), "motivo": motivo,
                           "mejor_r2_log_validacion": None if not np.isfinite(mejor) else float(mejor),
+                          "reajuste": "desde cero, con la misma semilla y todas las estaciones del pliegue",
                           "recorte_salida_log": [self.lo, self.hi], "columnas_vacias": int(self.vacias.sum()),
-                          "lote_recortado": lote_recortado,
+                          "lote_recortado": int(len(ylog)) < int(rc["params"]["batch_size"]),
                           "segundos_ajuste": round(time.perf_counter() - t0, 3), "filas": int(len(ylog))})
         return self
 
@@ -412,13 +625,23 @@ class ModeloMLP:
             return np.clip(self.modelo.predict(Xs), self.lo, self.hi).astype("float64")
 
 
+def validacion_por_unidades(unidad_de_fila, semilla, fraccion: float, X_validacion=None) -> ValidacionMLP:
+    """Validación por unidades sorteadas (``sortear_conglomerados_validacion``) para un uso aislado de la MLP; en la
+    comparación, ``correr_v2`` arma la validación con el vecindario recalculado sin las estaciones de validación."""
+    u = np.asarray(unidad_de_fila).astype(str)
+    elegidas = sortear_conglomerados_validacion(np.unique(u), semilla, fraccion)
+    filas = np.isin(u, elegidas)
+    return ValidacionMLP(filas=filas, X=X_validacion,
+                         registro={"unidad": "unidades dadas", "unidades": elegidas, "filas_validacion": int(filas.sum())})
+
+
 def crear_modelo(motor: str, recetas: dict, variante: Variante, semilla_recipe: int, replica: int = 0, k: int = 0):
     """Modelo del eje A, de las pérdidas o de alertas, con la semilla de la réplica."""
     if motor == "lightgbm":
         return ModeloLightGBM(recetas["lightgbm"], variante, semilla_motor(recetas["lightgbm"]["params"]["seed"], replica))
     if motor == "xgboost":
         return ModeloXGBoost(recetas["xgboost"], variante, semilla_motor(recetas["xgboost"]["params"]["seed"], replica))
-    if variante.nombre != "l2_log_duan":
+    if variante.nombre != VARIANTE_REFERENCIA:
         raise ValueError(f"{motor} sólo usa la pérdida de referencia (las de §6 son de LightGBM y XGBoost)")
     if motor == "random_forest":
         return ModeloRF(recetas["random_forest"], semilla_motor(SEMILLA_BASE + int(k), replica))
@@ -426,8 +649,9 @@ def crear_modelo(motor: str, recetas: dict, variante: Variante, semilla_recipe: 
         return ModeloMLP(recetas["mlp"], semilla_motor(SEMILLA_BASE + int(k), replica))
     if motor == "alertas":
         r = recetas["alertas"]
-        return ModeloLightGBM({"params": r["params"], "num_boost_round": r["num_boost_round"]}, Variante("l2_log_duan"),
-                              semilla_motor(r["params"]["seed"], replica), objetivo_de_la_receta=True)
+        return ModeloLightGBM({"params": r["params"], "num_boost_round": r["num_boost_round"]},
+                              Variante(VARIANTE_REFERENCIA), semilla_motor(r["params"]["seed"], replica),
+                              objetivo_de_la_receta=True)
     raise ValueError(f"motor desconocido: {motor}")
 
 
@@ -436,11 +660,23 @@ def salida_alertas(z) -> np.ndarray:
     return np.clip(np.expm1(np.asarray(z, dtype="float64")), 0.0, None).astype("float32")
 
 
-def delta_desde_ajuste(modelo_l2_original, X, y) -> tuple[float, dict]:
-    """δ de Huber con los residuos in-sample del ajuste cuadrático en escala original (§6, provisional)."""
-    res = np.asarray(y, dtype="float64") - modelo_l2_original.predecir(X)
-    d = delta_huber(res)
-    return d, {"delta_huber": d, "residuos_in_sample": int(len(res)), "mad_normalizado": d / 1.345}
+def particion_honesta(conglomerado_de_fila, k: int) -> tuple[np.ndarray, dict]:
+    """Partición agrupada en dos de las filas con tope de un pliegue, para los residuos honestos del δ de Huber
+    (Enmienda 1, punto 9; ratificada por el Complemento, punto 4.2: ``perdidas.variantes[2].delta.particion_honesta``):
+    las etiquetas ordenadas de los conglomerados LOSO-D presentes, permutadas con ``default_rng([42, k, 1001])`` y
+    repartidas en turnos. Devuelve la máscara de la mitad 1 (la mitad 0 es el resto) y su definición."""
+    c = np.asarray(conglomerado_de_fila).astype(str)
+    etiquetas = sorted({str(x) for x in np.unique(c)})
+    if len(etiquetas) < 2:
+        raise ValueError("la partición honesta del δ de Huber necesita al menos dos conglomerados en el entrenamiento")
+    semilla = [SEMILLA_BASE, int(k), SEMILLA_PARTICION_HONESTA]
+    orden = np.random.default_rng(semilla).permutation(len(etiquetas))
+    mitades: list[list[str]] = [[], []]
+    for pos, i in enumerate(orden):
+        mitades[pos % 2].append(etiquetas[i])
+    mitades = [sorted(m) for m in mitades]
+    en_1 = np.isin(c, mitades[1])
+    return en_1, {"semilla": semilla, "conglomerados": mitades, "filas": [int((~en_1).sum()), int(en_1.sum())]}
 
 
 # ---------------------------------------------------------------------------
@@ -528,7 +764,7 @@ class ModeloLME:
         import statsmodels.api as sm
         t0 = time.perf_counter()
         dtr = pd.DataFrame(np.asarray(X, dtype="float64"), columns=self.feats)
-        ylog = transformar_blanco(y, Variante("l2_log_duan"))
+        ylog = transformar_blanco(y, Variante(VARIANTE_REFERENCIA))
         self.diseno = DisenoLineal(self.pol, en_log=True).ajustar(dtr)
         A = np.column_stack([np.ones(len(dtr)), self.diseno.transformar(dtr)])
         pend = self.receta["pendiente_aleatoria"][self.pol]
@@ -584,7 +820,7 @@ class ModeloGP:
         from sklearn.preprocessing import StandardScaler
         t0 = time.perf_counter()
         X = np.asarray(X, dtype="float64")
-        ylog = transformar_blanco(y, Variante("l2_log_duan"))
+        ylog = transformar_blanco(y, Variante(VARIANTE_REFERENCIA))
         candidatas = [self.feats.index(c) for c in GP_PREDICTORES[self.pol] if c in self.feats]
         self.cols = [i for i in candidatas if np.isfinite(X[:, i]).mean() >= COBERTURA_MIN]
         rc = self.receta

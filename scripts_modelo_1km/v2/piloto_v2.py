@@ -15,10 +15,16 @@ Se lanza con ``python -B scripts_modelo_1km/v2/correr_v2.py piloto ...``; este m
   (desempate: menor k), con el recálculo del vecindario y los cuatro motores del eje A con el N común (750.000);
 * en el pliegue de LRO con más filas de entrenamiento, los puntos de la curva de aprendizaje de LightGBM y XGBoost
   que no son el N común (300.000, 1,5 M y todas las filas) y RF con el punto más alto de su curva (1,5 M);
-* con ``--calibrar-familias``, en el otro pliegue de LRO (el de más filas de prueba), una pasada de las familias
-  que ese alcance no cubre (pérdidas de §6, alertas y eje B), para que la extrapolación no las suponga a ciegas;
+* en el otro pliegue de LRO (el de más filas de prueba), el δ honesto de Huber (``lightgbm_l2_original``, con su
+  partición honesta: Complemento, punto 8) y, con ``--calibrar-familias``, una pasada de las familias que ese
+  alcance no cubre (pérdidas de §6, alertas y eje B), para que la extrapolación no las suponga a ciegas;
 * una vez por contaminante, la carga del contexto (panel, vecindario base y bandera de calidad) y la máscara de
   calidad de las variantes de §7.
+
+**Máquina libre** (Complemento, punto 8; ``presupuesto.piloto.revision.maquina_libre``): la medición que rehace el
+plan empieza con la carga media del último minuto por debajo de 2 (``maquina_libre``); desde la consola
+(``ejecutar``) no se mide si no, salvo ``--aunque-ocupada``, que queda registrado. Cada sesión registra su carga al
+empezar y los procesos más activos, y el plan dice si todas las sesiones empezaron con la máquina libre.
 
 **Medición** (``Medidor``), por fase: pared (``perf_counter``), CPU del proceso con todos sus hilos
 (``process_time``), memoria residente (muestreo cada 0,2 s con psutil, con el pico de la fase, y el máximo del
@@ -41,7 +47,9 @@ fases, tal como las ejecuta ``correr_pliegue``:
   ``a + b·filas`` ajustadas a todas las fases medidas del contaminante;
 * ajuste del eje A con el N común: media de los dos pliegues del protocolo; con otro N (curvas y pliegues
   internos), esa media por el cociente de la curva medida en el pliegue de LRO (interpolación log–log; en la MLP,
-  proporcional a N, porque el piloto no mide su curva);
+  proporcional a N, porque el piloto no mide su curva). El ajuste de la MLP incluye las épocas de validación y el
+  reajuste (Enmienda 1, punto 6); su fase de validación (el vecindario sin las estaciones de validación y su matriz)
+  se cuenta aparte en cada ajuste de la MLP, también en los pliegues internos (Complemento, punto 8);
 * predicción: recta ``a + b·filas de prueba`` por motor;
 * semillas y variantes de calidad: como el eje A (mismo motor y N, otra permutación o filtro, matriz propia);
 * pérdidas y alertas: el ajuste y la predicción del motor por el cociente medido en la calibración frente al eje A
@@ -53,24 +61,40 @@ fases, tal como las ejecuta ``correr_pliegue``:
 * la carga del contexto, una vez por contaminante (un proceso por contaminante), y el sobrecosto fuera de las
   fases medidas (firmas, permutaciones de pliegue), como fracción medida del total por pliegue.
 
-No entran la consolidación (retransformación, métricas y bootstrap de 2.000 réplicas) ni la escritura de los puntos
+No entran la consolidación (retransformación, métricas y bootstrap de 1.999 réplicas) ni la escritura de los puntos
 de control: no se miden aquí y se informan como no incluidas.
 
 Sensibilidades del plan: ``horas_media_global`` (el ajuste del eje A con la media de los diez pliegues medidos por
 motor, más estable para la MLP, cuyas épocas varían de un pliegue a otro), ``horas_sin_contencion_fuerte`` (sólo
 los ajustes con contención fuerte corregidos con CPU / p90) y ``horas_menos_contencion`` (todas las fases).
 
-**Recortes** (§10): si el total supera unas 120 horas de máquina, se aplican en orden 1) semillas sólo en LRO,
-2) curvas sólo en LRO y 3) MLP sólo en LRO y BLQ-75, hasta quedar bajo el umbral. Si ni con los tres se llega, el
-contrato no prevé un cuarto: se aplican los tres y el exceso queda para el autor (enmienda). La decisión usa la
-estimación medida (conservadora) y el plan dice si alguna sensibilidad la cambiaría. Todo recorte queda en la
-bitácora del plan y en la del manifiesto de pliegues.
+**Recortes** (§10, con el orden de la Enmienda 1, punto 12, implementado en el código: Complemento, punto 8): si el
+total supera unas 120 horas de máquina, se aplican en orden 1) curvas de aprendizaje fuera de LRO, 2) MLP fuera de
+LRO y BLQ-75, 3) semillas fuera de LRO y BLQ-75 y 4) pérdidas del §6 fuera de LRO, BLQ-75 y LOSO-D, hasta quedar
+bajo el umbral (``correr_v2.plan_protocolo`` con ``presupuesto.orden_de_recortes``), sin elección a mano. Si ni con
+los cuatro se llega, el orden enmendado no prevé otro: se aplican los cuatro y el exceso queda para el autor
+(enmienda). La decisión usa la estimación medida (conservadora) y el plan dice si alguna sensibilidad la
+cambiaría. Todo recorte queda en la bitácora del plan y en la del manifiesto de pliegues.
+
+**Sesiones y código** (Complemento, punto 8): cada sesión registra el código de ajuste con que midió
+(``codigo_ajuste``: los sha256 de ``correr_v2.CODIGO_AJUSTE`` y de las funciones de ``correr_v2.FUNCIONES_AJUSTE``,
+y su huella conjunta). Las fases cuyo costo cambió con la Enmienda 1 y su Complemento —la validación de la MLP
+(vecindario y matriz), su ajuste con las épocas de validación y el reajuste, y el δ honesto de Huber
+(``FASES_SENSIBLES_AL_CODIGO``)— sólo valen si se midieron con la huella del código que corre
+(``vigencia_por_codigo``): las de otra huella (o de sesiones que no la registran, como las del piloto congelado por la
+Enmienda 1) no cuentan como medidas, así que se vuelven a medir, y no entran en la extrapolación. Las demás fases se
+reutilizan. El plan informa la huella y lo descartado.
+
+**Respaldos**: antes de sobrescribir ``mediciones.json`` (la primera escritura de cada proceso) o
+``plan_corrida_v2.json`` se deja una copia con los mismos bytes y fechas (``mediciones_respaldo_<sello>.json`` y
+``plan_corrida_v2_reemplazado_<sello>.json``), citada con su sha256 en la sesión o en el plan nuevo. ``--rehacer``
+renombra las mediciones previas a ``mediciones_reemplazado_<sello>.json``.
 
 Salidas:
 
 * ``<raíz v2>/piloto_tiempos/mediciones.json``: una fila por fase medida, por sesión con su traza; reanudable;
 * ``<raíz v2>/plan_corrida_v2.json``: la estimación por nivel de recorte, la bitácora de recortes y el plan
-  resultante, con su traza;
+  resultante, con su traza y el sha256 del contrato bajo el que se hizo (``correr_v2`` toma de aquí el recorte);
 * ``output_files/modelo_1km_v2/comparacion_piloto_tiempos.csv`` y ``comparacion_piloto.json`` (tablas pequeñas);
 * el evento ``recorte_presupuesto`` en la bitácora de ``pliegues_v2.json`` si hay recorte.
 """
@@ -98,7 +122,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import correr_v2 as cr  # noqa: E402
 import motores_v2 as mv  # noqa: E402
 from _rutas_v2 import (  # noqa: E402
-    RutasV2, ahora_utc, candado_escritura, leer_json, publicar_bytes, publicar_json, renombrar,
+    RutasV2, ahora_utc, candado_escritura, copiar_artefacto, leer_json, publicar_bytes, publicar_json, renombrar,
+    ruta_de_respaldo,
 )
 from _traza_v2 import sha256_archivo, traza  # noqa: E402
 from pliegues_v2 import PROTOCOLOS  # noqa: E402
@@ -121,6 +146,15 @@ PARALELISMO_CUANTIL = 0.9            # «menos contención»: CPU / p90 del para
 PARALELISMO_MIN_SEGUNDOS = 1.0       # fases más cortas no informan el paralelismo de referencia
 CONTENCION_FUERTE = 0.5              # otros procesos usaron al menos la mitad de la máquina durante la fase
 CONTENCION_MIN_SEGUNDOS = 5.0        # sólo se juzga la contención de ajustes de al menos 5 s
+CARGA_MAQUINA_LIBRE = 2.0            # presupuesto.piloto.revision.maquina_libre (Complemento, punto 8)
+FASES_VALIDACION_MLP = ("vecindario_validacion", "matriz_validacion")
+# Fases cuyo costo cambió con el código de la Enmienda 1 y su Complemento (punto 8): la validación de la MLP, el
+# ajuste de la MLP (épocas de validación y reajuste) y el δ honesto de Huber. Sólo valen con la huella del código.
+FASES_SENSIBLES_AL_CODIGO = (*FASES_VALIDACION_MLP, "delta_huber")
+MOTORES_CON_AJUSTE_SENSIBLE = ("mlp",)
+REGLA_VIGENCIA = ("las fases de la validación de la MLP (vecindario y matriz), el ajuste de la MLP (épocas de "
+                  "validación y reajuste) y el δ honesto de Huber sólo valen si su sesión midió con la huella del código "
+                  "de ajuste que corre (correr_v2.codigo_ajuste_actual); las demás fases se reutilizan")
 CLAVE_FASE = ("contaminante", "protocolo", "k", "tarea", "replica", "fase")
 FAMILIAS_CALIBRACION = ("perdidas", "alertas", "eje_B")
 FASES_TAREA = ("ajuste", "prediccion", "ajuste_prediccion")
@@ -128,10 +162,11 @@ FASES_TAREA = ("ajuste", "prediccion", "ajuste_prediccion")
 # Factores supuestos, sólo para las familias que no se calibran (sin --calibrar-familias). Cocientes frente al eje
 # A del mismo motor (ajuste, predicción) o costos absolutos en segundos. Se informan como supuestos en el plan.
 SUPUESTOS = {
-    "perdidas": {"l2_original": (1.0, 1.0), "huber": (1.0, 1.0), "q05": (1.3, 1.0), "q50": (1.3, 1.0),
-                 "q95": (1.3, 1.0),
+    "perdidas": {"l2_original": (1.0, 1.0), "huber": (1.0, 1.0), "huber_friedman": (1.0, 1.0), "q05": (1.3, 1.0),
+                 "q50": (1.3, 1.0), "q95": (1.3, 1.0),
                  "nota": "mismo motor, receta y N; los cuantílicos renuevan las hojas con el cuantil de los residuos "
-                         "(LightGBM objective=quantile, XGBoost reg:quantileerror): +30 % supuesto"},
+                         "(LightGBM objective=quantile, XGBoost reg:quantileerror): +30 % supuesto; huber_friedman es "
+                         "el mismo Huber con el δ de Friedman (Enmienda 1, punto 9)"},
     "alertas": {"factor": (900 / 800 / 0.8 * 1.3, 900 / 800),
                 "nota": "LightGBM cuantílico: 900/800 rondas, sin bagging (1/0,8 filas por árbol) y renovación de "
                         "hojas (+30 %)"},
@@ -266,18 +301,36 @@ class Medidor:
 # ---------------------------------------------------------------------------
 # Registro reanudable de mediciones
 # ---------------------------------------------------------------------------
+def respaldar(ruta: Path, r: RutasV2, etiqueta: str) -> dict | None:
+    """Copia de ``ruta`` junto a ella (``<nombre>_<etiqueta>_<sello UTC>.json``) antes de sobrescribirla: mismos bytes
+    y fechas, comprobados con su sha256 (``_rutas_v2.copiar_artefacto``, que exige el candado del artefacto; las
+    reglas de ``_rutas_v2`` dan a la copia el mismo candado que al original). None si no había nada que respaldar."""
+    ruta = Path(ruta)
+    if not ruta.exists():
+        return None
+    destino = ruta_de_respaldo(ruta, etiqueta)
+    sha = copiar_artefacto(ruta, destino, r)
+    return {**r.relativa(destino), "sha256": sha, "respalda_a": r.relativa(ruta)["ruta"], "utc": ahora_utc()}
+
+
 class Registro:
     """``<raíz v2>/piloto_tiempos/mediciones.json``: sesiones (con su traza) y una fila por fase medida. Se
-    reescribe de forma atómica tras cada fase (exige el candado). ``rehacer`` respalda el anterior y empieza de
-    cero."""
+    reescribe de forma atómica tras cada fase (exige el candado). Antes de la primera escritura de cada proceso, el
+    archivo que había queda respaldado (``respaldar``: ``mediciones_respaldo_<sello>.json``) y la sesión lo cita.
+    ``rehacer`` renombra el anterior (``mediciones_reemplazado_<sello>.json``) y empieza de cero."""
 
     def __init__(self, r: RutasV2, rehacer: bool = False):
         self.r = r
         self.ruta = r.raiz_v2 / CARPETA / NOMBRE_MEDICIONES
+        self.respaldo: dict | None = None
+        self._respaldado = False
         previo = leer_json(self.ruta)
         if previo is not None and rehacer:
-            sello = ahora_utc().replace(":", "").replace("-", "")
-            renombrar(self.ruta, self.ruta.with_name(f"mediciones_reemplazado_{sello}.json"), r)
+            sha = hashlib.sha256(self.ruta.read_bytes()).hexdigest()
+            destino = renombrar(self.ruta, ruta_de_respaldo(self.ruta, "reemplazado"), r)
+            self.respaldo = {**r.relativa(destino), "sha256": sha, "respalda_a": r.relativa(self.ruta)["ruta"],
+                             "utc": ahora_utc(), "forma": "renombrado (--rehacer)"}
+            self._respaldado = True
             previo = None
         if previo is not None and previo.get("schema") != SCHEMA_MEDICIONES:
             raise SystemExit(f"{self.ruta.name}: esquema desconocido {previo.get('schema')!r}")
@@ -292,8 +345,16 @@ class Registro:
     def mediciones(self) -> list[dict]:
         return self.doc["mediciones"]
 
+    def respaldar_previo(self) -> dict | None:
+        """Respaldo del archivo en disco antes de sobrescribirlo por primera vez en este proceso (una sola vez)."""
+        if not self._respaldado:
+            self._respaldado = True
+            self.respaldo = respaldar(self.ruta, self.r, "respaldo")
+        return self.respaldo
+
     def abrir_sesion(self, info: dict) -> int:
-        self.doc["sesiones"].append({"sesion": len(self.doc["sesiones"]), **info})
+        respaldo = self.respaldar_previo()
+        self.doc["sesiones"].append({"sesion": len(self.doc["sesiones"]), **info, "respaldo_previo": respaldo})
         self.guardar()
         return len(self.doc["sesiones"]) - 1
 
@@ -306,6 +367,7 @@ class Registro:
         self.guardar()
 
     def guardar(self) -> str:
+        self.respaldar_previo()
         return publicar_json(self.doc, self.ruta, self.r)
 
 
@@ -314,15 +376,61 @@ def _nulo(v) -> bool:
     return v is None or (isinstance(v, float) and math.isnan(v))
 
 
+def fase_sensible_al_codigo(fila) -> bool:
+    """¿El costo de la fase cambió con el código de la Enmienda 1 y su Complemento (punto 8)? La validación de la MLP
+    (vecindario y matriz), el ajuste de la MLP (épocas de validación y reajuste) y el δ honesto de Huber."""
+    fase = fila.get("fase")
+    return fase in FASES_SENSIBLES_AL_CODIGO or (fase == "ajuste" and fila.get("motor") in MOTORES_CON_AJUSTE_SENSIBLE)
+
+
+def huella_de_sesion(sesion: dict) -> str | None:
+    """Huella del código de ajuste con que midió una sesión (None si no la registró: sesiones anteriores)."""
+    return (sesion.get("codigo_ajuste") or {}).get("huella")
+
+
+def _sesion_de(fila) -> int | None:
+    s = fila.get("sesion")
+    return None if _nulo(s) else int(s)
+
+
+def vigencia_por_codigo(doc: dict, huella: str | None = None) -> tuple[list[bool], dict]:
+    """Por fila de ``doc["mediciones"]``, ¿vale con el código que corre? Las fases sensibles al código
+    (``fase_sensible_al_codigo``) sólo valen si su sesión midió con ``huella`` (por omisión, la de
+    ``correr_v2.codigo_ajuste_actual``); las demás valen siempre. Devuelve las banderas y el resumen de lo descartado
+    (por fase), para la sesión y el plan."""
+    huella = cr.codigo_ajuste_actual()["huella"] if huella is None else huella
+    sesiones = doc.get("sesiones", [])
+    con = {int(s["sesion"]) for s in sesiones if huella_de_sesion(s) == huella}
+    banderas, fuera = [], defaultdict(int)
+    for m in doc.get("mediciones", []):
+        vale = not fase_sensible_al_codigo(m) or _sesion_de(m) in con
+        banderas.append(bool(vale))
+        if not vale:
+            fuera[m["fase"] if m.get("fase") != "ajuste" else f"ajuste ({m.get('motor')})"] += 1
+    resumen = {"huella_codigo_ajuste": huella, "regla": REGLA_VIGENCIA, "sesiones_con_esta_huella": sorted(con),
+               "sesiones_con_otra_huella": sorted(int(s["sesion"]) for s in sesiones if int(s["sesion"]) not in con),
+               "filas_descartadas": int(sum(fuera.values())),
+               "descartadas_por_fase": [{"fase": f, "filas": int(n)} for f, n in sorted(fuera.items())]}
+    return banderas, resumen
+
+
+def mediciones_vigentes(doc: dict, huella: str | None = None) -> tuple[list[dict], dict]:
+    """Las filas de ``doc`` que valen con el código que corre (``vigencia_por_codigo``) y el resumen."""
+    banderas, resumen = vigencia_por_codigo(doc, huella)
+    return [m for m, vale in zip(doc.get("mediciones", []), banderas) if vale], resumen
+
+
 def tareas_medidas(mediciones) -> set[tuple]:
-    """(contaminante, protocolo, k, tarea, réplica) con su ajuste y su predicción medidos sin error."""
+    """(contaminante, protocolo, k, tarea, réplica) con su ajuste y su predicción medidos sin error y, en la tarea del
+    δ común (``lightgbm_l2_original``), también el δ honesto de Huber (su fase ``delta_huber``; Complemento, punto 8)."""
     fases = defaultdict(set)
     for m in mediciones:
-        if not _nulo(m.get("error")) or m.get("fase") not in FASES_TAREA or _nulo(m.get("familia")):
+        if not _nulo(m.get("error")) or m.get("fase") not in (*FASES_TAREA, "delta_huber") or _nulo(m.get("familia")):
             continue
         rep = 0 if _nulo(m.get("replica")) else int(m["replica"])
         fases[(m["contaminante"], m["protocolo"], int(m["k"]), m["tarea"], rep)].add(m["fase"])
-    return {c for c, f in fases.items() if {"ajuste", "prediccion"} <= f or "ajuste_prediccion" in f}
+    return {c for c, f in fases.items() if ({"ajuste", "prediccion"} <= f or "ajuste_prediccion" in f)
+            and (c[3] != cr.TAREA_DELTA_HUBER or "delta_huber" in f)}
 
 
 def fases_medidas(mediciones, fase: str) -> set[tuple]:
@@ -397,24 +505,30 @@ def seleccion(manifiesto: dict, pol: str, protocolos, criterio: str = "entrenami
 
 def tareas_piloto(recetas: dict, prot: str, k: int, k_curvas: int | None, k_calib: int | None,
                   calibrar: bool) -> list:
-    """Tareas del piloto en un pliegue, tomadas del plan completo de ``plan_protocolo`` (mismas definiciones)."""
+    """Tareas del piloto en un pliegue, tomadas del plan completo de ``plan_protocolo`` (mismas definiciones). En el
+    pliegue de calibración de LRO entra siempre ``lightgbm_l2_original``, que calcula el δ honesto de Huber con su
+    partición en dos (su costo nuevo, Complemento, punto 8); con ``calibrar``, además, las familias de calibración."""
     completo = cr.plan_protocolo(recetas, "LRO", cr.Opciones(), calidad_disponible=False)["tareas"]
     por_id = {(t.id, t.replica): t for t in completo}
     tareas = [por_id[(m, 0)] for m in mv.MOTORES_EJE_A]
     if prot == "LRO" and k == k_curvas:
         for motor, topes in topes_curva_piloto(recetas).items():
             tareas += [por_id[(f"{motor}_n{'todas' if t is None else t}", 0)] for t in topes]
-    if calibrar and prot == "LRO" and k == k_calib:
-        tareas += [t for t in completo if t.replica == 0 and t.familia in FAMILIAS_CALIBRACION]
-    return tareas
+    if prot == "LRO" and k == k_calib:
+        if calibrar:
+            tareas += [t for t in completo if t.replica == 0 and t.familia in FAMILIAS_CALIBRACION]
+        elif (cr.TAREA_DELTA_HUBER, 0) in por_id:
+            tareas.append(por_id[(cr.TAREA_DELTA_HUBER, 0)])
+    return list(dict.fromkeys(tareas))
 
 
 def pendientes(tareas: list, hechas: set, pol: str, prot: str, k: int) -> list:
-    """Las tareas aún sin medir; Huber arrastra a su ajuste cuadrático, que le da δ en la misma llamada."""
+    """Las tareas aún sin medir; Huber (y su sensibilidad de Friedman) arrastra a ``lightgbm_l2_original``, que da el
+    δ común de los dos motores en la misma llamada (Enmienda 1, punto 9)."""
     pend = [t for t in tareas if (pol, prot, int(k), t.id, t.replica) not in hechas]
     for t in list(pend):
-        if t.variante == "huber":
-            par = next(x for x in tareas if x.id == f"{t.motor}_l2_original" and x.replica == t.replica)
+        if cr.es_huber(t):
+            par = next(x for x in tareas if x.id == cr.TAREA_DELTA_HUBER and x.replica == t.replica)
             if par not in pend:
                 pend.append(par)
     return pend
@@ -447,6 +561,21 @@ def procesos_activos(n: int = 8, ventana_s: float | None = None) -> list[dict]:
     return [f for f in filas[:n] if f["cpu_pct"] > 0]
 
 
+def maquina_libre(cfg: dict | None = None, carga: float | None = None) -> dict:
+    """¿Empieza la medición con la máquina libre? (Complemento, punto 8): la carga media del último minuto
+    (``os.getloadavg``) por debajo de ``presupuesto.piloto.revision.maquina_libre.carga_media_maxima_al_empezar``
+    (2). Devuelve la carga, el umbral y el veredicto; los procesos más activos van en ``info_maquina``."""
+    umbral = CARGA_MAQUINA_LIBRE
+    if cfg is not None:
+        ml = (cfg.get("presupuesto", {}).get("piloto", {}).get("revision", {}) or {}).get("maquina_libre") or {}
+        umbral = float(ml.get("carga_media_maxima_al_empezar", umbral))
+        if ml.get("comparacion", "<") != "<":
+            raise ValueError("la máquina libre se juzga con carga < umbral")
+    carga = float(os.getloadavg()[0]) if carga is None else float(carga)
+    return {"carga_1min_al_empezar": round(carga, 2), "umbral": umbral, "comparacion": "<",
+            "libre": bool(carga < umbral), "fuente": "Complemento de la Enmienda 1, punto 8"}
+
+
 def info_maquina() -> dict:
     import psutil
     vm = psutil.virtual_memory()
@@ -474,32 +603,46 @@ SEMILLAS_PILOTO = {"permutacion": "[42, k] (réplica 0, §4)",
 
 def medir(r: RutasV2, cfg: dict, contaminantes, protocolos, hilos: int, criterio: str = "entrenamiento",
           calibrar: bool = False, rehacer: bool = False, crear_contexto=None,
-          manifiesto: dict | None = None, remedir_si_otros: float | None = None) -> Registro:
+          manifiesto: dict | None = None, remedir_si_otros: float | None = None,
+          exigir_maquina_libre: bool = False) -> Registro:
     """Mide lo que falte del alcance (reanudable). Con ``remedir_si_otros``, vuelve a medir las tareas cuyo ajuste
     sólo se midió con otros procesos ocupando al menos esa fracción de la máquina (la extrapolación usa la medición
-    con menos contención). ``crear_contexto(pol)`` sirve a las pruebas; por omisión, ``Contexto.desde_disco`` con
-    la bandera de calidad."""
+    con menos contención). Las fases sensibles al código (validación y ajuste de la MLP, δ de Huber) medidas con otra
+    huella del código de ajuste no cuentan como medidas (``vigencia_por_codigo``): esas tareas se vuelven a medir, y
+    la sesión registra su huella (``codigo_ajuste``). Con ``exigir_maquina_libre`` no empieza si la carga media no
+    está por debajo de 2 (Complemento, punto 8); la sesión registra siempre su carga al empezar.
+    ``crear_contexto(pol)`` sirve a las pruebas; por omisión, ``Contexto.desde_disco`` con la bandera de calidad."""
     recetas = mv.recetas_de(cfg, hilos)
     man = manifiesto if manifiesto is not None else leer_json(r.manifiesto_pliegues)
     if man is None:
         raise SystemExit("Falta el manifiesto de pliegues")
+    libre = maquina_libre(cfg)
+    if exigir_maquina_libre and not libre["libre"]:
+        raise SystemExit(f"la máquina no está libre: carga media {libre['carga_1min_al_empezar']} ≥ {libre['umbral']} al "
+                         f"empezar. El piloto se vuelve a medir con la máquina libre (Complemento de la Enmienda 1, "
+                         f"punto 8); --aunque-ocupada mide igual y lo deja registrado")
     if crear_contexto is None:
         def crear_contexto(pol):
             return cr.Contexto.desde_disco(pol, r, cfg, etiqueta=cr.ETIQUETA, hilos=hilos, con_calidad=True)
     with candado_escritura(CANDADO_MEDIR, rutas=r):
         reg = Registro(r, rehacer=rehacer)
-        hechas = tareas_medidas(reg.mediciones)
-        remedir = tareas_contaminadas(reg.mediciones, remedir_si_otros) if remedir_si_otros is not None else set()
+        codigo = cr.codigo_ajuste_actual()
+        vigentes, vigencia = mediciones_vigentes(reg.doc, codigo["huella"])
+        hechas = tareas_medidas(vigentes)
+        remedir = tareas_contaminadas(vigentes, remedir_si_otros) if remedir_si_otros is not None else set()
         hechas -= remedir
-        vecs = fases_medidas(reg.mediciones, "vecindario")
-        ctxs, mascaras = fases_medidas(reg.mediciones, "contexto"), fases_medidas(reg.mediciones, "mascara_calidad")
+        vecs = fases_medidas(vigentes, "vecindario")
+        ctxs, mascaras = fases_medidas(vigentes, "contexto"), fases_medidas(vigentes, "mascara_calidad")
         argumentos = {"contaminantes": list(contaminantes), "protocolos": list(protocolos), "hilos": int(hilos),
                       "criterio_pliegues": criterio, "calibrar_familias": bool(calibrar), "rehacer": bool(rehacer),
                       "remedir_si_otros": remedir_si_otros,
                       "tareas_a_remedir": sorted("/".join(map(str, t)) for t in remedir
-                                                 if t[0] in contaminantes and t[1] in protocolos)}
-        sesion = reg.abrir_sesion({"inicio_utc": ahora_utc(), "argumentos": argumentos,
-                                   "maquina_al_inicio": info_maquina(),
+                                                 if t[0] in contaminantes and t[1] in protocolos),
+                      "no_vigentes_por_codigo": {"filas": vigencia["filas_descartadas"],
+                                                 "por_fase": vigencia["descartadas_por_fase"],
+                                                 "sesiones_con_otra_huella": vigencia["sesiones_con_otra_huella"]}}
+        sesion = reg.abrir_sesion({"inicio_utc": ahora_utc(), "argumentos": argumentos, "codigo_ajuste": codigo,
+                                   "maquina_libre": libre, "maquina_al_inicio": info_maquina(),
                                    "traza": traza(insumos_piloto(r, contaminantes), SEMILLAS_PILOTO, hilos, rutas=r,
                                                   parametros=argumentos)})
         t0 = time.perf_counter()
@@ -618,13 +761,22 @@ def _media(d: pd.DataFrame, col: str) -> float:
     return float(v.mean()) if len(v) else float("nan")
 
 
+def _vigente(d: pd.DataFrame) -> pd.Series:
+    """Máscara de las filas que valen con el código que corre (columna ``vigente_codigo``; sin ella, todas)."""
+    if "vigente_codigo" not in d:
+        return pd.Series(True, index=d.index)
+    return d["vigente_codigo"].map(lambda v: True if _nulo(v) else bool(v)).astype(bool)
+
+
 def anadir_menos_contencion(df: pd.DataFrame) -> pd.DataFrame:
     """Columna ``segundos_pared_menos_contencion`` = mín(pared, CPU / p90 del paralelismo de su fase × motor),
     con el p90 sobre las fases de al menos 1 s (si hay menos de 3, la fase queda como se midió), y columna
-    ``segundos_pared_sin_contencion_fuerte``, con esa corrección sólo en las fases de contención fuerte."""
+    ``segundos_pared_sin_contencion_fuerte``, con esa corrección sólo en las fases de contención fuerte. El p90 de
+    referencia usa sólo las filas que valen con el código que corre (columna ``vigente_codigo``, si está)."""
     d = df.copy()
     d["motor_"] = d.get("motor", pd.Series(index=d.index, dtype=object)).fillna("-")
-    largo = d[(d["segundos_pared"] >= PARALELISMO_MIN_SEGUNDOS) & d["paralelismo"].notna()]
+    vigente = _vigente(d)
+    largo = d[(d["segundos_pared"] >= PARALELISMO_MIN_SEGUNDOS) & d["paralelismo"].notna() & vigente]
     ref = largo.groupby(["fase", "motor_"])["paralelismo"].agg(
         lambda s: float(s.quantile(PARALELISMO_CUANTIL)) if len(s) >= 3 else float("nan"))
     p = d.set_index(["fase", "motor_"]).index.map(lambda i: ref.get(i, float("nan")))
@@ -643,12 +795,14 @@ def anadir_menos_contencion(df: pd.DataFrame) -> pd.DataFrame:
 
 
 class ModeloTiempos:
-    """Costos por fase de un contaminante, ajustados a las mediciones del piloto en la columna ``col``."""
+    """Costos por fase de un contaminante, ajustados a las mediciones del piloto en la columna ``col``. Sólo entran
+    las filas que valen con el código que corre (columna ``vigente_codigo``: las fases sensibles al código medidas con
+    otra huella no se reutilizan); el sobrecosto fuera de las fases, propio del arnés, se mide con todas."""
 
     def __init__(self, df: pd.DataFrame, pol: str, recetas: dict, col: str, k_curvas: int, k_calib: int | None,
                  media_global: bool = False):
         crudo = df[(df["contaminante"] == pol) & df["error"].isna()] if "error" in df else df[df["contaminante"] == pol]
-        d = menos_contaminada(crudo)
+        d = menos_contaminada(crudo[_vigente(crudo)])
         self.pol, self.col, self.recetas, self.media_global = pol, col, recetas, bool(media_global)
         self.N = int(recetas["N_comun"])
         self.supuestos_usados: list[str] = []
@@ -672,6 +826,17 @@ class ModeloTiempos:
         self.fit_n_global = aj.groupby("motor")[col].mean().to_dict()
         pr = d[(f == "prediccion") & (d["familia"] == "eje_A") & (d["replica"].fillna(0) == 0)]
         self.pred = {mo: Lineal(g["filas_prueba"], g[col]) for mo, g in pr.groupby("motor")}
+        # Fase de validación de la MLP (Enmienda 1, punto 6; Complemento, punto 8): el recálculo del vecindario sin
+        # las estaciones de validación (medido, por protocolo) y su matriz, que es la misma operación que la matriz
+        # de entrenamiento (``Contexto.matriz``) y se cuenta con su recta. Sin medir el vecindario de validación: como
+        # el del pliegue (supuesto declarado).
+        vv = d[f == "vecindario_validacion"]
+        self.vec_val = vv.groupby("protocolo")[col].mean().to_dict() if len(vv) else {}
+        mvl = d[f == "matriz_validacion"]
+        self.mtr_val = Lineal(mvl["filas_entrenamiento"], mvl[col]) if len(mvl) else None
+        self.validacion_mlp_medida = bool(len(vv))
+        if not self.validacion_mlp_medida:
+            self._supuesto("validacion_mlp", None)
         # Curvas en el pliegue de LRO de las curvas: puntos (N efectivo → ajuste)
         cu = d[(f == "ajuste") & (d["protocolo"] == "LRO") & (d["k"] == k_curvas)
                & d["familia"].isin(["eje_A", "curva"]) & (d["replica"].fillna(0) == 0)]
@@ -762,6 +927,17 @@ class ModeloTiempos:
     def prediccion(self, motor: str, te: float) -> float:
         return max(self.pred[motor](te), 0.0)
 
+    def validacion_mlp(self, prot: str, N: float) -> float:
+        """Fase de validación de un ajuste de la MLP: recálculo del vecindario sin las estaciones de validación
+        (medido por protocolo; si no, como el del pliegue) y la matriz de sus N filas de entrenamiento (la recta de
+        la matriz de entrenamiento, la misma operación)."""
+        if self.validacion_mlp_medida:
+            v = self.vec_val.get(prot)
+            vec = float(v) if v is not None and np.isfinite(v) else float(np.nanmean(list(self.vec_val.values())))
+        else:
+            vec = self.vecindario(prot)
+        return vec + max(self.mtr(N), 0.0)
+
     def n_efectivo(self, tope, disponibles: int) -> int:
         n = self.N if tope == "N" else (disponibles if tope is None else int(tope))
         return int(min(n, disponibles))
@@ -777,13 +953,18 @@ class ModeloTiempos:
         if t.familia == "perdidas":
             ff, fp = self.factor_perdida[t.id]
             s = self.ajuste(prot, t.motor, N) * ff + self.prediccion(t.motor, te) * fp
-            if t.variante == "l2_original":
+            if t.id == cr.TAREA_DELTA_HUBER:                     # el δ común sale sólo de LightGBM (punto 9)
                 s += self.delta_tasa[t.motor] * N
+            if cr.es_huber(t):                                    # registro: predicción sobre sus N filas
+                s += self.prediccion(t.motor, N)
             return s
         if t.familia == "alertas":
             ff, fp = self.factor_alertas
             return self.ajuste(prot, "lightgbm", N) * ff + self.prediccion("lightgbm", te) * fp
-        return self.ajuste(prot, t.motor, N) + self.prediccion(t.motor, te)
+        s = self.ajuste(prot, t.motor, N) + self.prediccion(t.motor, te)
+        if t.motor == "mlp":                                     # su fase de validación (Complemento, punto 8)
+            s += self.validacion_mlp(prot, N)
+        return s
 
     def internos(self, prot: str, disponibles: int, n_int: int, bases) -> float:
         """Pliegues internos de un pliegue externo: definición (permutación y filas), y por cada interno el
@@ -794,6 +975,8 @@ class ModeloTiempos:
         s += n_int * (self.vecindario(prot) + self.mtr(ntr) + self.mte(nte))
         for b in bases:
             s += n_int * (self.ajuste(prot, b, ntr) + self.prediccion(b, nte))
+            if b == "mlp":
+                s += n_int * self.validacion_mlp(prot, ntr)
         return s
 
     def resumen(self) -> dict:
@@ -802,6 +985,8 @@ class ModeloTiempos:
                 "matriz_entrenamiento": self.mtr.resumen(), "matriz_prueba": self.mte.resumen(),
                 "ajuste_N_comun_s": {f"{p}/{m}": v for (p, m), v in sorted(self.fit_n.items())},
                 "prediccion": {m: v.resumen() for m, v in self.pred.items()},
+                "validacion_mlp": {"medida": self.validacion_mlp_medida, "vecindario_s_por_protocolo": self.vec_val,
+                                   "matriz": self.mtr_val.resumen() if self.mtr_val is not None else None},
                 "curvas_ajuste_s": {m: c.puntos for m, c in self.curva.items()},
                 "calibrado": self.calibrado,
                 "factores_perdidas_ajuste_prediccion": {k: [float(a), float(b)]
@@ -863,14 +1048,14 @@ SENSIBILIDADES = ("horas_media_global", "horas_sin_contencion_fuerte", "horas_me
 
 def extrapolar(df: pd.DataFrame, manifiesto: dict, recetas: dict, calidad_disponible: dict, k_curvas: dict,
                k_calib: dict, contaminantes=CONTAMINANTES, protocolos=PROTOCOLOS) -> dict:
-    """Horas de la corrida completa por nivel de recorte (0 … 3), con el detalle por contaminante, protocolo y
-    componente, en las tres columnas (pared medida, menos contención y CPU)."""
+    """Horas de la corrida completa por nivel de recorte (0 … 4, ``correr_v2.niveles_de_recorte``), con el detalle
+    por contaminante, protocolo y componente, en las columnas de ``COLUMNAS_ESTIMACION``."""
     d = anadir_menos_contencion(df)
     modelos = {nombre: {pol: ModeloTiempos(d, pol, recetas, col, k_curvas[pol], k_calib.get(pol), media_global=mg)
                         for pol in contaminantes} for nombre, (col, mg) in COLUMNAS_ESTIMACION.items()}
     n_cfg = int(recetas["apilado"]["pliegues_internos"])
     out = {"por_recorte": {}, "modelos": {pol: modelos["horas"][pol].resumen() for pol in contaminantes}}
-    for rc in (0, 1, 2, 3):
+    for rc in cr.niveles_de_recorte(recetas):
         res = {"recorte": rc}
         for nombre in COLUMNAS_ESTIMACION:
             total, detalle, componentes = 0.0, {}, defaultdict(float)
@@ -911,11 +1096,16 @@ def extrapolar(df: pd.DataFrame, manifiesto: dict, recetas: dict, calidad_dispon
 
 
 def decidir_recortes(estimacion: dict, umbral_h: float, orden: list[dict]) -> dict:
-    """Aplica los recortes de §10 en orden hasta quedar bajo el umbral (con la estimación medida, conservadora) y
-    deja la bitácora de cada paso."""
+    """Aplica en orden los recortes de ``orden`` (``presupuesto.orden_de_recortes``: los cuatro de la Enmienda 1,
+    punto 12) hasta quedar bajo el umbral (con la estimación medida, conservadora), sin elección a mano, y deja la
+    bitácora de cada paso. Si ni con todos se llega, se aplican todos y el exceso queda para el autor."""
     textos = {int(x["orden"]): x["recorte"] for x in orden}
+    ultimo = max(textos) if textos else 0
+    if sorted(textos) != list(range(1, ultimo + 1)):
+        raise ValueError(f"orden de recortes no consecutivo desde 1: {sorted(textos)}")
+    niveles = range(ultimo + 1)
     bitacora, elegido = [], None
-    for rc in (0, 1, 2, 3):
+    for rc in niveles:
         e = estimacion["por_recorte"][str(rc)]
         supera = e["horas"] > umbral_h
         aplicados = "; ".join(textos[i] for i in range(1, rc + 1))
@@ -929,20 +1119,20 @@ def decidir_recortes(estimacion: dict, umbral_h: float, orden: list[dict]) -> di
             bitacora.append(paso)
             elegido = rc
             break
-        if rc < 3:
+        if rc < ultimo:
             paso["accion"] = f"supera el umbral: se aplica el recorte {rc + 1} ({textos[rc + 1]})"
         else:
-            paso["accion"] = ("supera el umbral aun con los tres recortes: el contrato no prevé un cuarto; se corre "
-                              "con los tres y el exceso queda para el autor (enmienda)")
+            paso["accion"] = (f"supera el umbral aun con los {ultimo} recortes: el orden de la Enmienda 1 (punto 12) no "
+                              f"prevé otro; se corre con los {ultimo} y el exceso queda para el autor (enmienda)")
         bitacora.append(paso)
     excede = elegido is None
-    elegido = 3 if excede else elegido
+    elegido = ultimo if excede else elegido
     # ¿La decisión cambiaría con las estimaciones de sensibilidad?
     sens = {}
     for nombre in SENSIBILIDADES:
-        alt = next((rc for rc in (0, 1, 2, 3) if estimacion["por_recorte"][str(rc)][nombre] <= umbral_h), None)
-        sens[nombre] = {"recorte": alt if alt is not None else 3, "excede_tras_recortes": alt is None,
-                        "horas_por_recorte": {str(rc): estimacion["por_recorte"][str(rc)][nombre] for rc in range(4)}}
+        alt = next((rc for rc in niveles if estimacion["por_recorte"][str(rc)][nombre] <= umbral_h), None)
+        sens[nombre] = {"recorte": alt if alt is not None else ultimo, "excede_tras_recortes": alt is None,
+                        "horas_por_recorte": {str(rc): estimacion["por_recorte"][str(rc)][nombre] for rc in niveles}}
     return {"recorte": elegido, "excede_tras_recortes": excede,
             "aplicados": [textos[i] for i in range(1, elegido + 1)], "bitacora": bitacora,
             "recorte_con_menos_contencion": sens["horas_menos_contencion"]["recorte"],
@@ -955,10 +1145,13 @@ def decidir_recortes(estimacion: dict, umbral_h: float, orden: list[dict]) -> di
 # ---------------------------------------------------------------------------
 def faltantes(df: pd.DataFrame, manifiesto: dict, recetas: dict, criterio: str, contaminantes=CONTAMINANTES,
               protocolos=PROTOCOLOS) -> list[str]:
-    """Lo que el alcance mínimo exige para extrapolar la corrida completa y aún no está medido."""
-    hechas = tareas_medidas(df.to_dict("records"))
-    vecs = fases_medidas(df.to_dict("records"), "vecindario")
-    ctxs = fases_medidas(df.to_dict("records"), "contexto")
+    """Lo que el alcance mínimo exige para extrapolar la corrida completa y aún no está medido. Incluye el costo
+    nuevo del Complemento (punto 8): el δ honesto de Huber en el pliegue de calibración de LRO y la fase de
+    validación de la MLP (vecindario y matriz), que mide el código de la Enmienda 1."""
+    registros = df.to_dict("records")
+    hechas = tareas_medidas(registros)
+    vecs = fases_medidas(registros, "vecindario")
+    ctxs = fases_medidas(registros, "contexto")
     falta = []
     for pol in contaminantes:
         if (pol, None, None) not in ctxs:
@@ -973,6 +1166,11 @@ def faltantes(df: pd.DataFrame, manifiesto: dict, recetas: dict, criterio: str, 
                 for t in tareas_piloto(recetas, prot, k, k_cur, k_cal, calibrar=False):
                     if (pol, prot, k, t.id, t.replica) not in hechas:
                         falta.append(f"{pol} {prot} k={k}: {t.id}")
+        d = df[(df["contaminante"] == pol)] if "contaminante" in df else df.iloc[0:0]
+        if "mlp" in mv.MOTORES_EJE_A and not set(FASES_VALIDACION_MLP) <= set(d.get("fase", pd.Series(dtype=object))):
+            falta.append(f"{pol}: la fase de validación de la MLP (vecindario y matriz; Complemento, punto 8)")
+        if not (d.get("fase", pd.Series(dtype=object)) == "delta_huber").any():
+            falta.append(f"{pol}: el δ honesto de Huber ({cr.TAREA_DELTA_HUBER}; Complemento, punto 8)")
     return falta
 
 
@@ -1036,7 +1234,8 @@ def ejecutar(args, r: RutasV2, cfg: dict) -> int:
     hilos = int(args.hilos or cfg["operacion"]["hilos_maximos"])
     if not args.solo_estimar:
         medir(r, cfg, args.contaminantes, args.protocolos, hilos, args.criterio_pliegues, args.calibrar_familias,
-              args.rehacer, remedir_si_otros=getattr(args, "remedir_contaminadas", None))
+              args.rehacer, remedir_si_otros=getattr(args, "remedir_contaminadas", None),
+              exigir_maquina_libre=not getattr(args, "aunque_ocupada", False))
     return estimar_y_publicar(r, cfg, hilos, args.criterio_pliegues)
 
 
@@ -1044,7 +1243,9 @@ def estimar_y_publicar(r: RutasV2, cfg: dict, hilos: int, criterio: str = "entre
                        manifiesto: dict | None = None, anotar: bool = True, contaminantes=CONTAMINANTES) -> int:
     """Extrapola la corrida completa (los dos contaminantes del contrato) con las mediciones guardadas, decide
     los recortes y publica el plan, las tablas pequeñas y el evento de la bitácora. Si al alcance mínimo le falta
-    algo, no escribe nada."""
+    algo, no escribe nada. Las fases sensibles al código medidas con otra huella del código de ajuste no cuentan
+    (``vigencia_por_codigo``): faltan para el alcance y no entran en la extrapolación. El plan anterior queda
+    respaldado (``plan_corrida_v2_reemplazado_<sello>.json``) antes de publicar el nuevo."""
     contaminantes = tuple(contaminantes)
     recetas = mv.recetas_de(cfg, hilos)
     man = manifiesto if manifiesto is not None else leer_json(r.manifiesto_pliegues)
@@ -1052,19 +1253,24 @@ def estimar_y_publicar(r: RutasV2, cfg: dict, hilos: int, criterio: str = "entre
     if doc is None or not doc.get("mediciones"):
         print("Sin mediciones del piloto: nada que extrapolar")
         return 0
-    df = pd.DataFrame(doc["mediciones"])
-    if "error" not in df:
-        df["error"] = None
+    huella = cr.codigo_ajuste_actual()["huella"]
+    banderas, vigencia = vigencia_por_codigo(doc, huella)
+    df_todo = pd.DataFrame(doc["mediciones"])
+    df_todo["vigente_codigo"] = banderas
+    if "error" not in df_todo:
+        df_todo["error"] = None
+    df = df_todo[df_todo["vigente_codigo"]].copy()                 # lo que vale con el código que corre
     falta = faltantes(df, man, recetas, criterio, contaminantes)
     if falta:
-        print(f"Piloto incompleto ({len(falta)} pendientes); no se escribe el plan. Primeros: " + "; ".join(falta[:12]))
+        print(f"Piloto incompleto ({len(falta)} pendientes; {vigencia['filas_descartadas']} filas medidas con otro "
+              f"código de ajuste no cuentan); no se escribe el plan. Primeros: " + "; ".join(falta[:12]))
         return 0
     import calidad_v2
     calidad = {pol: calidad_v2.ruta_calidad(r, pol).exists() for pol in contaminantes}
     eleg = {pol: seleccion(man, pol, PROTOCOLOS, criterio) for pol in contaminantes}
     kk = {pol: pliegues_lro(eleg[pol]["LRO"]) for pol in contaminantes}
     k_cur, k_cal = {p: v[0] for p, v in kk.items()}, {p: v[1] for p, v in kk.items()}
-    est = extrapolar(df, man, recetas, calidad, k_cur, k_cal, contaminantes)
+    est = extrapolar(df_todo, man, recetas, calidad, k_cur, k_cal, contaminantes)   # filtra lo no vigente
     umbral = float(cfg["presupuesto"]["umbral_horas_maquina"])
     dec = decidir_recortes(est, umbral, cfg["presupuesto"]["orden_de_recortes"])
     cont = resumen_contencion(df)
@@ -1081,7 +1287,8 @@ def estimar_y_publicar(r: RutasV2, cfg: dict, hilos: int, criterio: str = "entre
         "contrato": {"seccion": "§10", "umbral_horas_maquina": umbral,
                      "umbral_aproximado": bool(cfg["presupuesto"].get("umbral_aproximado", True)),
                      "orden_de_recortes": cfg["presupuesto"]["orden_de_recortes"],
-                     "registro_de_recortes": cfg["presupuesto"]["registro_de_recortes"]},
+                     "registro_de_recortes": cfg["presupuesto"]["registro_de_recortes"],
+                     "sha256": cr.sha256_contrato(r, cfg)},
         "piloto": {
             "alcance": {"criterio_pliegues": criterio, "pliegues_por_protocolo": 2,
                         "eje_A": list(mv.MOTORES_EJE_A), "N_comun": recetas["N_comun"],
@@ -1090,18 +1297,20 @@ def estimar_y_publicar(r: RutasV2, cfg: dict, hilos: int, criterio: str = "entre
                         "pliegue_curvas": {p: {"protocolo": "LRO", "k": k_cur[p]} for p in contaminantes},
                         "calibracion_familias": {p: {"protocolo": "LRO", "k": k_cal[p],
                                                      "medida": est["modelos"][p]["calibrado"]} for p in contaminantes},
-                        "provisional_config": eleccion.get("provisional"),
+                        "eleccion_de_los_pliegues": eleccion.get("valor", eleccion.get("provisional")),
                         "sin_metricas": ("no se guardaron predicciones ni se calculó, guardó o miró ninguna métrica "
                                          "de desempeño")},
             "pliegues": {pol: {prot: [{"k": int(f["k"]), "grupo": f["grupo"],
                                        "filas_entrenamiento_disponibles": int(f["filas_entrenamiento_disponibles"]),
                                        "filas_prueba": int(f["filas_prueba"])} for f in eleg[pol][prot]]
                                for prot in PROTOCOLOS} for pol in contaminantes},
-            "mediciones": {**r.relativa(ruta_med), "sha256": sha_med, "filas": int(len(df)),
-                           "sesiones": [resumen_sesion(s) for s in doc.get("sesiones", [])]},
-            "horas_pared_del_piloto": round(float(df[df["fase"] == "pliegue"]["segundos_pared"].sum()
-                                                  + df[df["fase"] == "contexto"]["segundos_pared"].sum()) / 3600, 2),
-            "memoria_maxima_mb": float(pd.to_numeric(df["maxrss_proceso_mb"], errors="coerce").max()),
+            "mediciones": {**r.relativa(ruta_med), "sha256": sha_med, "filas": int(len(df_todo)),
+                           "filas_vigentes": int(len(df)), "vigencia_por_codigo": vigencia,
+                           "sesiones": [resumen_sesion(s, huella) for s in doc.get("sesiones", [])]},
+            "horas_pared_del_piloto": round(float(df_todo[df_todo["fase"] == "pliegue"]["segundos_pared"].sum()
+                                                  + df_todo[df_todo["fase"] == "contexto"]["segundos_pared"].sum())
+                                            / 3600, 2),
+            "memoria_maxima_mb": float(pd.to_numeric(df_todo["maxrss_proceso_mb"], errors="coerce").max()),
             "contencion": cont},
         "definicion_horas_maquina": ("horas de pared de un proceso con 12 hilos, que ocupa la máquina; paralelizar "
                                      "por pliegue baja la duración, no las horas de máquina. «horas_cpu» suma la CPU "
@@ -1111,8 +1320,12 @@ def estimar_y_publicar(r: RutasV2, cfg: dict, hilos: int, criterio: str = "entre
                       "(ver el docstring de piloto_v2.py)",
             "supuestos_usados": supuestos, "supuestos_valores": {k: SUPUESTOS[k.split(".")[0]] for k in supuestos
                                                                  if k.split(".")[0] in SUPUESTOS},
-            "no_incluido": ["consolidación (retransformación, métricas y bootstrap de 2.000 réplicas)",
+            "no_incluido": ["consolidación (retransformación, métricas y bootstrap de 1.999 réplicas)",
                             "escritura de los puntos de control"],
+            "validacion_mlp_y_delta_huber": ("la fase de validación de la MLP (vecindario y matriz) y el δ honesto de "
+                                             "Huber se miden y se cuentan (Complemento, punto 8); con el ajuste de la "
+                                             "MLP, sólo valen si se midieron con la huella del código de ajuste que "
+                                             "corre (piloto.mediciones.vigencia_por_codigo)"),
             "pliegues_internos": "modelados (no medidos): n = mín(5, grupos − 1) internos por pliegue externo",
             "modelos": est["modelos"]},
         "estimacion": est["por_recorte"],
@@ -1148,14 +1361,22 @@ def estimar_y_publicar(r: RutasV2, cfg: dict, hilos: int, criterio: str = "entre
                        SEMILLAS_PILOTO, hilos, rutas=r, parametros={"criterio_pliegues": criterio}),
     }
     plan["bitacora_manifiesto"] = estado_bitacora(r, dec)
+    sesiones = doc.get("sesiones", [])
+    plan["piloto"]["maquina_libre"] = {
+        "regla": "carga media del último minuto < 2 al empezar y sin otros trabajos pesados (Complemento, punto 8)",
+        "por_sesion": {str(s.get("sesion")): s.get("maquina_libre") for s in sesiones},
+        "todas_las_sesiones_libres": bool(sesiones) and all((s.get("maquina_libre") or {}).get("libre") for s in sesiones)}
     if dec["excede_tras_recortes"]:
+        n = dec["recorte"]
         plan["pendiente_del_autor"] = (
-            f"Con los tres recortes de §10 la estimación sigue en {est['por_recorte']['3']['horas']} h de máquina "
-            f"(umbral: unas {umbral:g} h). El contrato no prevé otro recorte: correr igual o reducir por enmienda "
-            f"fechada es decisión del autor. Los componentes que más pesan están en "
-            f"estimacion['3']['componentes_horas'].")
-    tabla = df.drop(columns=[c for c in ("error",) if c in df and df[c].isna().all()])
+            f"Con los {n} recortes del orden enmendado (Enmienda 1, punto 12) la estimación sigue en "
+            f"{est['por_recorte'][str(n)]['horas']} h de máquina (umbral: unas {umbral:g} h). El orden no prevé otro "
+            f"recorte: correr igual o reducir por enmienda fechada es decisión del autor. Los componentes que más "
+            f"pesan están en estimacion['{n}']['componentes_horas'].")
+    tabla = df_todo.drop(columns=[c for c in ("error",) if c in df_todo and df_todo[c].isna().all()])
     with candado_escritura(CANDADO_PLAN, rutas=r):
+        # el plan anterior queda respaldado, con los mismos bytes y fechas, antes de sobrescribirlo
+        plan["respaldo_del_plan_anterior"] = respaldar(r.raiz_v2 / NOMBRE_PLAN, r, "reemplazado")
         plan = sin_nan(plan)
         sha_plan = publicar_json(plan, r.raiz_v2 / NOMBRE_PLAN, r)
         datos = tabla.to_csv(index=False, lineterminator="\n", float_format="%.6g").encode("utf-8")
@@ -1181,8 +1402,7 @@ def estado_bitacora(r: RutasV2, dec: dict, etiqueta: str = cr.ETIQUETA) -> dict:
     etiqueta ya tiene este recorte, el plan lo cita (una reestimación con la misma decisión no se vuelve a anotar);
     si no, el evento se anota al publicar este plan, con su sha256."""
     m = leer_json(r.manifiesto_pliegues) or {}
-    previos = [e for e in m.get("bitacora", []) if e.get("evento") == "recorte_presupuesto"
-               and e.get("etiqueta") == etiqueta]
+    previos = eventos_del_plan(m, etiqueta)
     ultimo = previos[-1] if previos else None
     if ultimo is not None and ultimo.get("recorte") == dec["recorte"]:
         return {"estado": "ya anotado (misma decisión)", "evento_utc": ultimo.get("utc"),
@@ -1193,12 +1413,23 @@ def estado_bitacora(r: RutasV2, dec: dict, etiqueta: str = cr.ETIQUETA) -> dict:
             "reemplaza": None if ultimo is None else {"recorte": ultimo.get("recorte"), "utc": ultimo.get("utc")}}
 
 
-def resumen_sesion(s: dict) -> dict:
-    """Lo esencial de una sesión de medición: fechas, argumentos, commit y hash del código con que se midió."""
+def eventos_del_plan(manifiesto: dict, etiqueta: str = cr.ETIQUETA) -> list[dict]:
+    """Los eventos ``recorte_presupuesto`` de la etiqueta que vienen de un plan (no los forzados con
+    ``correr_v2 --forzar-recorte``, que no son decisiones del piloto)."""
+    return [e for e in manifiesto.get("bitacora", []) if e.get("evento") == "recorte_presupuesto"
+            and e.get("etiqueta") == etiqueta and not e.get("forzado")]
+
+
+def resumen_sesion(s: dict, huella: str | None = None) -> dict:
+    """Lo esencial de una sesión de medición: fechas, argumentos, commit, hash del código con que se midió, huella del
+    código de ajuste y, con ``huella`` (la del código que corre), si sus fases sensibles al código valen."""
     t = s.get("traza") or {}
     return {"sesion": s.get("sesion"), "inicio_utc": s.get("inicio_utc"), "fin_utc": s.get("fin_utc"),
             "segundos_sesion": s.get("segundos_sesion"), "argumentos": s.get("argumentos"),
             "commit": (t.get("git") or {}).get("commit"), "hash_codigo": (t.get("codigo") or {}).get("hash"),
+            "huella_codigo_ajuste": huella_de_sesion(s),
+            "fases_sensibles_vigentes": None if huella is None else huella_de_sesion(s) == huella,
+            "respaldo_previo": s.get("respaldo_previo"),
             "procesos_mas_activos_al_inicio": (s.get("maquina_al_inicio") or {}).get("procesos_mas_activos")}
 
 
@@ -1209,8 +1440,7 @@ def anotar_recorte_plan(r: RutasV2, dec: dict, est: dict, sha_plan: str, etiquet
     no lo duplica al correr. Devuelve si anotó."""
     import pliegues_v2
     m = leer_json(r.manifiesto_pliegues) or {}
-    previos = [e for e in m.get("bitacora", []) if e.get("evento") == "recorte_presupuesto"
-               and e.get("etiqueta") == etiqueta]
+    previos = eventos_del_plan(m, etiqueta)
     ultimo = previos[-1] if previos else None
     if (ultimo is None and dec["recorte"] == 0) or (ultimo is not None and ultimo.get("recorte") == dec["recorte"]):
         return False
@@ -1232,7 +1462,7 @@ def imprimir_resumen(est: dict, dec: dict, umbral: float, cont: dict) -> None:
               f"{e['horas_sin_contencion_fuerte']:>6.1f} sin contención fuerte | {e['horas_menos_contencion']:>6.1f} "
               f"menos contención | {e['horas_cpu']:>6.1f} h de CPU")
     print(f"Recorte aplicado: {dec['recorte']} ({'; '.join(dec['aplicados']) or 'ninguno'})"
-          f"{' — EXCEDE el umbral aun con los tres recortes' if dec['excede_tras_recortes'] else ''}")
+          f"{' — EXCEDE el umbral aun con todos los recortes' if dec['excede_tras_recortes'] else ''}")
     if cont:
         media, p90 = cont["fraccion_maquina_otros_media_ponderada"], cont["fraccion_maquina_otros_p90"]
         print(f"Contención: otros procesos usaron en promedio {100 * media:.0f} % de la máquina durante los ajustes "
@@ -1240,4 +1470,5 @@ def imprimir_resumen(est: dict, dec: dict, umbral: float, cont: dict) -> None:
 
 
 __all__ = ["Medidor", "Registro", "medir", "extrapolar", "decidir_recortes", "estimar_y_publicar", "ejecutar",
-           "tareas_piloto", "pliegues_lro", "topes_curva_piloto", "pendientes", "ModeloTiempos", "costo_pliegue"]
+           "tareas_piloto", "pliegues_lro", "topes_curva_piloto", "pendientes", "ModeloTiempos", "costo_pliegue",
+           "respaldar", "vigencia_por_codigo", "mediciones_vigentes", "fase_sensible_al_codigo"]

@@ -1,58 +1,78 @@
 {
  "schema": "airpollution.modelo-1km-v2.pliegues-tablas.v1",
  "descripcion": "Tablas resumen del manifiesto de pliegues v2; la fuente es pliegues_v2.json de la raíz v2.",
- "huella_pliegues": "ec796b04148f190614e0873b62593531c5e6e30c3c8393de0aaec9f83541e8b2",
- "fijado_utc": "2026-10-12T22:19:29Z",
+ "huella_pliegues": "3e9f5acdef89602510f0aad011986a7ca17225a71a5f17824b0c6b1d2c8343ee",
+ "fijado_utc": "2026-10-13T05:41:05Z",
  "tablas": {
-  "pliegues_v2_resumen.csv": "7469088444f461926a6332a4e39d3f1a5fc4a7f6302e532c0c5f377fe3a6bad5",
-  "pliegues_v2_pliegues.csv": "ebb6bbfe2502f2ab8c7f14ba3c590ba7f19483469995d51c1a19154044eac588",
-  "pliegues_v2_conglomerados_loso_d.csv": "41f141677bd0c04cc57f484594f96a9a3e2ed5d415fc78d18641f9a209dfbf39",
-  "pliegues_v2_bloques_blq75.csv": "6ba1134e1a130d988fe448f24c1772ad6d755b4ad6e786fc5d47eb6475805d05"
+  "pliegues_v2_resumen.csv": "f66835085d7a50834d0e64b0029cbdcafa65a496ceb1e1e3e58dc68fdbc62f6d",
+  "pliegues_v2_pliegues.csv": "be1498793e77dd5ff872bb8fe436e3d70fde7efb5332a5d44e47d9112b65cba8",
+  "pliegues_v2_conglomerados_loso_d.csv": "4074f4dc12a59bc3b371b4f4d5e421334919f1f87c2a7e83626e95f8085f997d",
+  "pliegues_v2_bloques_blq75.csv": "d27da0dfa7278e1d5e190f78492521bb641eb0386231a09212eca404aa28981f"
  },
  "traza": {
-  "creado_utc": "2026-10-12T22:19:29Z",
+  "creado_utc": "2026-10-13T05:41:51Z",
   "programa": "pliegues_v2.py",
   "git": {
-   "commit": "51d125efcdf00fee788d73607f33e143e67ad477",
+   "commit": "aa01f4d8e924f986e1a5e60bdef8f9dd39ee2e36",
    "v2_sin_commit": [
+    "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
     "scripts_modelo_1km/v2/_rutas_v2.py",
-    "scripts_modelo_1km/v2/_traza_v2.py",
     "scripts_modelo_1km/v2/config_v2.json",
+    "scripts_modelo_1km/v2/correr_v2.py",
+    "scripts_modelo_1km/v2/metricas_v2.py",
+    "scripts_modelo_1km/v2/motores_v2.py",
+    "scripts_modelo_1km/v2/perdidas_v2.py",
     "scripts_modelo_1km/v2/pliegues_v2.py",
+    "scripts_modelo_1km/v2/retransformacion_v2.py",
+    "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
     "scripts_modelo_1km/v2/tests/test_config_v2.py",
+    "scripts_modelo_1km/v2/tests/test_correr_v2.py",
     "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+    "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+    "scripts_modelo_1km/v2/tests/test_motores_v2.py",
+    "scripts_modelo_1km/v2/tests/test_perdidas_v2.py",
     "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
-    "scripts_modelo_1km/v2/tests/test_rutas_v2.py",
-    "scripts_modelo_1km/v2/tests/test_traza_v2.py"
+    "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py",
+    "scripts_modelo_1km/v2/tests/test_rutas_v2.py"
    ],
-   "arbol_con_cambios_rastreados": false
+   "arbol_con_cambios_rastreados": true
   },
   "codigo": {
-   "hash": "26f973583a08a0ee40df033462fc5ad4c75e47f3d6a6b1df2a328acfd833bfe2",
+   "hash": "7008a5522a8ff06bbc079d7d46568e04145e551a535653fea4eed9539ac849ac",
    "archivos": {
-    "scripts_modelo_1km/v2/_rutas_v2.py": "9152d405c898ff97fd3cef1270efae807e0819b8d5791ca4934caf89f39ce5c4",
+    "scripts_modelo_1km/v2/_rutas_v2.py": "faa070bdf008dde1ab33d482ef865c24375158e6266c0d5a436d60acfa3db595",
     "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
-    "scripts_modelo_1km/v2/pliegues_v2.py": "d95625c8dde4a57cadf684777468e38187ae310e3185eba5368569dee8282958"
+    "scripts_modelo_1km/v2/bootstrap_v2.py": "49581320083f1b32bd0cf72623d3f0730c8920994c3cc1239da7dc8b4d06e400",
+    "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
+    "scripts_modelo_1km/v2/correr_v2.py": "caba60a9769c5ee477e40b02dbf5dd040c4495fd3718c0beb6b9dd0652b00a17",
+    "scripts_modelo_1km/v2/metricas_v2.py": "93cbb474da22a64d22138ee72502989b88374fa980e7e6d6008e1075c16b1591",
+    "scripts_modelo_1km/v2/motores_v2.py": "5a6fe826bd06fd99b7643da91f0e0144aa6d86bf9a65d5347b5333c5ced46172",
+    "scripts_modelo_1km/v2/perdidas_v2.py": "c8caaf6b426447bcb0e86197a0935794746cb92503eed6531225321538fff471",
+    "scripts_modelo_1km/v2/piloto_v2.py": "8371bc9c30f6b627e1edaaa9955a27d9c3c19c876139eb893b4f1bfaa6e52928",
+    "scripts_modelo_1km/v2/pliegues_v2.py": "bafaecd14114ccad1b9485d2f645fe81c925bd1cf9bc832abafce9d8c5c1200d",
+    "scripts_modelo_1km/v2/retransformacion_v2.py": "ff92d87b370fdf8386a17a9c171fa42bf70f6b549d9cd58612da49bb471bd1f9",
+    "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
+    "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181"
    }
   },
   "contrato": {
    "raiz": "repo",
    "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
-   "sha256": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
-   "bytes": 9389
+   "sha256": "05218686b3f1808d5379b095789ada4ea69ba02362be8063330a2c2f9f5a5e17",
+   "bytes": 24532
   },
   "config": {
    "raiz": "repo",
    "ruta": "scripts_modelo_1km/v2/config_v2.json",
-   "sha256": "1109e41202b2ed63bb5ad9ae92471c158b3666aca751e9b24289b10d5c7e0df5",
-   "bytes": 22062
+   "sha256": "5e7fbeda8975a96a4a1bfaed6ef4f56468d493ad86bb938f2eed77a0133e5d91",
+   "bytes": 70248
   },
   "insumos": {
    "manifiesto_pliegues": {
     "raiz": "raiz_v2",
     "ruta": "pliegues_v2.json",
-    "sha256": "42bb1a37cab89c24f9580f0466dbbbd53f411ace4ab8f47c9ecd7a1d7e0e8fef",
-    "bytes": 290791
+    "sha256": "9ba5c1c92ec6170cb04afacd0c6d24fac42a982a62affb1aa7e214a09a57ba8f",
+    "bytes": 339776
    }
   },
   "bibliotecas": {
@@ -76,14 +96,14 @@
    "maquina": "arm64"
   },
   "hilos": {
-   "configurados": 12,
+   "configurados": 8,
    "cpu_count": 16,
    "entorno": {
-    "OMP_NUM_THREADS": "12",
-    "OPENBLAS_NUM_THREADS": "12",
-    "MKL_NUM_THREADS": "12",
-    "VECLIB_MAXIMUM_THREADS": "12",
-    "NUMEXPR_NUM_THREADS": "12"
+    "OMP_NUM_THREADS": "8",
+    "OPENBLAS_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8",
+    "VECLIB_MAXIMUM_THREADS": "8",
+    "NUMEXPR_NUM_THREADS": "8"
    }
   },
   "semillas": {

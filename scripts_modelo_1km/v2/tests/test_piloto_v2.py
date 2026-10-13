@@ -5,15 +5,23 @@
   entrenamiento y calibración en el de más prueba, con las mismas tareas de ``plan_protocolo``;
 * el piloto no guarda predicciones ni puntos de control, y ninguna fila de medición lleva una métrica de desempeño;
 * reanuda sin repetir lo medido; Huber arrastra a su ajuste cuadrático;
-* la contabilidad de la extrapolación (fase por fase, con la caché de matrices) y el orden de los recortes de §10;
-* el plan y su bitácora, sin rutas absolutas, y el evento del recorte en la bitácora del manifiesto, una sola vez.
+* la contabilidad de la extrapolación (fase por fase, con la caché de matrices, la fase de validación de la MLP y el
+  δ honesto de Huber: Complemento, punto 8) y el orden de los cuatro recortes de la Enmienda 1, punto 12;
+* la máquina libre (carga media < 2 al empezar; Complemento, punto 8);
+* el plan y su bitácora, sin rutas absolutas, y el evento del recorte en la bitácora del manifiesto, una sola vez;
+* respaldos: antes de sobrescribir las mediciones o el plan queda una copia con los mismos bytes, citada con su
+  sha256 en la sesión o en el plan nuevo;
+* sesiones por huella del código de ajuste: las fases sensibles al código (validación y ajuste de la MLP, δ de
+  Huber) medidas con otro código se vuelven a medir y no entran en la extrapolación, aunque tengan menos contención.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import numpy as np
 import pandas as pd
@@ -120,8 +128,10 @@ class AlcanceTests(unittest.TestCase):
                          ["lightgbm_n2400", "lightgbm_n500", "lightgbm_ntodas", "random_forest_n2400",
                           "xgboost_n2400", "xgboost_n500", "xgboost_ntodas"])
         cal = pv.tareas_piloto(RECETAS, "LRO", k_cal, k_cur, k_cal, calibrar=True)
-        self.assertEqual(len(cal), 4 + 10 + 1 + 3)
-        self.assertEqual(len(pv.tareas_piloto(RECETAS, "LRO", k_cal, k_cur, k_cal, calibrar=False)), 4)
+        self.assertEqual(len(cal), 4 + 12 + 1 + 3)                 # 12 pérdidas: con huber_friedman (Enmienda 1, punto 9)
+        # sin calibrar, el pliegue de calibración mide igual el δ honesto de Huber (su costo nuevo; Complemento, punto 8)
+        sin = pv.tareas_piloto(RECETAS, "LRO", k_cal, k_cur, k_cal, calibrar=False)
+        self.assertEqual([t.id for t in sin], [*mv.MOTORES_EJE_A, cr.TAREA_DELTA_HUBER])
         completo = {(t.id, t.replica): t for t in cr.plan_protocolo(RECETAS, "LRO", cr.Opciones(), False)["tareas"]}
         for t in curvas + cal:
             self.assertEqual(completo[(t.id, t.replica)], t)      # las mismas definiciones que la corrida completa
@@ -129,8 +139,9 @@ class AlcanceTests(unittest.TestCase):
     def test_huber_arrastra_a_su_ajuste_cuadratico(self):
         cal = pv.tareas_piloto(RECETAS, "LRO", 1, 0, 1, calibrar=True)
         hechas = {("pm25", "LRO", 1, t.id, t.replica) for t in cal if t.id != "xgboost_huber"}
+        # Enmienda 1, punto 9: el δ es común a los dos motores y sale de lightgbm_l2_original
         self.assertEqual(sorted(t.id for t in pv.pendientes(cal, hechas, "pm25", "LRO", 1)),
-                         ["xgboost_huber", "xgboost_l2_original"])
+                         ["lightgbm_l2_original", "xgboost_huber"])
 
 
 class MedicionTests(unittest.TestCase):
@@ -159,8 +170,17 @@ class MedicionTests(unittest.TestCase):
         fases = set(self.df["fase"])
         for fase in ("contexto", "mascara_calidad", "vecindario", "permutacion", "filas", "matriz_entrenamiento",
                      "matriz_prueba", "ajuste", "prediccion", "delta_huber", "construccion_lineales",
-                     "ajuste_prediccion", "pliegue"):
+                     "ajuste_prediccion", "pliegue", "vecindario_validacion", "matriz_validacion"):
             self.assertIn(fase, fases)
+        sesion = self.reg.doc["sesiones"][0]
+        self.assertEqual(set(sesion["maquina_libre"]) >= {"carga_1min_al_empezar", "umbral", "libre"}, True)
+        # sin la fase de validación de la MLP o sin el δ, el alcance está incompleto (Complemento, punto 8)
+        sin_val = self.df[~self.df["fase"].isin(pv.FASES_VALIDACION_MLP)]
+        self.assertTrue(any("validación de la MLP" in x for x in
+                            pv.faltantes(sin_val, MANIFIESTO, RECETAS, "entrenamiento", ["pm25"])))
+        sin_delta = self.df[self.df["fase"] != "delta_huber"]
+        self.assertTrue(any("δ honesto" in x for x in
+                            pv.faltantes(sin_delta, MANIFIESTO, RECETAS, "entrenamiento", ["pm25"])))
         aj = self.df[self.df["fase"] == "ajuste"]
         self.assertEqual(int((aj["familia"] == "eje_A").sum()), 5 * 2 * 4)  # 5 protocolos × 2 pliegues × 4 motores
         self.assertEqual(int((aj["familia"] == "curva").sum()), 7)
@@ -198,12 +218,24 @@ class MedicionTests(unittest.TestCase):
             self.assertEqual(len(d), len(d[list(pv.CLAVE_FASE)].astype(str).drop_duplicates()))
 
     def test_reanuda_sin_repetir(self):
+        ruta = self.r.raiz_v2 / pv.CARPETA / pv.NOMBRE_MEDICIONES
+        previo = ruta.read_bytes()
         antes = len(self.reg.mediciones)
         reg2 = medir(self.r, calibrar=True)
         self.assertEqual(len(reg2.mediciones), antes)                       # nada que medir
         self.assertEqual(len(reg2.doc["sesiones"]), 2)
         for clave in ("git", "codigo", "insumos", "bibliotecas", "hilos", "semillas"):
             self.assertIn(clave, reg2.doc["sesiones"][0]["traza"])
+        # antes de sobrescribirlo, el archivo que había quedó respaldado (mismos bytes) y la sesión lo cita
+        respaldos = sorted(ruta.parent.glob("mediciones_respaldo_*.json"))
+        self.assertEqual(len(respaldos), 1)
+        self.assertEqual(respaldos[0].read_bytes(), previo)
+        self.assertIsNone(reg2.doc["sesiones"][0]["respaldo_previo"])        # la primera no tenía nada que respaldar
+        self.assertEqual(reg2.doc["sesiones"][1]["respaldo_previo"]["sha256"], hashlib.sha256(previo).hexdigest())
+        self.assertEqual(reg2.doc["sesiones"][1]["respaldo_previo"]["ruta"], f"{pv.CARPETA}/{respaldos[0].name}")
+        # las sesiones registran la huella del código de ajuste con que midieron (Complemento, punto 8)
+        self.assertEqual({s["codigo_ajuste"]["huella"] for s in reg2.doc["sesiones"]},
+                         {cr.codigo_ajuste_actual()["huella"]})
 
 
 def fabricar(pol="pm25", cpu=4.0):
@@ -236,6 +268,9 @@ def fabricar(pol="pm25", cpu=4.0):
                           {**e, "fase": "matriz_entrenamiento", "segundos_pared": 1e-5 * n},
                           {**e, "fase": "ajuste", "segundos_pared": aj[m] * n / ne},
                           {**e, "fase": "prediccion", "segundos_pared": 1e-4 * te}]
+                if m == "mlp":                                    # fase de validación: vecindario 0,5 s y su matriz
+                    filas += [{**e, "fase": "vecindario_validacion", "segundos_pared": 0.5},
+                              {**e, "fase": "matriz_validacion", "segundos_pared": 1e-5 * n}]
     df = pd.DataFrame(filas)
     df["segundos_cpu"] = df["segundos_pared"] * cpu
     df["paralelismo"] = cpu
@@ -277,15 +312,26 @@ class ExtrapolacionTests(unittest.TestCase):
         f = MANIFIESTO["contaminantes"]["pm25"]["protocolos"]["LOSO-D"]["pliegues"][3]
         disp, te = f["filas_entrenamiento_disponibles"], f["filas_prueba"]
         ne = min(RECETAS["N_comun"], disp)
-        esperado = 1.0 + 1e-6 * disp + 1e-5 * te + 4 * 1e-7 * ne + 1e-5 * ne + (10 + 20 + 30 + 40) + 4 * 1e-4 * te
+        validacion = 0.5 + 1e-5 * ne                                          # la fase de validación de la MLP
+        esperado = (1.0 + 1e-6 * disp + 1e-5 * te + 4 * 1e-7 * ne + 1e-5 * ne + (10 + 20 + 30 + 40) + 4 * 1e-4 * te
+                    + validacion)
         c = pv.costo_pliegue(M, "LOSO-D", f, plan, 2)
         self.assertAlmostEqual(sum(c.values()), esperado, places=6)
+        self.assertTrue(M.validacion_mlp_medida)
+        self.assertAlmostEqual(M.validacion_mlp("LOSO-D", ne), validacion, places=9)
+        # sin medir la fase de validación se supone como un vecindario y una matriz del pliegue, y queda declarado
+        S = pv.ModeloTiempos(pv.anadir_menos_contencion(df[~df["fase"].isin(pv.FASES_VALIDACION_MLP)]), "pm25",
+                             RECETAS, "segundos_pared", k_cur, None)
+        self.assertFalse(S.validacion_mlp_medida)
+        self.assertAlmostEqual(S.validacion_mlp("LOSO-D", ne), 1.0 + 1e-5 * ne, places=9)
+        self.assertIn("validacion_mlp", S.supuestos_usados)
         # curva lineal: con todas las filas, el ajuste escala con N; la MLP, proporcional (sin curva medida)
         self.assertAlmostEqual(M.ajuste("LRO", "lightgbm", disp), 10.0 * disp / ne, places=6)
         self.assertAlmostEqual(M.ajuste("LOSO-D", "mlp", 2 * ne), 80.0, places=6)
         # pliegues internos: n = 2, cada uno con (n − 1)/n del N común para entrenar
         s = M.internos("LRO", disp, 2, list(mv.MOTORES_EJE_A))
-        e = 1e-6 * disp + 1e-7 * ne + 2 * (1.0 + 1e-5 * ne / 2 + 1e-5 * ne / 2) + 2 * (100 * 0.5 + 4 * 1e-4 * ne / 2)
+        e = (1e-6 * disp + 1e-7 * ne + 2 * (1.0 + 1e-5 * ne / 2 + 1e-5 * ne / 2) + 2 * (100 * 0.5 + 4 * 1e-4 * ne / 2)
+             + 2 * (0.5 + 1e-5 * ne / 2))                                      # la validación de la MLP interna
         self.assertAlmostEqual(s, e, places=6)
 
     def test_recortes_bajan_y_menos_contencion(self):
@@ -296,10 +342,12 @@ class ExtrapolacionTests(unittest.TestCase):
         df.loc[con, "segundos_pared"] *= 2.0
         df.loc[con, "paralelismo"] = 2.0
         est = pv.extrapolar(df, MANIFIESTO, RECETAS, {"pm25": False}, {"pm25": k_cur}, {"pm25": k_cal}, ["pm25"])
-        horas = [est["por_recorte"][str(rc)]["horas"] for rc in range(4)]
+        self.assertEqual(set(est["por_recorte"]), {"0", "1", "2", "3", "4"})
+        horas = [est["por_recorte"][str(rc)]["horas"] for rc in range(5)]
         self.assertTrue(all(a >= b for a, b in zip(horas, horas[1:])))
-        self.assertGreater(horas[0], horas[3])
-        for rc in range(4):
+        self.assertGreater(horas[0], horas[4])
+        self.assertEqual(horas[2], horas[3])                               # el recorte 3 no quita nada (§8)
+        for rc in range(5):
             e = est["por_recorte"][str(rc)]
             self.assertLess(e["horas_menos_contencion"], e["horas"])
             fijo = (10 + pv.SUPUESTOS["lineales"]["construccion_s"]) / 3600     # contexto y construcción de lineales
@@ -316,6 +364,7 @@ class ExtrapolacionTests(unittest.TestCase):
         self.assertIn("perdidas.q05", est["modelos"]["pm25"]["supuestos_usados"])   # sin calibración: supuesto
 
     def test_decision_de_recortes(self):
+        """Los cuatro recortes de la Enmienda 1, punto 12, en su orden y sin elección a mano (Complemento, punto 8)."""
         orden = CFG["presupuesto"]["orden_de_recortes"]
 
         def est(h, hm, hg=None):
@@ -323,20 +372,40 @@ class ExtrapolacionTests(unittest.TestCase):
             return {"por_recorte": {str(i): {"horas": a, "horas_menos_contencion": b, "horas_media_global": c,
                                              "horas_sin_contencion_fuerte": a, "horas_cpu": 8 * a}
                                     for i, (a, b, c) in enumerate(zip(h, hm, hg))}}
-        d = pv.decidir_recortes(est([200, 180, 110, 100], [150, 130, 90, 80]), 120.0, orden)
+        d = pv.decidir_recortes(est([200, 180, 110, 110, 100], [150, 130, 90, 90, 80]), 120.0, orden)
         self.assertEqual((d["recorte"], d["excede_tras_recortes"], len(d["bitacora"])), (2, False, 3))
-        self.assertEqual(d["aplicados"], ["semillas sólo en LRO", "curvas de aprendizaje sólo en LRO"])
+        self.assertEqual(d["aplicados"], ["curvas de aprendizaje fuera de LRO", "MLP fuera de LRO y BLQ-75"])
         self.assertEqual(d["recorte_con_menos_contencion"], 2)
-        d = pv.decidir_recortes(est([300, 290, 280, 250], [200, 190, 119, 100]), 120.0, orden)
-        self.assertEqual((d["recorte"], d["excede_tras_recortes"], len(d["bitacora"])), (3, True, 4))
+        d = pv.decidir_recortes(est([300, 290, 280, 280, 125], [200, 190, 125, 125, 100]), 120.0, orden)
+        self.assertEqual((d["recorte"], d["excede_tras_recortes"], len(d["bitacora"])), (4, True, 5))
+        self.assertEqual(d["aplicados"], [x["recorte"] for x in orden])
         self.assertIn("enmienda", d["bitacora"][-1]["accion"])
-        self.assertEqual((d["recorte_con_menos_contencion"], d["excede_con_menos_contencion"]), (2, False))
-        d = pv.decidir_recortes(est([100, 90, 80, 70], [90, 80, 70, 60]), 120.0, orden)
+        self.assertIn("4 recortes", d["bitacora"][-1]["accion"])
+        self.assertEqual((d["recorte_con_menos_contencion"], d["excede_con_menos_contencion"]), (4, False))
+        d = pv.decidir_recortes(est([200, 190, 150, 150, 110], [200, 190, 150, 150, 110]), 120.0, orden)
+        self.assertEqual((d["recorte"], d["excede_tras_recortes"]), (4, False))     # el recorte 4: pérdidas
+        self.assertEqual(d["aplicados"][-1], "pérdidas del §6 fuera de LRO, BLQ-75 y LOSO-D")
+        d = pv.decidir_recortes(est([100, 90, 80, 80, 70], [90, 80, 70, 70, 60]), 120.0, orden)
         self.assertEqual((d["recorte"], d["aplicados"], len(d["bitacora"])), (0, [], 1))
-        d = pv.decidir_recortes(est([125, 119, 110, 100], [110, 100, 90, 80], [130, 125, 121, 118]), 120.0, orden)
+        d = pv.decidir_recortes(est([125, 119, 110, 110, 100], [110, 100, 90, 90, 80], [130, 125, 121, 121, 118]),
+                                120.0, orden)
         self.assertEqual(d["recorte"], 1)                                  # la principal decide
-        self.assertEqual(d["sensibilidad"]["horas_media_global"]["recorte"], 3)
+        self.assertEqual(d["sensibilidad"]["horas_media_global"]["recorte"], 4)
         self.assertEqual(d["sensibilidad"]["horas_menos_contencion"]["recorte"], 0)
+        with self.assertRaises(ValueError):
+            pv.decidir_recortes(est([1, 1, 1], [1, 1, 1]), 120.0, [orden[0], orden[2]])   # órdenes con huecos
+
+    def test_maquina_libre(self):
+        """Complemento, punto 8: el piloto se vuelve a medir con la carga media del último minuto por debajo de 2."""
+        self.assertTrue(pv.maquina_libre(CFG, carga=1.99)["libre"])
+        self.assertFalse(pv.maquina_libre(CFG, carga=2.0)["libre"])
+        self.assertEqual(pv.maquina_libre(CFG, carga=0.5)["umbral"], 2.0)
+        import unittest.mock as um
+        with sx.raices_temporales() as r, um.patch.object(pv.os, "getloadavg", lambda: (9.0, 9.0, 9.0)):
+            with self.assertRaises(SystemExit) as e:
+                medir(r, exigir_maquina_libre=True)
+            self.assertIn("no está libre", str(e.exception))
+            self.assertFalse((r.raiz_v2 / pv.CARPETA / pv.NOMBRE_MEDICIONES).exists())   # no midió nada
 
 
 class PlanTests(unittest.TestCase):
@@ -346,21 +415,37 @@ class PlanTests(unittest.TestCase):
                 rv.publicar_json(MANIFIESTO, r.manifiesto_pliegues, r)
             medir(r)
             cfg = json.loads(json.dumps(CFG))
-            cfg["presupuesto"]["umbral_horas_maquina"] = 1e-9                # fuerza los tres recortes
+            cfg["presupuesto"]["umbral_horas_maquina"] = 1e-9                # fuerza los cuatro recortes
             pv.estimar_y_publicar(r, cfg, 2, contaminantes=["pm25"])
-            plan = json.loads((r.raiz_v2 / pv.NOMBRE_PLAN).read_text(encoding="utf-8"))
-            self.assertEqual((plan["recorte_aplicado"], plan["excede_tras_recortes"]), (3, True))
-            self.assertEqual([p["paso"] for p in plan["bitacora_de_recortes"]], [0, 1, 2, 3])
+            plan_1 = (r.raiz_v2 / pv.NOMBRE_PLAN).read_bytes()
+            plan = json.loads(plan_1.decode("utf-8"))
+            self.assertIsNone(plan["respaldo_del_plan_anterior"])            # no había plan que respaldar
+            self.assertEqual(list(r.raiz_v2.glob("plan_corrida_v2_reemplazado_*.json")), [])
+            self.assertEqual(plan["contrato"]["sha256"], CFG["contrato"]["sha256"])   # sin archivo: el declarado
+            vig = plan["piloto"]["mediciones"]["vigencia_por_codigo"]
+            self.assertEqual((vig["filas_descartadas"], vig["huella_codigo_ajuste"]),
+                             (0, cr.codigo_ajuste_actual()["huella"]))
+            self.assertTrue(all(s["fases_sensibles_vigentes"] for s in plan["piloto"]["mediciones"]["sesiones"]))
+            self.assertEqual(plan["piloto"]["mediciones"]["filas_vigentes"], plan["piloto"]["mediciones"]["filas"])
+            self.assertEqual((plan["recorte_aplicado"], plan["excede_tras_recortes"]), (4, True))
+            self.assertEqual([p["paso"] for p in plan["bitacora_de_recortes"]], [0, 1, 2, 3, 4])
             self.assertIn("pendiente_del_autor", plan)
+            self.assertIn("4 recortes", plan["pendiente_del_autor"])
             self.assertTrue(plan["bitacora_manifiesto"]["estado"].startswith("se anota"))
-            self.assertEqual(set(plan["estimacion"]), {"0", "1", "2", "3"})
+            self.assertEqual(set(plan["estimacion"]), {"0", "1", "2", "3", "4"})
+            self.assertIn("todas_las_sesiones_libres", plan["piloto"]["maquina_libre"])
+            self.assertTrue(plan["modelo_de_extrapolacion"]["modelos"]["pm25"]["validacion_mlp"]["medida"])
             self.assertEqual(set(plan["sensibilidad"]) - {"nota"}, set(pv.SENSIBILIDADES))
             self.assertEqual(len(plan["piloto"]["mediciones"]["sesiones"]), 1)
             self.assertIn("hash_codigo", plan["piloto"]["mediciones"]["sesiones"][0])
             pr = plan["plan_resultante"]["por_contaminante"]["pm25"]
-            self.assertNotIn("mlp", pr["LOSO-D"]["tareas"])                    # recorte 3
+            self.assertNotIn("mlp", pr["LOSO-D"]["tareas"])                    # recorte 2: MLP sólo en LRO y BLQ-75
             self.assertIn("mlp", pr["BLQ-75"]["tareas"])
-            self.assertFalse(any("@r" in t for t in pr["BLQ-75"]["tareas"]))  # recorte 1
+            self.assertTrue(any("@r" in t for t in pr["BLQ-75"]["tareas"]))   # las semillas de BLQ-75 se conservan
+            self.assertFalse(any("_n" in t for t in pr["BLQ-75"]["tareas"]))  # recorte 1: curvas sólo en LRO
+            self.assertTrue(any("_n" in t for t in pr["LRO"]["tareas"]))
+            self.assertFalse(any(t.startswith("lightgbm_") for t in pr["LBO-10"]["tareas"]))   # recorte 4
+            self.assertIn("lightgbm_huber", pr["LOSO-D"]["tareas"])
             for clave in ("git", "codigo", "insumos", "bibliotecas", "hilos", "semillas"):
                 self.assertIn(clave, plan["traza"])
             for archivo in (r.raiz_v2 / pv.NOMBRE_PLAN, r.salidas_v2 / pv.TABLA_JSON, r.salidas_v2 / pv.TABLA_CSV):
@@ -371,30 +456,119 @@ class PlanTests(unittest.TestCase):
             m = json.loads(r.manifiesto_pliegues.read_text(encoding="utf-8"))
             eventos = [e for e in m["bitacora"] if e.get("evento") == "recorte_presupuesto"]
             self.assertEqual(len(eventos), 1)
-            self.assertEqual(eventos[0]["recorte"], 3)
+            self.assertEqual(eventos[0]["recorte"], 4)
+            self.assertEqual(eventos[0]["aplicados"], [x["recorte"] for x in CFG["presupuesto"]["orden_de_recortes"]])
             self.assertEqual(m["huella_pliegues"], plv.huella_pliegues(m))   # la bitácora no toca la huella
             pv.estimar_y_publicar(r, cfg, 2, contaminantes=["pm25"])          # otra vez: no se repite el evento
             plan = json.loads((r.raiz_v2 / pv.NOMBRE_PLAN).read_text(encoding="utf-8"))
             self.assertEqual(plan["bitacora_manifiesto"]["estado"], "ya anotado (misma decisión)")
+            # el plan anterior quedó respaldado antes de sobrescribirlo, con los mismos bytes, y el nuevo lo cita
+            respaldos = list(r.raiz_v2.glob("plan_corrida_v2_reemplazado_*.json"))
+            self.assertEqual(len(respaldos), 1)
+            self.assertEqual(respaldos[0].read_bytes(), plan_1)
+            self.assertEqual(plan["respaldo_del_plan_anterior"]["sha256"], hashlib.sha256(plan_1).hexdigest())
+            self.assertEqual(plan["respaldo_del_plan_anterior"]["ruta"], respaldos[0].name)
+            self.assertEqual(rv.candado_de(respaldos[0], r), pv.CANDADO_PLAN)
             m = json.loads(r.manifiesto_pliegues.read_text(encoding="utf-8"))
             self.assertEqual(len([e for e in m["bitacora"] if e.get("evento") == "recorte_presupuesto"]), 1)
             with rv.candado_escritura("x", rutas=r):
-                cr.anotar_recorte(r, 3, cr.ETIQUETA)                          # correr_v2 lo reconoce
+                cr.anotar_recorte(r, 4, cr.ETIQUETA)                          # correr_v2 lo reconoce
             m = json.loads(r.manifiesto_pliegues.read_text(encoding="utf-8"))
             self.assertEqual(len([e for e in m["bitacora"] if e.get("evento") == "recorte_presupuesto"]), 1)
             cfg["presupuesto"]["umbral_horas_maquina"] = 1e9                 # reestimación sin recorte: lo reemplaza
             pv.estimar_y_publicar(r, cfg, 2, contaminantes=["pm25"])
             m = json.loads(r.manifiesto_pliegues.read_text(encoding="utf-8"))
             eventos = [e for e in m["bitacora"] if e.get("evento") == "recorte_presupuesto"]
-            self.assertEqual([e["recorte"] for e in eventos], [3, 0])
-            self.assertEqual(eventos[-1]["reemplaza"]["recorte"], 3)
+            self.assertEqual([e["recorte"] for e in eventos], [4, 0])
+            self.assertEqual(eventos[-1]["reemplaza"]["recorte"], 4)
             self.assertEqual(m["huella_pliegues"], plv.huella_pliegues(m))
+            self.assertEqual(len(list(r.raiz_v2.glob("plan_corrida_v2_reemplazado_*.json"))), 2)   # un respaldo por vez
 
     def test_incompleto_no_escribe_plan(self):
         with sx.raices_temporales() as r:
             pv.medir(r, CFG, ["pm25"], ["LRO", "LPO"], 2, crear_contexto=lambda pol: contexto(r), manifiesto=MANIFIESTO)
             pv.estimar_y_publicar(r, CFG, 2, manifiesto=MANIFIESTO, contaminantes=["pm25"])
             self.assertFalse((r.raiz_v2 / pv.NOMBRE_PLAN).exists())
+
+
+class SesionesPorCodigoTests(unittest.TestCase):
+    """Complemento, punto 8: las sesiones se distinguen por la huella del código de ajuste; las fases que cambiaron
+    con él (validación y ajuste —con el reajuste— de la MLP, y el δ honesto de Huber) medidas con otro código no se
+    reutilizan: se vuelven a medir y no entran en la extrapolación. Las demás fases sí se reutilizan."""
+
+    def test_sensibles_al_codigo(self):
+        sensible = pv.fase_sensible_al_codigo
+        self.assertTrue(sensible({"fase": "ajuste", "motor": "mlp"}))
+        self.assertTrue(sensible({"fase": "vecindario_validacion", "motor": "mlp"}))
+        self.assertTrue(sensible({"fase": "matriz_validacion", "motor": "mlp"}))
+        self.assertTrue(sensible({"fase": "delta_huber", "motor": "lightgbm"}))
+        for fila in ({"fase": "prediccion", "motor": "mlp"}, {"fase": "ajuste", "motor": "lightgbm"},
+                     {"fase": "vecindario"}, {"fase": "matriz_entrenamiento", "motor": "mlp"}):
+            self.assertFalse(sensible(fila), fila)
+        # una sesión sin huella (como las del piloto congelado por la Enmienda 1) no vale para las fases sensibles
+        doc = {"sesiones": [{"sesion": 0}, {"sesion": 1, "codigo_ajuste": {"huella": "h"}}],
+               "mediciones": [{"sesion": 0, "fase": "ajuste", "motor": "mlp"}, {"sesion": 0, "fase": "ajuste", "motor": "rf"},
+                              {"sesion": 1, "fase": "ajuste", "motor": "mlp"}, {"sesion": 0, "fase": "delta_huber"}]}
+        banderas, resumen = pv.vigencia_por_codigo(doc, "h")
+        self.assertEqual(banderas, [False, True, True, False])
+        self.assertEqual((resumen["sesiones_con_esta_huella"], resumen["sesiones_con_otra_huella"]), ([1], [0]))
+        self.assertEqual(resumen["descartadas_por_fase"], [{"fase": "ajuste (mlp)", "filas": 1},
+                                                           {"fase": "delta_huber", "filas": 1}])
+        # el δ común sólo cuenta como medido con su fase delta_huber
+        base = {"contaminante": "pm25", "protocolo": "LRO", "k": 1, "familia": "perdidas", "replica": 0}
+        filas = [{**base, "tarea": cr.TAREA_DELTA_HUBER, "fase": f} for f in ("ajuste", "prediccion")]
+        self.assertEqual(pv.tareas_medidas(filas), set())
+        self.assertEqual(pv.tareas_medidas(filas + [{**base, "tarea": cr.TAREA_DELTA_HUBER, "fase": "delta_huber"}]),
+                         {("pm25", "LRO", 1, cr.TAREA_DELTA_HUBER, 0)})
+
+    def test_remide_y_no_reutiliza_lo_medido_con_otro_codigo(self):
+        with sx.raices_temporales() as r:
+            reg = medir(r)
+            n0 = len(reg.mediciones)
+            vigentes, info = pv.mediciones_vigentes(reg.doc)
+            self.assertEqual((len(vigentes), info["filas_descartadas"]), (n0, 0))
+            self.assertEqual(len(medir(r).mediciones), n0)                  # el mismo código: nada que medir
+            otro = {**cr.codigo_ajuste_actual(), "huella": "0" * 64}      # otro código de ajuste
+            with mock.patch.object(cr, "codigo_ajuste_actual", lambda: otro):
+                doc = json.loads((r.raiz_v2 / pv.CARPETA / pv.NOMBRE_MEDICIONES).read_text(encoding="utf-8"))
+                vigentes, info = pv.mediciones_vigentes(doc)
+                self.assertFalse(any(pv.fase_sensible_al_codigo(m) for m in vigentes))
+                self.assertEqual({x["fase"] for x in info["descartadas_por_fase"]},
+                                 {"ajuste (mlp)", "vecindario_validacion", "matriz_validacion", "delta_huber"})
+                df_vig = pd.DataFrame(vigentes)
+                df_vig["error"] = None
+                falta = pv.faltantes(df_vig, MANIFIESTO, RECETAS, "entrenamiento", ["pm25"])
+                self.assertTrue(any(x.endswith(": mlp") for x in falta))
+                self.assertTrue(any("δ honesto" in x for x in falta))
+                reg2 = medir(r)
+            nuevas = reg2.mediciones[n0:]
+            # sólo se vuelve a medir lo que cambió: la MLP (validación, ajuste con reajuste) y el δ de Huber
+            self.assertEqual({m["tarea"] for m in nuevas if m["fase"] in ("ajuste", "prediccion")},
+                             {"mlp", cr.TAREA_DELTA_HUBER})
+            self.assertTrue({"delta_huber", *pv.FASES_VALIDACION_MLP} <= {m["fase"] for m in nuevas})
+            sesion = reg2.doc["sesiones"][-1]
+            self.assertEqual(sesion["codigo_ajuste"]["huella"], "0" * 64)
+            self.assertEqual(sesion["argumentos"]["no_vigentes_por_codigo"]["filas"], info["filas_descartadas"])
+            with mock.patch.object(cr, "codigo_ajuste_actual", lambda: otro):
+                banderas, _ = pv.vigencia_por_codigo(reg2.doc)
+                df_ok = pd.DataFrame(pv.mediciones_vigentes(reg2.doc)[0])
+                df_ok["error"] = None
+                self.assertEqual(pv.faltantes(df_ok, MANIFIESTO, RECETAS, "entrenamiento", ["pm25"]), [])
+            # La extrapolación no usa las mediciones sensibles del código anterior, aunque tengan menos contención.
+            df = pd.DataFrame(reg2.doc["mediciones"])
+            df["vigente_codigo"], df["error"] = banderas, None
+            viejas = (df.index < n0) & (df["fase"] == "ajuste") & (df["motor"] == "mlp")
+            df.loc[viejas, "segundos_pared"] = 999.0
+            df.loc[viejas, "fraccion_maquina_otros"] = 0.0
+            df.loc[df.index >= n0, "fraccion_maquina_otros"] = 0.5
+            k_cur, _ = pv.pliegues_lro(pv.seleccion(MANIFIESTO, "pm25", ["LRO"])["LRO"])
+            M = pv.ModeloTiempos(pv.anadir_menos_contencion(df), "pm25", RECETAS, "segundos_pared", k_cur, None)
+            mlp = [v for (_, mo), v in M.fit_n.items() if mo == "mlp"]
+            self.assertEqual(len(mlp), len(plv.PROTOCOLOS))
+            self.assertTrue(all(v < 999.0 for v in mlp))
+            sin = pv.ModeloTiempos(pv.anadir_menos_contencion(df.drop(columns="vigente_codigo")), "pm25", RECETAS,
+                                   "segundos_pared", k_cur, None)
+            self.assertTrue(all(v == 999.0 for (_, mo), v in sin.fit_n.items() if mo == "mlp"))   # sin la regla
 
 
 if __name__ == "__main__":

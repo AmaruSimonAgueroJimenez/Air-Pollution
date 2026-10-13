@@ -1,0 +1,1723 @@
+{
+ "schema": "airpollution.modelo-1km-v2.factibilidad-produccion.v1",
+ "descripcion": "Factibilidad de producción de los candidatos v2 (Enmienda 1, punto 11): tiempo de predecir un día completo de superficies de 1 km con cada motor, extrapolado a 2000-2026, y la marca de los candidatos que pasan de 7 días de máquina. Sólo tiempos: sin métricas de desempeño ni descriptivos de las predicciones.",
+ "creado_utc": "2026-10-13T07:08:58Z",
+ "regla": {
+  "texto": "Antes de la corrida se mide el tiempo de predecir un día completo de superficies con cada candidato (sólo tiempo). Un candidato cuya producción 2000-2026 exceda 7 días de máquina queda fuera de la decisión, con registro.",
+  "fuente": "DISENO_AMBIENTAL_V2.md, Enmienda 1, punto 11; config_v2.json → decision.factibilidad",
+  "umbral_dias_de_maquina": 7.0,
+  "candidatos": [
+   "xgboost",
+   "random_forest",
+   "mlp",
+   "promedio_simple"
+  ],
+  "referencia": "lightgbm",
+  "por_contaminante": true,
+  "lectura_de_la_configuracion": "Por contaminante y con los hilos de la corrida; la producción 2000-2026 se estima como el tiempo de un día por los 9.862 días del calendario 2000-2026."
+ },
+ "medicion": {
+  "hilos_medidos": 8,
+  "hilos_de_la_corrida": 12,
+  "dia_de_superficies": {
+   "celdas": 838430,
+   "horas": 24,
+   "filas": 20122320,
+   "bloques": "24 bloques horarios de 838430 filas, como la producción v1"
+  },
+  "entrenamiento": {
+   "filas": 750000,
+   "origen": "panel completo (todas las estaciones y años)",
+   "semilla": [
+    42
+   ],
+   "epocas_mlp": 2,
+   "evaluacion": "ninguna: sin conjuntos de validación, sin OOB y la MLP sin parada temprana"
+  },
+  "repeticiones": 3,
+  "estadistico": "mediana de las repeticiones del día completo (pared)",
+  "matriz": {
+   "fuentes": {
+    "grilla": "estáticas de la grilla v1 (celdas.parquet, estaticas.parquet)",
+    "grilla_anual": "estaticas_lulc.parquet del año del día (LULC y pob_dens)",
+    "calendario": "calendario exacto del día (fórmulas de la producción v1, UTC−4)",
+    "vecindario": "régimen de producción: núcleo gaussiano de 150 km sobre las observaciones del panel en esa hora, con la estación de la celda dentro; dist_est_km a la estación más cercana de la red del panel",
+    "estacion_mas_cercana": "valor del panel en esa hora de la estación más cercana que midió"
+   },
+   "fecha_principal": {
+    "pm25": "2011-01-01",
+    "no2": "2011-01-01"
+   },
+   "regimen_principal": {
+    "pm25": "2003-2018",
+    "no2": "2003-2018"
+   }
+  },
+  "periodo_produccion": {
+   "pm25": {
+    "desde": "2000-01-01",
+    "hasta": "2026-09-13",
+    "dias": 9753,
+    "fuente": "fecha_local mínima y máxima del panel v1 (el período de la producción v1)"
+   },
+   "no2": {
+    "desde": "2000-01-01",
+    "hasta": "2026-09-13",
+    "dias": 9753,
+    "fuente": "fecha_local mínima y máxima del panel v1 (el período de la producción v1)"
+   }
+  },
+  "calendario_completo": {
+   "anios": [
+    2000,
+    2026
+   ],
+   "dias": 9862,
+   "fuente": "config_v2.json → decision.factibilidad.lectura"
+  },
+  "dias_de_maquina": "segundos por día × días ÷ 86.400 (pared de un proceso con los hilos medidos)",
+  "sensibilidades": {
+   "calendario_completo": "los 9862 días del calendario 2000-2026 en vez de los del período con datos",
+   "cota_12_hilos": "× hilos medidos / hilos de la corrida (escalamiento ideal: con la misma carga de la máquina, ninguna corrida con más hilos puede ser más rápida que eso)",
+   "amdahl_12_hilos": "t(p) = a + b/p ajustada a los hilos medidos y a HILOS_AMDAHL en el bloque principal, acotada entre el escalamiento ideal y no escalar (estimación)",
+   "mezcla_de_regimenes": "cada régimen de predictores con sus días y el cociente de su bloque frente al del régimen principal",
+   "filas_del_panel": "el cociente de un bloque de filas reales del panel frente al bloque principal",
+   "menos_contencion": "la repetición del día completo medida con menos carga ajena (menor fracción de la máquina usada por otros procesos), como el piloto cuando una fase se midió más de una vez; nunca más que lo medido",
+   "cota_cpu_12_hilos": "la CPU de esa repetición repartida sin pérdida entre los hilos de la corrida (nunca más que lo medido): lo más rápido que correría con la máquina libre si la CPU no cambiara con la contención; la espera activa de OpenMP y los núcleos de eficiencia la inflan, así que es optimista pero no una cota estricta"
+  },
+  "no_incluido": [
+   "armar la matriz de predictores desde los productos (común a todos los motores)",
+   "vecindario, retransformación y escritura NetCDF (comunes)",
+   "el ajuste (una vez por contaminante)"
+  ]
+ },
+ "contaminantes": {
+  "pm25": {
+   "segundos_por_dia": {
+    "lightgbm": 122.816,
+    "xgboost": 29.982,
+    "random_forest": 31.257,
+    "mlp": 15.393,
+    "promedio_simple": 181.542
+   },
+   "detalle_por_motor": {
+    "lightgbm": {
+     "segundos": 122.8159,
+     "repeticiones_s": [
+      131.582,
+      95.6,
+      122.816
+     ],
+     "fraccion_maquina_otros_por_repeticion": [
+      0.6073,
+      0.3414,
+      0.5903
+     ],
+     "menos_contencion": {
+      "repeticion": 1,
+      "segundos": 95.6005,
+      "cpu_s": 702.5742,
+      "fraccion_maquina_otros": 0.3414
+     },
+     "cpu_s": 755.5989,
+     "paralelismo": 6.152,
+     "bloque_s": {
+      "min": 3.656,
+      "mediana": 5.1939,
+      "max": 5.8471
+     },
+     "fraccion_maquina_otros_max": 0.6073,
+     "rss_pico_mb": 17075.1
+    },
+    "xgboost": {
+     "segundos": 29.9816,
+     "repeticiones_s": [
+      29.982,
+      30.459,
+      28.295
+     ],
+     "fraccion_maquina_otros_por_repeticion": [
+      0.5934,
+      0.6026,
+      0.5699
+     ],
+     "menos_contencion": {
+      "repeticion": 2,
+      "segundos": 28.2946,
+      "cpu_s": 176.9571,
+      "fraccion_maquina_otros": 0.5699
+     },
+     "cpu_s": 181.03,
+     "paralelismo": 6.038,
+     "bloque_s": {
+      "min": 1.14,
+      "mediana": 1.245,
+      "max": 1.3202
+     },
+     "fraccion_maquina_otros_max": 0.6026,
+     "rss_pico_mb": 17075.1
+    },
+    "random_forest": {
+     "segundos": 31.2574,
+     "repeticiones_s": [
+      31.257,
+      40.074,
+      14.848
+     ],
+     "fraccion_maquina_otros_por_repeticion": [
+      0.6329,
+      0.6881,
+      0.1965
+     ],
+     "menos_contencion": {
+      "repeticion": 2,
+      "segundos": 14.8475,
+      "cpu_s": 104.4372,
+      "fraccion_maquina_otros": 0.1965
+     },
+     "cpu_s": 170.1754,
+     "paralelismo": 5.444,
+     "bloque_s": {
+      "min": 0.6106,
+      "mediana": 1.2576,
+      "max": 2.1941
+     },
+     "fraccion_maquina_otros_max": 0.6881,
+     "rss_pico_mb": 17075.6
+    },
+    "mlp": {
+     "segundos": 15.3927,
+     "repeticiones_s": [
+      15.901,
+      15.393,
+      12.435
+     ],
+     "fraccion_maquina_otros_por_repeticion": [
+      0.6653,
+      0.6634,
+      0.2027
+     ],
+     "menos_contencion": {
+      "repeticion": 2,
+      "segundos": 12.4351,
+      "cpu_s": 19.6134,
+      "fraccion_maquina_otros": 0.2027
+     },
+     "cpu_s": 23.992,
+     "paralelismo": 1.559,
+     "bloque_s": {
+      "min": 0.5071,
+      "mediana": 0.6257,
+      "max": 0.8399
+     },
+     "fraccion_maquina_otros_max": 0.6653,
+     "rss_pico_mb": 17075.1
+    },
+    "promedio_simple": {
+     "segundos": 181.5419,
+     "repeticiones_s": [
+      208.742,
+      181.542,
+      178.412
+     ],
+     "promediar_s": 0.019,
+     "lectura": "suma por repetición de los cuatro motores más el promedio en log de sus salidas"
+    }
+   },
+   "cocientes": {
+    "lightgbm": {
+     "regimenes": {
+      "2000-2002": 0.9129,
+      "2003-2018": 1.0,
+      "2019-2024": 1.0313,
+      "2025": 1.098,
+      "2026": 1.0423
+     },
+     "filas_panel": 1.6828,
+     "hilos_4_sobre_8": 1.778,
+     "amdahl_12_sobre_8": {
+      "crudo": 0.7407,
+      "acotado": 0.7407
+     },
+     "segundos_por_dia_menos_contencion": 95.6,
+     "segundos_por_dia_cota_cpu": 58.548,
+     "bloque_principal_s": 5.1896
+    },
+    "xgboost": {
+     "regimenes": {
+      "2000-2002": 0.9948,
+      "2003-2018": 1.0,
+      "2019-2024": 0.9853,
+      "2025": 1.0879,
+      "2026": 1.0514
+     },
+     "filas_panel": 1.8634,
+     "hilos_4_sobre_8": 1.6607,
+     "amdahl_12_sobre_8": {
+      "crudo": 0.7798,
+      "acotado": 0.7798
+     },
+     "segundos_por_dia_menos_contencion": 28.295,
+     "segundos_por_dia_cota_cpu": 14.746,
+     "bloque_principal_s": 1.2191
+    },
+    "random_forest": {
+     "regimenes": {
+      "2000-2002": 1.0304,
+      "2003-2018": 1.0,
+      "2019-2024": 0.9643,
+      "2025": 1.1026,
+      "2026": 1.0475
+     },
+     "filas_panel": 3.1585,
+     "hilos_4_sobre_8": 1.1619,
+     "amdahl_12_sobre_8": {
+      "crudo": 0.946,
+      "acotado": 0.946
+     },
+     "segundos_por_dia_menos_contencion": 14.848,
+     "segundos_por_dia_cota_cpu": 8.703,
+     "bloque_principal_s": 1.5801
+    },
+    "mlp": {
+     "regimenes": {
+      "2000-2002": 1.0242,
+      "2003-2018": 1.0,
+      "2019-2024": 0.8047,
+      "2025": 0.8873,
+      "2026": 0.8636
+     },
+     "filas_panel": 0.8758,
+     "hilos_4_sobre_8": 0.903,
+     "amdahl_12_sobre_8": {
+      "crudo": 1.0323,
+      "acotado": 1.0
+     },
+     "segundos_por_dia_menos_contencion": 12.435,
+     "segundos_por_dia_cota_cpu": 1.634,
+     "bloque_principal_s": 0.829
+    }
+   },
+   "produccion": {
+    "lightgbm": {
+     "segundos_por_dia": 122.816,
+     "dias_de_maquina": 13.864,
+     "excede_umbral": true,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 14.019,
+       "excede": true
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 9.242,
+       "excede": true
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 10.268,
+       "excede": true
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 13.892,
+       "excede": true
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 23.33,
+       "excede": true
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 10.792,
+       "excede": true
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 6.609,
+       "excede": false
+      }
+     },
+     "marca_robusta": false,
+     "la_marca_cambia_con": [
+      "cota_cpu_12_hilos"
+     ]
+    },
+    "xgboost": {
+     "segundos_por_dia": 29.982,
+     "dias_de_maquina": 3.384,
+     "excede_umbral": false,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 3.422,
+       "excede": false
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 2.256,
+       "excede": false
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 2.639,
+       "excede": false
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 3.387,
+       "excede": false
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 6.307,
+       "excede": false
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 3.194,
+       "excede": false
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 1.665,
+       "excede": false
+      }
+     },
+     "marca_robusta": true,
+     "la_marca_cambia_con": []
+    },
+    "random_forest": {
+     "segundos_por_dia": 31.257,
+     "dias_de_maquina": 3.528,
+     "excede_umbral": false,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 3.568,
+       "excede": false
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 2.352,
+       "excede": false
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 3.338,
+       "excede": false
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 3.53,
+       "excede": false
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 11.145,
+       "excede": true
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 1.676,
+       "excede": false
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 0.982,
+       "excede": false
+      }
+     },
+     "marca_robusta": false,
+     "la_marca_cambia_con": [
+      "filas_del_panel"
+     ]
+    },
+    "mlp": {
+     "segundos_por_dia": 15.393,
+     "dias_de_maquina": 1.738,
+     "excede_umbral": false,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 1.757,
+       "excede": false
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 1.158,
+       "excede": false
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 1.738,
+       "excede": false
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 1.652,
+       "excede": false
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 1.522,
+       "excede": false
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 1.404,
+       "excede": false
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 0.184,
+       "excede": false
+      }
+     },
+     "marca_robusta": true,
+     "la_marca_cambia_con": []
+    },
+    "promedio_simple": {
+     "segundos_por_dia": 181.542,
+     "dias_de_maquina": 20.493,
+     "excede_umbral": true,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 22.768,
+       "excede": true
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 15.012,
+       "excede": true
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 17.985,
+       "excede": true
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 22.463,
+       "excede": true
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 42.305,
+       "excede": true
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 17.067,
+       "excede": true
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 9.443,
+       "excede": true
+      }
+     },
+     "marca_robusta": true,
+     "la_marca_cambia_con": []
+    }
+   },
+   "candidatos": {
+    "xgboost": {
+     "fuera_de_la_decision": false,
+     "estado": "dentro (robusto)",
+     "registro": "xgboost: 3.38 días de máquina para 9753 días (30.0 s por día con 8 hilos) ≤ 7: sigue en la decisión"
+    },
+    "random_forest": {
+     "fuera_de_la_decision": false,
+     "estado": "dentro con lo medido; no robusto: cambia con filas_del_panel",
+     "registro": "random_forest: 3.53 días de máquina para 9753 días (31.3 s por día con 8 hilos) ≤ 7: sigue en la decisión"
+    },
+    "mlp": {
+     "fuera_de_la_decision": false,
+     "estado": "dentro (robusto)",
+     "registro": "mlp: 1.74 días de máquina para 9753 días (15.4 s por día con 8 hilos) ≤ 7: sigue en la decisión"
+    },
+    "promedio_simple": {
+     "fuera_de_la_decision": true,
+     "estado": "fuera (robusto)",
+     "registro": "promedio_simple: 20.49 días de máquina para 9753 días (181.5 s por día con 8 hilos) > 7: queda fuera de la decisión"
+    }
+   },
+   "referencia_lightgbm": {
+    "excede_umbral": true,
+    "dias_de_maquina": 13.864,
+    "nota": "LightGBM es el motor por omisión, no un candidato: la regla no lo excluye. Se informa porque el promedio simple lo incluye."
+   },
+   "orden_por_costo": [
+    "mlp",
+    "xgboost",
+    "random_forest",
+    "promedio_simple"
+   ],
+   "contencion": {
+    "fraccion_maquina_otros_max": 0.6881,
+    "umbral_contencion_fuerte": 0.5
+   },
+   "dias_produccion": 9753,
+   "dias_calendario_completo": 9862,
+   "dias_por_regimen": {
+    "2000-2002": 1096,
+    "2003-2018": 5844,
+    "2019-2024": 2192,
+    "2025": 365,
+    "2026": 256
+   },
+   "matriz": {
+    "fecha_principal": "2011-01-01",
+    "regimen_principal": "2003-2018",
+    "fechas_centrales": {
+     "2000-2002": "2001-07-02",
+     "2003-2018": "2011-01-01",
+     "2019-2024": "2022-01-01",
+     "2025": "2025-07-02",
+     "2026": "2026-05-09"
+    },
+    "estaciones_red": 107,
+    "estaciones_que_midieron_por_hora": {
+     "min": 17,
+     "max": 17
+    },
+    "origen_de_columnas": {
+     "grilla": [
+      "lat",
+      "lon",
+      "macrozona_cod",
+      "elev_m",
+      "pendiente_deg",
+      "dist_costa_km",
+      "vias_km_km2",
+      "vias_princ_km_km2"
+     ],
+     "grilla_anual": [
+      "lulc_urbano",
+      "lulc_cultivo",
+      "lulc_bosque",
+      "lulc_matorral_pastizal",
+      "lulc_desnudo",
+      "lulc_agua",
+      "lulc_nieve_hielo",
+      "pob_dens"
+     ],
+     "calendario": [
+      "hora_local",
+      "hora_sin",
+      "hora_cos",
+      "doy_sin",
+      "doy_cos",
+      "dow",
+      "mes",
+      "anio"
+     ],
+     "vecindario": [
+      "obs_vec",
+      "peso_vec",
+      "dist_est_km"
+     ],
+     "estacion_mas_cercana": [
+      "el_t2m",
+      "el_d2m",
+      "el_rh",
+      "el_sp",
+      "el_u10",
+      "el_v10",
+      "el_wind",
+      "el_wdir_sin",
+      "el_wdir_cos",
+      "el_tp_1h_mm",
+      "blh",
+      "inv_blh",
+      "m2_t2m",
+      "m2_rh2m",
+      "m2_u10m",
+      "m2_v10m",
+      "m2_pblh",
+      "m2_aod",
+      "m2_pm25",
+      "m2_ps",
+      "m2_aod_pblh",
+      "cams_no2",
+      "cams_pm25",
+      "cams_o3",
+      "cams_co",
+      "gcf_no2",
+      "gcf_pm25",
+      "gcf_o3",
+      "gcf_co",
+      "gcf_pm25_blh",
+      "aod_terra",
+      "aod_aqua",
+      "aod_dia",
+      "aod_n",
+      "aod_3d",
+      "aod_7d",
+      "no2_trop",
+      "no2_trop_prec",
+      "no2_trop_hora",
+      "no2_trop_7d",
+      "no2_trop_15d",
+      "acag_pm25",
+      "acag_clim"
+     ]
+    },
+    "fraccion_nan_por_origen": {
+     "dia_principal_12h": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.1352,
+      "estacion_mas_cercana": 0.2615
+     },
+     "bloque_2000-2002": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.2606,
+      "estacion_mas_cercana": 0.4419
+     },
+     "bloque_2019-2024": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.0002,
+      "estacion_mas_cercana": 0.1004
+     },
+     "bloque_2025": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.0493,
+      "estacion_mas_cercana": 0.3183
+     },
+     "bloque_2026": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.0002,
+      "estacion_mas_cercana": 0.3927
+     },
+     "bloque_filas_panel": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.0045,
+      "estacion_mas_cercana": 0.202
+     }
+    }
+   },
+   "ajuste_s": {
+    "lightgbm": 65.35,
+    "xgboost": 51.545,
+    "random_forest": 132.881,
+    "mlp": 11.922
+   },
+   "maquina": {
+    "carga_media_inicio": [
+     12.34,
+     11.45,
+     9.66
+    ],
+    "carga_media_fin": [
+     27.45,
+     23.25,
+     18.95
+    ],
+    "procesos_mas_activos_inicio": [
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.3
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.1
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.0
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.0
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.0
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.0
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 99.9
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 99.8
+     }
+    ],
+    "memoria_total_gb": 128.0,
+    "bibliotecas_de_hilos": [
+     {
+      "user_api": "blas",
+      "internal_api": "openblas",
+      "num_threads": 8,
+      "version": "0.3.34",
+      "threading_layer": "openmp"
+     },
+     {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 8,
+      "version": null,
+      "threading_layer": null
+     }
+    ]
+   }
+  },
+  "no2": {
+   "segundos_por_dia": {
+    "lightgbm": 125.048,
+    "xgboost": 28.788,
+    "random_forest": 36.099,
+    "mlp": 15.714,
+    "promedio_simple": 206.124
+   },
+   "detalle_por_motor": {
+    "lightgbm": {
+     "segundos": 125.0483,
+     "repeticiones_s": [
+      124.923,
+      125.048,
+      131.201
+     ],
+     "fraccion_maquina_otros_por_repeticion": [
+      0.5682,
+      0.5682,
+      0.5957
+     ],
+     "menos_contencion": {
+      "repeticion": 0,
+      "segundos": 124.9229,
+      "cpu_s": 843.4834,
+      "fraccion_maquina_otros": 0.5682
+     },
+     "cpu_s": 842.8105,
+     "paralelismo": 6.74,
+     "bloque_s": {
+      "min": 5.044,
+      "mediana": 5.24,
+      "max": 5.6526
+     },
+     "fraccion_maquina_otros_max": 0.5957,
+     "rss_pico_mb": 17164.1
+    },
+    "xgboost": {
+     "segundos": 28.7876,
+     "repeticiones_s": [
+      28.788,
+      28.65,
+      30.02
+     ],
+     "fraccion_maquina_otros_por_repeticion": [
+      0.571,
+      0.5653,
+      0.5906
+     ],
+     "menos_contencion": {
+      "repeticion": 1,
+      "segundos": 28.6501,
+      "cpu_s": 192.4331,
+      "fraccion_maquina_otros": 0.5653
+     },
+     "cpu_s": 192.0163,
+     "paralelismo": 6.67,
+     "bloque_s": {
+      "min": 1.1385,
+      "mediana": 1.2093,
+      "max": 1.3442
+     },
+     "fraccion_maquina_otros_max": 0.5906,
+     "rss_pico_mb": 17166.9
+    },
+    "random_forest": {
+     "segundos": 36.099,
+     "repeticiones_s": [
+      36.708,
+      35.699,
+      36.099
+     ],
+     "fraccion_maquina_otros_por_repeticion": [
+      0.6572,
+      0.6368,
+      0.6385
+     ],
+     "menos_contencion": {
+      "repeticion": 1,
+      "segundos": 35.699,
+      "cpu_s": 190.0176,
+      "fraccion_maquina_otros": 0.6368
+     },
+     "cpu_s": 189.9601,
+     "paralelismo": 5.262,
+     "bloque_s": {
+      "min": 1.4219,
+      "mediana": 1.5042,
+      "max": 1.6338
+     },
+     "fraccion_maquina_otros_max": 0.6572,
+     "rss_pico_mb": 17167.2
+    },
+    "mlp": {
+     "segundos": 15.7145,
+     "repeticiones_s": [
+      15.686,
+      15.714,
+      15.92
+     ],
+     "fraccion_maquina_otros_por_repeticion": [
+      0.6368,
+      0.6395,
+      0.65
+     ],
+     "menos_contencion": {
+      "repeticion": 0,
+      "segundos": 15.6858,
+      "cpu_s": 27.5613,
+      "fraccion_maquina_otros": 0.6368
+     },
+     "cpu_s": 27.5281,
+     "paralelismo": 1.75,
+     "bloque_s": {
+      "min": 0.6421,
+      "mediana": 0.6543,
+      "max": 0.7345
+     },
+     "fraccion_maquina_otros_max": 0.65,
+     "rss_pico_mb": 17166.8
+    },
+    "promedio_simple": {
+     "segundos": 206.1239,
+     "repeticiones_s": [
+      206.124,
+      205.131,
+      213.259
+     ],
+     "promediar_s": 0.0189,
+     "lectura": "suma por repetición de los cuatro motores más el promedio en log de sus salidas"
+    }
+   },
+   "cocientes": {
+    "lightgbm": {
+     "regimenes": {
+      "2000-2002": 1.0471,
+      "2003-2018": 1.0,
+      "2019-2024": 0.9821,
+      "2025": 1.0768,
+      "2026": 1.025
+     },
+     "filas_panel": 1.5082,
+     "hilos_4_sobre_8": 1.6819,
+     "amdahl_12_sobre_8": {
+      "crudo": 0.7727,
+      "acotado": 0.7727
+     },
+     "segundos_por_dia_menos_contencion": 124.923,
+     "segundos_por_dia_cota_cpu": 70.29,
+     "bloque_principal_s": 5.2042
+    },
+    "xgboost": {
+     "regimenes": {
+      "2000-2002": 0.9994,
+      "2003-2018": 1.0,
+      "2019-2024": 0.9072,
+      "2025": 1.0127,
+      "2026": 0.9878
+     },
+     "filas_panel": 1.5604,
+     "hilos_4_sobre_8": 1.5545,
+     "amdahl_12_sobre_8": {
+      "crudo": 0.8152,
+      "acotado": 0.8152
+     },
+     "segundos_por_dia_menos_contencion": 28.65,
+     "segundos_por_dia_cota_cpu": 16.036,
+     "bloque_principal_s": 1.2423
+    },
+    "random_forest": {
+     "regimenes": {
+      "2000-2002": 0.9863,
+      "2003-2018": 1.0,
+      "2019-2024": 1.0151,
+      "2025": 0.9842,
+      "2026": 0.9918
+     },
+     "filas_panel": 3.3141,
+     "hilos_4_sobre_8": 1.164,
+     "amdahl_12_sobre_8": {
+      "crudo": 0.9453,
+      "acotado": 0.9453
+     },
+     "segundos_por_dia_menos_contencion": 35.699,
+     "segundos_por_dia_cota_cpu": 15.835,
+     "bloque_principal_s": 1.4939
+    },
+    "mlp": {
+     "regimenes": {
+      "2000-2002": 1.0555,
+      "2003-2018": 1.0,
+      "2019-2024": 0.9173,
+      "2025": 1.0018,
+      "2026": 1.0182
+     },
+     "filas_panel": 0.9625,
+     "hilos_4_sobre_8": 1.0475,
+     "amdahl_12_sobre_8": {
+      "crudo": 0.9842,
+      "acotado": 0.9842
+     },
+     "segundos_por_dia_menos_contencion": 15.686,
+     "segundos_por_dia_cota_cpu": 2.297,
+     "bloque_principal_s": 0.6527
+    }
+   },
+   "produccion": {
+    "lightgbm": {
+     "segundos_por_dia": 125.048,
+     "dias_de_maquina": 14.116,
+     "excede_umbral": true,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 14.273,
+       "excede": true
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 9.41,
+       "excede": true
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 10.907,
+       "excede": true
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 14.184,
+       "excede": true
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 21.289,
+       "excede": true
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 14.102,
+       "excede": true
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 7.935,
+       "excede": true
+      }
+     },
+     "marca_robusta": true,
+     "la_marca_cambia_con": []
+    },
+    "xgboost": {
+     "segundos_por_dia": 28.788,
+     "dias_de_maquina": 3.25,
+     "excede_umbral": false,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 3.286,
+       "excede": false
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 2.166,
+       "excede": false
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 2.649,
+       "excede": false
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 3.182,
+       "excede": false
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 5.071,
+       "excede": false
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 3.234,
+       "excede": false
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 1.81,
+       "excede": false
+      }
+     },
+     "marca_robusta": true,
+     "la_marca_cambia_con": []
+    },
+    "random_forest": {
+     "segundos_por_dia": 36.099,
+     "dias_de_maquina": 4.075,
+     "excede_umbral": false,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 4.12,
+       "excede": false
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 2.717,
+       "excede": false
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 3.852,
+       "excede": false
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 4.079,
+       "excede": false
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 13.505,
+       "excede": true
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 4.03,
+       "excede": false
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 1.787,
+       "excede": false
+      }
+     },
+     "marca_robusta": false,
+     "la_marca_cambia_con": [
+      "filas_del_panel"
+     ]
+    },
+    "mlp": {
+     "segundos_por_dia": 15.714,
+     "dias_de_maquina": 1.774,
+     "excede_umbral": false,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 1.794,
+       "excede": false
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 1.183,
+       "excede": false
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 1.746,
+       "excede": false
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 1.753,
+       "excede": false
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 1.707,
+       "excede": false
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 1.771,
+       "excede": false
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 0.259,
+       "excede": false
+      }
+     },
+     "marca_robusta": true,
+     "la_marca_cambia_con": []
+    },
+    "promedio_simple": {
+     "segundos_por_dia": 206.124,
+     "dias_de_maquina": 23.268,
+     "excede_umbral": true,
+     "sensibilidades": {
+      "calendario_completo": {
+       "dias_de_maquina": 23.476,
+       "excede": true
+      },
+      "cota_12_hilos": {
+       "dias_de_maquina": 15.478,
+       "excede": true
+      },
+      "amdahl_12_hilos": {
+       "dias_de_maquina": 19.156,
+       "excede": true
+      },
+      "mezcla_de_regimenes": {
+       "dias_de_maquina": 23.2,
+       "excede": true
+      },
+      "filas_del_panel": {
+       "dias_de_maquina": 41.574,
+       "excede": true
+      },
+      "menos_contencion": {
+       "dias_de_maquina": 23.138,
+       "excede": true
+      },
+      "cota_cpu_12_hilos": {
+       "dias_de_maquina": 11.794,
+       "excede": true
+      }
+     },
+     "marca_robusta": true,
+     "la_marca_cambia_con": []
+    }
+   },
+   "candidatos": {
+    "xgboost": {
+     "fuera_de_la_decision": false,
+     "estado": "dentro (robusto)",
+     "registro": "xgboost: 3.25 días de máquina para 9753 días (28.8 s por día con 8 hilos) ≤ 7: sigue en la decisión"
+    },
+    "random_forest": {
+     "fuera_de_la_decision": false,
+     "estado": "dentro con lo medido; no robusto: cambia con filas_del_panel",
+     "registro": "random_forest: 4.08 días de máquina para 9753 días (36.1 s por día con 8 hilos) ≤ 7: sigue en la decisión"
+    },
+    "mlp": {
+     "fuera_de_la_decision": false,
+     "estado": "dentro (robusto)",
+     "registro": "mlp: 1.77 días de máquina para 9753 días (15.7 s por día con 8 hilos) ≤ 7: sigue en la decisión"
+    },
+    "promedio_simple": {
+     "fuera_de_la_decision": true,
+     "estado": "fuera (robusto)",
+     "registro": "promedio_simple: 23.27 días de máquina para 9753 días (206.1 s por día con 8 hilos) > 7: queda fuera de la decisión"
+    }
+   },
+   "referencia_lightgbm": {
+    "excede_umbral": true,
+    "dias_de_maquina": 14.116,
+    "nota": "LightGBM es el motor por omisión, no un candidato: la regla no lo excluye. Se informa porque el promedio simple lo incluye."
+   },
+   "orden_por_costo": [
+    "mlp",
+    "xgboost",
+    "random_forest",
+    "promedio_simple"
+   ],
+   "contencion": {
+    "fraccion_maquina_otros_max": 0.6572,
+    "umbral_contencion_fuerte": 0.5
+   },
+   "dias_produccion": 9753,
+   "dias_calendario_completo": 9862,
+   "dias_por_regimen": {
+    "2000-2002": 1096,
+    "2003-2018": 5844,
+    "2019-2024": 2192,
+    "2025": 365,
+    "2026": 256
+   },
+   "matriz": {
+    "fecha_principal": "2011-01-01",
+    "regimen_principal": "2003-2018",
+    "fechas_centrales": {
+     "2000-2002": "2001-07-02",
+     "2003-2018": "2011-01-01",
+     "2019-2024": "2022-01-01",
+     "2025": "2025-07-02",
+     "2026": "2026-05-09"
+    },
+    "estaciones_red": 57,
+    "estaciones_que_midieron_por_hora": {
+     "min": 19,
+     "max": 20
+    },
+    "origen_de_columnas": {
+     "grilla": [
+      "lat",
+      "lon",
+      "macrozona_cod",
+      "elev_m",
+      "pendiente_deg",
+      "vias_km_km2",
+      "vias_princ_km_km2"
+     ],
+     "grilla_anual": [
+      "lulc_urbano",
+      "lulc_cultivo",
+      "lulc_bosque",
+      "lulc_matorral_pastizal",
+      "lulc_desnudo",
+      "lulc_agua",
+      "lulc_nieve_hielo",
+      "pob_dens"
+     ],
+     "calendario": [
+      "hora_local",
+      "hora_sin",
+      "hora_cos",
+      "doy_sin",
+      "doy_cos",
+      "dow",
+      "mes",
+      "anio"
+     ],
+     "vecindario": [
+      "obs_vec",
+      "peso_vec",
+      "dist_est_km"
+     ],
+     "estacion_mas_cercana": [
+      "el_t2m",
+      "el_d2m",
+      "el_rh",
+      "el_sp",
+      "el_u10",
+      "el_v10",
+      "el_wind",
+      "el_wdir_sin",
+      "el_wdir_cos",
+      "el_tp_1h_mm",
+      "blh",
+      "inv_blh",
+      "m2_t2m",
+      "m2_rh2m",
+      "m2_u10m",
+      "m2_v10m",
+      "m2_pblh",
+      "m2_aod",
+      "m2_pm25",
+      "m2_ps",
+      "m2_aod_pblh",
+      "cams_no2",
+      "cams_pm25",
+      "cams_o3",
+      "cams_co",
+      "gcf_no2",
+      "gcf_pm25",
+      "gcf_o3",
+      "gcf_co",
+      "gcf_pm25_blh",
+      "aod_terra",
+      "aod_aqua",
+      "aod_dia",
+      "aod_n",
+      "aod_3d",
+      "aod_7d",
+      "no2_trop",
+      "no2_trop_prec",
+      "no2_trop_hora",
+      "no2_trop_7d",
+      "no2_trop_15d",
+      "acag_pm25",
+      "acag_clim"
+     ]
+    },
+    "fraccion_nan_por_origen": {
+     "dia_principal_12h": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.2287,
+      "estacion_mas_cercana": 0.2892
+     },
+     "bloque_2000-2002": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.2618,
+      "estacion_mas_cercana": 0.4419
+     },
+     "bloque_2019-2024": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.1365,
+      "estacion_mas_cercana": 0.0888
+     },
+     "bloque_2025": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.1365,
+      "estacion_mas_cercana": 0.3025
+     },
+     "bloque_2026": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.1832,
+      "estacion_mas_cercana": 0.3466
+     },
+     "bloque_filas_panel": {
+      "grilla": 0.0,
+      "grilla_anual": 0.0,
+      "calendario": 0.0,
+      "vecindario": 0.005,
+      "estacion_mas_cercana": 0.215
+     }
+    }
+   },
+   "ajuste_s": {
+    "lightgbm": 83.56,
+    "xgboost": 49.852,
+    "random_forest": 121.465,
+    "mlp": 11.402
+   },
+   "maquina": {
+    "carga_media_inicio": [
+     26.13,
+     23.05,
+     18.91
+    ],
+    "carga_media_fin": [
+     26.94,
+     26.13,
+     23.88
+    ],
+    "procesos_mas_activos_inicio": [
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 114.1
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.4
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.4
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.3
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.1
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.1
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.0
+     },
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 100.0
+     }
+    ],
+    "memoria_total_gb": 128.0,
+    "bibliotecas_de_hilos": [
+     {
+      "user_api": "blas",
+      "internal_api": "openblas",
+      "num_threads": 8,
+      "version": "0.3.34",
+      "threading_layer": "openmp"
+     },
+     {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 8,
+      "version": null,
+      "threading_layer": null
+     }
+    ]
+   }
+  }
+ },
+ "resumen": {
+  "pm25": {
+   "fuera": [
+    "promedio_simple"
+   ],
+   "dentro": [
+    "xgboost",
+    "random_forest",
+    "mlp"
+   ],
+   "marca_no_robusta": [
+    "random_forest"
+   ],
+   "lightgbm_referencia_excede": true
+  },
+  "no2": {
+   "fuera": [
+    "promedio_simple"
+   ],
+   "dentro": [
+    "xgboost",
+    "random_forest",
+    "mlp"
+   ],
+   "marca_no_robusta": [
+    "random_forest"
+   ],
+   "lightgbm_referencia_excede": true
+  }
+ },
+ "advertencias": [
+  "pm25: otros procesos usaron ≥ 50% de la máquina en alguna repetición del día completo; los tiempos de pared pueden estar sobreestimados",
+  "pm25: la marca de random_forest no es robusta; antes de aplicarla conviene remedir con los hilos de la corrida y la máquina libre",
+  "pm25: LightGBM (referencia) también pasa de 7 días de máquina con su predictor nativo; la producción v1 lo predijo compilado con lleaves (produccion.py), que la v2 no tiene. El promedio simple lo arrastra.",
+  "no2: otros procesos usaron ≥ 50% de la máquina en alguna repetición del día completo; los tiempos de pared pueden estar sobreestimados",
+  "no2: la marca de random_forest no es robusta; antes de aplicarla conviene remedir con los hilos de la corrida y la máquina libre",
+  "no2: LightGBM (referencia) también pasa de 7 días de máquina con su predictor nativo; la producción v1 lo predijo compilado con lleaves (produccion.py), que la v2 no tiene. El promedio simple lo arrastra."
+ ],
+ "trazas": {
+  "pm25": {
+   "creado_utc": "2026-10-13T06:45:28Z",
+   "git": {
+    "commit": "aa01f4d8e924f986e1a5e60bdef8f9dd39ee2e36",
+    "v2_sin_commit": [
+     "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+     "scripts_modelo_1km/v2/_rutas_v2.py",
+     "scripts_modelo_1km/v2/bootstrap_v2.py",
+     "scripts_modelo_1km/v2/config_v2.json",
+     "scripts_modelo_1km/v2/correr_v2.py",
+     "scripts_modelo_1km/v2/decision_v2.py",
+     "scripts_modelo_1km/v2/factibilidad_v2.py",
+     "scripts_modelo_1km/v2/metricas_v2.py",
+     "scripts_modelo_1km/v2/motores_v2.py",
+     "scripts_modelo_1km/v2/perdidas_v2.py",
+     "scripts_modelo_1km/v2/piloto_v2.py",
+     "scripts_modelo_1km/v2/pliegues_v2.py",
+     "scripts_modelo_1km/v2/retransformacion_v2.py",
+     "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
+     "scripts_modelo_1km/v2/tests/test_bootstrap_v2.py",
+     "scripts_modelo_1km/v2/tests/test_config_v2.py",
+     "scripts_modelo_1km/v2/tests/test_correr_v2.py",
+     "scripts_modelo_1km/v2/tests/test_decision_v2.py",
+     "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py",
+     "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+     "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+     "scripts_modelo_1km/v2/tests/test_motores_v2.py",
+     "scripts_modelo_1km/v2/tests/test_perdidas_v2.py",
+     "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
+     "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
+     "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py",
+     "scripts_modelo_1km/v2/tests/test_rutas_v2.py"
+    ],
+    "arbol_con_cambios_rastreados": true
+   },
+   "codigo": {
+    "hash": "821fa4a3b343e8c671bdbe58aecf39a39a827e35bd7720f0509f6cc012185c81",
+    "archivos": {
+     "scripts_modelo_1km/v2/_rutas_v2.py": "faa070bdf008dde1ab33d482ef865c24375158e6266c0d5a436d60acfa3db595",
+     "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
+     "scripts_modelo_1km/v2/bootstrap_v2.py": "0b2306f2c25ba4fc7b71cf2e70225c1ba1e072e5576a2ef6e15f50dd7f42cfb5",
+     "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
+     "scripts_modelo_1km/v2/correr_v2.py": "b44892b3011cf3fd20abdf478476fc41c52764b80c527857589087b620f43e2b",
+     "scripts_modelo_1km/v2/decision_v2.py": "3a5b634e7dd858297f60ab3776c925ced65a5efa5cc6eafa862b5ed0edcc5330",
+     "scripts_modelo_1km/v2/factibilidad_v2.py": "6a17bd919783ec6b0a01f0f778aad935fc81920b07fbc156acc3a7d517bb572c",
+     "scripts_modelo_1km/v2/metricas_v2.py": "93cbb474da22a64d22138ee72502989b88374fa980e7e6d6008e1075c16b1591",
+     "scripts_modelo_1km/v2/motores_v2.py": "ede4fa7a24bf011af623e94dd45d92834a79bc800a2130124985cf201baeae4e",
+     "scripts_modelo_1km/v2/perdidas_v2.py": "c8caaf6b426447bcb0e86197a0935794746cb92503eed6531225321538fff471",
+     "scripts_modelo_1km/v2/piloto_v2.py": "96b6436fff8bde2a3f42dc8e242c3a9f2ad68b73ea0f388ada24e2b422710927",
+     "scripts_modelo_1km/v2/pliegues_v2.py": "bafaecd14114ccad1b9485d2f645fe81c925bd1cf9bc832abafce9d8c5c1200d",
+     "scripts_modelo_1km/v2/retransformacion_v2.py": "ff92d87b370fdf8386a17a9c171fa42bf70f6b549d9cd58612da49bb471bd1f9",
+     "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
+     "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181"
+    }
+   },
+   "contrato": {
+    "raiz": "repo",
+    "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+    "sha256": "05218686b3f1808d5379b095789ada4ea69ba02362be8063330a2c2f9f5a5e17",
+    "bytes": 24532
+   },
+   "config": {
+    "raiz": "repo",
+    "ruta": "scripts_modelo_1km/v2/config_v2.json",
+    "sha256": "5e7fbeda8975a96a4a1bfaed6ef4f56468d493ad86bb938f2eed77a0133e5d91",
+    "bytes": 70248
+   },
+   "insumos": {
+    "celdas": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/celdas.parquet",
+     "sha256": "42b4b19613c7de343c856473af64e2c0a6353351f1884c8dba145361292108c3",
+     "bytes": 1424147
+    },
+    "estaticas": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/estaticas.parquet",
+     "sha256": "606701ef942d907b637cfde10bbe6dbb2e157920f6fae2611e82ecd031470049",
+     "bytes": 13275875
+    },
+    "estaticas_lulc": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/estaticas_lulc.parquet",
+     "sha256": "9cb250712379752f33817d42ed72dd9d637f74e61ef8f60f02e37022cf4b9821",
+     "bytes": 71960942
+    },
+    "grilla_metadata": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/metadata.json",
+     "sha256": "83b0b58c35bad3986010c34beb673c70a25c2cd8d561150272f6f531c71b8682",
+     "bytes": 1813
+    },
+    "panel_pm25": {
+     "raiz": "raiz_v1",
+     "ruta": "paneles/panel_pm25.parquet",
+     "sha256": "955ed14469dce75e2c6da6452fbd5749ff3f391345a910758b5550330a9f56cb",
+     "bytes": 778963905
+    }
+   },
+   "bibliotecas": {
+    "python": "3.11.16",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "pyarrow": "25.0.0",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.9.1",
+    "lightgbm": "4.7.0",
+    "xgboost": "3.4.2",
+    "statsmodels": "0.15.0",
+    "pyproj": "3.7.2",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.7.0"
+   },
+   "hilos": {
+    "configurados": 8,
+    "cpu_count": 16,
+    "entorno": {
+     "OMP_NUM_THREADS": "8",
+     "OPENBLAS_NUM_THREADS": "8",
+     "MKL_NUM_THREADS": "8",
+     "VECLIB_MAXIMUM_THREADS": "8",
+     "NUMEXPR_NUM_THREADS": "8"
+    }
+   },
+   "semillas": {
+    "filas": [
+     42
+    ],
+    "bloque_panel": [
+     42,
+     1
+    ],
+    "motores": 42
+   }
+  },
+  "no2": {
+   "creado_utc": "2026-10-13T07:04:20Z",
+   "git": {
+    "commit": "aa01f4d8e924f986e1a5e60bdef8f9dd39ee2e36",
+    "v2_sin_commit": [
+     "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+     "scripts_modelo_1km/v2/_rutas_v2.py",
+     "scripts_modelo_1km/v2/bootstrap_v2.py",
+     "scripts_modelo_1km/v2/config_v2.json",
+     "scripts_modelo_1km/v2/correr_v2.py",
+     "scripts_modelo_1km/v2/decision_v2.py",
+     "scripts_modelo_1km/v2/factibilidad_v2.py",
+     "scripts_modelo_1km/v2/metricas_v2.py",
+     "scripts_modelo_1km/v2/motores_v2.py",
+     "scripts_modelo_1km/v2/perdidas_v2.py",
+     "scripts_modelo_1km/v2/piloto_v2.py",
+     "scripts_modelo_1km/v2/pliegues_v2.py",
+     "scripts_modelo_1km/v2/retransformacion_v2.py",
+     "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
+     "scripts_modelo_1km/v2/tests/test_bootstrap_v2.py",
+     "scripts_modelo_1km/v2/tests/test_config_v2.py",
+     "scripts_modelo_1km/v2/tests/test_correr_v2.py",
+     "scripts_modelo_1km/v2/tests/test_decision_v2.py",
+     "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py",
+     "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+     "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+     "scripts_modelo_1km/v2/tests/test_motores_v2.py",
+     "scripts_modelo_1km/v2/tests/test_perdidas_v2.py",
+     "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
+     "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
+     "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py",
+     "scripts_modelo_1km/v2/tests/test_rutas_v2.py"
+    ],
+    "arbol_con_cambios_rastreados": true
+   },
+   "codigo": {
+    "hash": "59f835d81dc1dcab09a4e9a5c4f19990b66d36435383300aead3f9adcfd50298",
+    "archivos": {
+     "scripts_modelo_1km/v2/_rutas_v2.py": "faa070bdf008dde1ab33d482ef865c24375158e6266c0d5a436d60acfa3db595",
+     "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
+     "scripts_modelo_1km/v2/bootstrap_v2.py": "0b2306f2c25ba4fc7b71cf2e70225c1ba1e072e5576a2ef6e15f50dd7f42cfb5",
+     "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
+     "scripts_modelo_1km/v2/correr_v2.py": "6e85bd32e555b33ce02eb9b43b993d99c39ad4bd02e47357e207cdc1f0ecee5b",
+     "scripts_modelo_1km/v2/decision_v2.py": "3a5b634e7dd858297f60ab3776c925ced65a5efa5cc6eafa862b5ed0edcc5330",
+     "scripts_modelo_1km/v2/factibilidad_v2.py": "6a17bd919783ec6b0a01f0f778aad935fc81920b07fbc156acc3a7d517bb572c",
+     "scripts_modelo_1km/v2/metricas_v2.py": "93cbb474da22a64d22138ee72502989b88374fa980e7e6d6008e1075c16b1591",
+     "scripts_modelo_1km/v2/motores_v2.py": "ede4fa7a24bf011af623e94dd45d92834a79bc800a2130124985cf201baeae4e",
+     "scripts_modelo_1km/v2/perdidas_v2.py": "c8caaf6b426447bcb0e86197a0935794746cb92503eed6531225321538fff471",
+     "scripts_modelo_1km/v2/piloto_v2.py": "96b6436fff8bde2a3f42dc8e242c3a9f2ad68b73ea0f388ada24e2b422710927",
+     "scripts_modelo_1km/v2/pliegues_v2.py": "bafaecd14114ccad1b9485d2f645fe81c925bd1cf9bc832abafce9d8c5c1200d",
+     "scripts_modelo_1km/v2/retransformacion_v2.py": "ff92d87b370fdf8386a17a9c171fa42bf70f6b549d9cd58612da49bb471bd1f9",
+     "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
+     "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181"
+    }
+   },
+   "contrato": {
+    "raiz": "repo",
+    "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+    "sha256": "05218686b3f1808d5379b095789ada4ea69ba02362be8063330a2c2f9f5a5e17",
+    "bytes": 24532
+   },
+   "config": {
+    "raiz": "repo",
+    "ruta": "scripts_modelo_1km/v2/config_v2.json",
+    "sha256": "5e7fbeda8975a96a4a1bfaed6ef4f56468d493ad86bb938f2eed77a0133e5d91",
+    "bytes": 70248
+   },
+   "insumos": {
+    "celdas": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/celdas.parquet",
+     "sha256": "42b4b19613c7de343c856473af64e2c0a6353351f1884c8dba145361292108c3",
+     "bytes": 1424147
+    },
+    "estaticas": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/estaticas.parquet",
+     "sha256": "606701ef942d907b637cfde10bbe6dbb2e157920f6fae2611e82ecd031470049",
+     "bytes": 13275875
+    },
+    "estaticas_lulc": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/estaticas_lulc.parquet",
+     "sha256": "9cb250712379752f33817d42ed72dd9d637f74e61ef8f60f02e37022cf4b9821",
+     "bytes": 71960942
+    },
+    "grilla_metadata": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/metadata.json",
+     "sha256": "83b0b58c35bad3986010c34beb673c70a25c2cd8d561150272f6f531c71b8682",
+     "bytes": 1813
+    },
+    "panel_no2": {
+     "raiz": "raiz_v1",
+     "ruta": "paneles/panel_no2.parquet",
+     "sha256": "513394a296a5bc64ce850e1f7b5b726d86001e738c66db1413ecd889214118a3",
+     "bytes": 425232563
+    }
+   },
+   "bibliotecas": {
+    "python": "3.11.16",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "pyarrow": "25.0.0",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.9.1",
+    "lightgbm": "4.7.0",
+    "xgboost": "3.4.2",
+    "statsmodels": "0.15.0",
+    "pyproj": "3.7.2",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.7.0"
+   },
+   "hilos": {
+    "configurados": 8,
+    "cpu_count": 16,
+    "entorno": {
+     "OMP_NUM_THREADS": "8",
+     "OPENBLAS_NUM_THREADS": "8",
+     "MKL_NUM_THREADS": "8",
+     "VECLIB_MAXIMUM_THREADS": "8",
+     "NUMEXPR_NUM_THREADS": "8"
+    }
+   },
+   "semillas": {
+    "filas": [
+     42
+    ],
+    "bloque_panel": [
+     42,
+     1
+    ],
+    "motores": 42
+   }
+  }
+ },
+ "publicacion": {
+  "creado_utc": "2026-10-13T07:08:58Z",
+  "codigo_v2": "6177823f333c0f235809f735fa3558d52fec9815a04e64cef623b454e387610a",
+  "factibilidad_v2_sha256": "c57ff23ab10cc5288a488f804de30012005bf1769685dbfc6d33692c105f6105",
+  "mediciones": {
+   "raiz": "raiz_v2",
+   "ruta": "factibilidad/mediciones.json",
+   "sha256": "3bb30ab8b598f419332002a2bf26378fa75d65b4847efc0139c49668e7ac5dce"
+  }
+ }
+}

@@ -1,0 +1,1776 @@
+{
+ "schema": "airpollution.modelo-1km-v2.factibilidad-produccion.v2",
+ "descripcion": "Factibilidad de producción de los candidatos v2 con predictores compilados (Complemento de la Enmienda 1, punto 3): tiempo de predecir 3 días reales de superficies de 1 km con cada motor y 12 hilos, extrapolado a 2000-2026 y a los dos contaminantes, y la regla aplicada. Sólo tiempos: sin métricas de desempeño ni descriptivos de predicciones.",
+ "creado_utc": "2026-10-13T10:16:06Z",
+ "regla": {
+  "texto": "un candidato es factible si su producción 2000-2026 de los dos contaminantes cuesta ≤ 5 veces la de LightGBM compilado y ≤ 21 días de máquina con 12 hilos",
+  "fuente": "DISENO_AMBIENTAL_V2.md, Complemento de la Enmienda 1, punto 3; config_v2.json → decision.factibilidad",
+  "factor_maximo_frente_a_lightgbm": 5.0,
+  "umbral_dias_de_maquina": 21.0,
+  "hilos": 12,
+  "periodo": [
+   2000,
+   2026
+  ],
+  "dias_calendario": 9862,
+  "contaminantes": [
+   "pm25",
+   "no2"
+  ],
+  "candidatos": [
+   "xgboost",
+   "random_forest",
+   "mlp",
+   "promedio_simple"
+  ],
+  "referencia": "lightgbm",
+  "promedio_simple": "cuesta la suma de sus miembros (LightGBM, XGBoost, RF y MLP)",
+  "irrevisable": true,
+  "lectura": "Por contaminante, la producción 2000-2026 cuesta la media de los tiempos de los 3 días medidos por los 9.862 días del calendario 2000-2026; se suman los dos contaminantes, y con esas sumas se calculan los días de máquina y el cociente frente a LightGBM compilado. LightGBM es la referencia, no un candidato: la regla no lo excluye.",
+  "reemplaza": {
+   "fuente": "Enmienda 1, punto 11",
+   "medicion": "antes de la corrida, el tiempo de predecir un día completo de superficies con cada candidato (sólo tiempo)",
+   "periodo": [
+    2000,
+    2026
+   ],
+   "umbral_dias_de_maquina": 7,
+   "si_excede": "el candidato queda fuera de la decisión, con registro",
+   "momento": "fijada antes de la corrida",
+   "lectura": "Por contaminante y con los hilos de la corrida; la producción 2000-2026 se estima como el tiempo de un día por los 9.862 días del calendario 2000-2026."
+  }
+ },
+ "medicion": {
+  "fechas": {
+   "valores": {
+    "verano": "2022-01-15",
+    "transicion": "2022-04-15",
+    "invierno": "2022-07-15"
+   },
+   "regla": "día 15 del mes central de cada estación (enero, abril y julio) del año del día central del régimen 2019-2024",
+   "fijadas": "en el código, antes de medir y sin mirar ningún dato ni resultado"
+  },
+  "matrices": {
+   "origen": "producción v1 en sólo lectura y en un subproceso: ContextoPrediccion.dia (produccion.py:359-437) con el bucle de producir_serie.py:82-95; el Modelo de la v1 (produccion.py:262-296) reemplazado en memoria por un capturador de la matriz que produccion.py:409 le entrega; superficies de ceros y matrices en un temporal borrado al terminar",
+   "celdas": 838430,
+   "horas": 24,
+   "filas_por_dia": 20122320,
+   "bloques": "24 bloques horarios de 838430 filas, como la producción v1",
+   "guardia": {
+    "escritura_permitida": [
+     "temporal"
+    ],
+    "procesos": "prohibidos",
+    "bytecode": "desactivado",
+    "raices": 1
+   },
+   "entorno_v1": {
+    "AIR_POLLUTION_MODELO_1KM_ROOT": "raiz_v1",
+    "AIR_POLLUTION_SUPERFICIES_ROOT": "temporal",
+    "grilla": "grilla_1km",
+    "variables_quitadas": [
+     "MODELO_1KM_INTERPOLAR",
+     "MODELO_1KM_RED_ADICIONAL",
+     "MODELO_1KM_QC_RACHA",
+     "MODELO_1KM_ETIQUETA_SINCA",
+     "MODELO_1KM_ETIQUETA",
+     "MODELO_1KM_RETRANSFORMACION",
+     "MODELO_1KM_RETRANSFORMACION_PM25",
+     "MODELO_1KM_RETRANSFORMACION_NO2",
+     "MODELO_1KM_PREDICTOR",
+     "MODELO_1KM_HILOS_PREDICCION",
+     "MODELO_1KM_EXCLUIR"
+    ],
+    "valores_por_omision": "los de la producción publicada (_comun_modelo, _features, produccion)"
+   },
+   "armado": {
+    "subproceso": {
+     "orden": "armar-matrices",
+     "hilos": 8,
+     "segundos_pared": 199.39,
+     "segundos_cpu_subproceso": 186.99
+    },
+    "reutilizadas": true,
+    "nota": "tiempo del subproceso de la v1 que armó las 6 matrices (sólo información)"
+   },
+   "orden_en_memoria": "C contiguo para todos los motores; la v1 las entrega en orden F y pasarlas a orden C es común a todos los motores"
+  },
+  "entrenamiento": {
+   "filas": 750000,
+   "origen": "panel v1 completo (todas las estaciones y años)",
+   "semilla": [
+    42
+   ],
+   "epocas_mlp": 2,
+   "evaluacion": "ninguna: sin conjuntos de validación, sin OOB y la MLP sin parada temprana"
+  },
+  "predictores_compilados": {
+   "lightgbm": "lleaves, compile() por omisión y entrada float64 (produccion.py:226-254)",
+   "xgboost": "treelite → tl2cgen (clang -O3), umbrales y salida float32",
+   "random_forest": "treelite → tl2cgen (clang -O3), float64, default_left = missing_go_to_left de scikit-learn",
+   "mlp": "float32 por lotes de 8192 filas en hilos (BLAS a un hilo por lote)"
+  },
+  "hilos_prediccion": 12,
+  "hilos_ajuste_compilacion_y_matrices": 8,
+  "repeticiones": 3,
+  "estadistico": "por día, la mediana de las repeticiones (pared de los 24 bloques); por contaminante, la media de los 3 días",
+  "dias_de_maquina": "segundos × días del calendario ÷ 86.400, sumando los dos contaminantes",
+  "carga": "piloto_v2.Medidor en cada fase (carga media de 1 minuto al empezar y máxima, fracción de la máquina usada por otros procesos) y espera previa, con tope de 1200 s, a que la carga media de 1 minuto baje de 2",
+  "no_incluido": [
+   "armar la matriz de predictores desde los productos (común a todos los motores; su tiempo con la v1 se registra aparte)",
+   "vecindario, retransformación y escritura NetCDF (comunes)",
+   "el ajuste y la compilación (una vez por contaminante)"
+  ],
+  "versiones": {
+   "python": "3.11.16",
+   "numpy": "2.2.6",
+   "scipy": "1.17.1",
+   "scikit-learn": "1.9.1",
+   "lightgbm": "4.7.0",
+   "xgboost": "3.4.2",
+   "threadpoolctl": "3.7.0",
+   "psutil": "7.2.2",
+   "lleaves": "1.3.0",
+   "llvmlite": "0.43.0",
+   "treelite": "4.7.2",
+   "tl2cgen": "1.0.0",
+   "toolchain": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+   "nota_tl2cgen": "tl2cgen 1.0.0 deserializa el modelo con su propio treelite (4.1.2) y avisa que el modelo viene de una versión más nueva; la equivalencia con el motor se verifica igual"
+  }
+ },
+ "contaminantes": {
+  "pm25": {
+   "segundos_por_dia": {
+    "lightgbm": 4.149,
+    "xgboost": 16.446,
+    "random_forest": 29.846,
+    "mlp": 3.783,
+    "promedio_simple": 54.224
+   },
+   "produccion": {
+    "lightgbm": {
+     "segundos_por_dia": 4.149,
+     "segundos_2000_2026": 40913.8,
+     "dias_de_maquina": 0.4735,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    },
+    "xgboost": {
+     "segundos_por_dia": 16.446,
+     "segundos_2000_2026": 162191.8,
+     "dias_de_maquina": 1.8772,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    },
+    "random_forest": {
+     "segundos_por_dia": 29.846,
+     "segundos_2000_2026": 294340.9,
+     "dias_de_maquina": 3.4067,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    },
+    "mlp": {
+     "segundos_por_dia": 3.783,
+     "segundos_2000_2026": 37307.6,
+     "dias_de_maquina": 0.4318,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    },
+    "promedio_simple": {
+     "segundos_por_dia": 54.224,
+     "segundos_2000_2026": 534754.1,
+     "dias_de_maquina": 6.1893,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    }
+   },
+   "candidatos": {
+    "xgboost": {
+     "fuera_de_la_decision": false,
+     "estado": "factible",
+     "registro": "xgboost: 3.71 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 3.90 veces LightGBM compilado: factible, sigue en la decisión"
+    },
+    "random_forest": {
+     "fuera_de_la_decision": true,
+     "estado": "no factible",
+     "registro": "random_forest: 7.05 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 7.42 veces LightGBM compilado: no factible, queda fuera de la decisión (cuesta 7.42 veces LightGBM compilado (> 5))"
+    },
+    "mlp": {
+     "fuera_de_la_decision": false,
+     "estado": "factible",
+     "registro": "mlp: 0.94 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 0.99 veces LightGBM compilado: factible, sigue en la decisión"
+    },
+    "promedio_simple": {
+     "fuera_de_la_decision": true,
+     "estado": "no factible",
+     "registro": "promedio_simple: 12.65 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 13.31 veces LightGBM compilado: no factible, queda fuera de la decisión (cuesta 13.31 veces LightGBM compilado (> 5))"
+    }
+   },
+   "dias_produccion": 9862,
+   "detalle_por_motor": {
+    "lightgbm": {
+     "segundos_por_dia": 4.148633333333334,
+     "por_fecha_s": {
+      "invierno": 4.3082,
+      "transicion": 4.2554,
+      "verano": 3.8823
+     },
+     "repeticiones_s": {
+      "invierno": [
+       4.308,
+       4.296,
+       4.408
+      ],
+      "transicion": [
+       4.142,
+       4.255,
+       4.45
+      ],
+      "verano": [
+       3.814,
+       3.882,
+       4.05
+      ]
+     },
+     "fraccion_maquina_otros": {
+      "invierno": [
+       0.071,
+       0.0725,
+       0.0924
+      ],
+      "transicion": [
+       0.1219,
+       0.0645,
+       0.1318
+      ],
+      "verano": [
+       0.1357,
+       0.0161,
+       0.0351
+      ]
+     },
+     "carga_1min_max": {
+      "invierno": [
+       12.59,
+       15.96,
+       14.17
+      ],
+      "transicion": [
+       11.87,
+       13.48,
+       12.87
+      ],
+      "verano": [
+       1.68,
+       11.12,
+       12.12
+      ]
+     },
+     "paralelismo_mediana": {
+      "invierno": 8.594,
+      "transicion": 8.667,
+      "verano": 8.633
+     }
+    },
+    "xgboost": {
+     "segundos_por_dia": 16.446133333333332,
+     "por_fecha_s": {
+      "invierno": 16.7869,
+      "transicion": 16.6833,
+      "verano": 15.8682
+     },
+     "repeticiones_s": {
+      "invierno": [
+       16.736,
+       17.624,
+       16.787
+      ],
+      "transicion": [
+       16.456,
+       16.683,
+       16.709
+      ],
+      "verano": [
+       15.868,
+       15.731,
+       16.061
+      ]
+     },
+     "fraccion_maquina_otros": {
+      "invierno": [
+       0.0692,
+       0.2071,
+       0.0766
+      ],
+      "transicion": [
+       0.0886,
+       0.0754,
+       0.0725
+      ],
+      "verano": [
+       0.0768,
+       0.0202,
+       0.0404
+      ]
+     },
+     "carga_1min_max": {
+      "invierno": [
+       12.72,
+       15.65,
+       13.38
+      ],
+      "transicion": [
+       12.12,
+       13.78,
+       12.56
+      ],
+      "verano": [
+       5.1,
+       9.29,
+       11.68
+      ]
+     },
+     "paralelismo_mediana": {
+      "invierno": 11.893,
+      "transicion": 11.919,
+      "verano": 11.972
+     }
+    },
+    "random_forest": {
+     "segundos_por_dia": 29.84596666666667,
+     "por_fecha_s": {
+      "invierno": 31.5186,
+      "transicion": 31.5084,
+      "verano": 26.5109
+     },
+     "repeticiones_s": {
+      "invierno": [
+       31.62,
+       31.519,
+       30.418
+      ],
+      "transicion": [
+       30.984,
+       31.508,
+       31.642
+      ],
+      "verano": [
+       26.712,
+       26.511,
+       26.501
+      ]
+     },
+     "fraccion_maquina_otros": {
+      "invierno": [
+       0.1557,
+       0.149,
+       0.0956
+      ],
+      "transicion": [
+       0.0887,
+       0.0683,
+       0.0663
+      ],
+      "verano": [
+       0.0357,
+       0.0222,
+       0.0206
+      ]
+     },
+     "carga_1min_max": {
+      "invierno": [
+       13.5,
+       16.15,
+       14.84
+      ],
+      "transicion": [
+       12.67,
+       13.72,
+       12.94
+      ],
+      "verano": [
+       7.42,
+       10.43,
+       11.7
+      ]
+     },
+     "paralelismo_mediana": {
+      "invierno": 11.462,
+      "transicion": 11.416,
+      "verano": 11.737
+     }
+    },
+    "mlp": {
+     "segundos_por_dia": 3.782966666666667,
+     "por_fecha_s": {
+      "invierno": 3.9419,
+      "transicion": 3.7469,
+      "verano": 3.6601
+     },
+     "repeticiones_s": {
+      "invierno": [
+       3.898,
+       3.942,
+       4.574
+      ],
+      "transicion": [
+       3.779,
+       3.747,
+       3.746
+      ],
+      "verano": [
+       3.624,
+       4.109,
+       3.66
+      ]
+     },
+     "fraccion_maquina_otros": {
+      "invierno": [
+       0.1087,
+       0.0838,
+       0.1711
+      ],
+      "transicion": [
+       0.0673,
+       0.0653,
+       0.0794
+      ],
+      "verano": [
+       0.0115,
+       0.088,
+       0.0367
+      ]
+     },
+     "carga_1min_max": {
+      "invierno": [
+       13.54,
+       15.96,
+       14.17
+      ],
+      "transicion": [
+       13.66,
+       13.48,
+       12.87
+      ],
+      "verano": [
+       8.42,
+       11.04,
+       12.12
+      ]
+     },
+     "paralelismo_mediana": {
+      "invierno": 11.503,
+      "transicion": 13.172,
+      "verano": 14.125
+     }
+    }
+   },
+   "ajuste_s": {
+    "lightgbm": 35.238,
+    "xgboost": 24.975,
+    "random_forest": 90.677,
+    "mlp": 7.897
+   },
+   "compilacion": {
+    "lightgbm": {
+     "biblioteca": "lleaves",
+     "arboles": 800,
+     "segundos": 140.47,
+     "opciones": "compile() por omisión (use_fp64, fblocksize 34, finline, fcodemodel large), como produccion.py:242-246",
+     "entrada": "float64 contiguo (produccion.py:254)",
+     "archivos": {
+      "texto": "lightgbm_modelo.txt",
+      "cache": "lightgbm_compilado.o"
+     },
+     "bytes_objeto": 4973096
+    },
+    "xgboost": {
+     "biblioteca": "treelite → tl2cgen",
+     "toolchain": "clang",
+     "opciones_compilador": "-O3 -fPIC -std=c99",
+     "arboles": 800,
+     "nodos": 202400,
+     "parallel_comp": 11,
+     "hilos_compilacion": 8,
+     "bytes_codigo_c": 19159304,
+     "bytes_biblioteca": 4872144,
+     "segundos": 5.96,
+     "umbral": "float32",
+     "salida": "float32",
+     "archivo": "xgboost.dylib"
+    },
+    "random_forest": {
+     "biblioteca": "treelite → tl2cgen",
+     "toolchain": "clang",
+     "opciones_compilador": "-O3 -fPIC -std=c99",
+     "arboles": 300,
+     "nodos": 10979330,
+     "parallel_comp": 300,
+     "hilos_compilacion": 8,
+     "bytes_codigo_c": 1542185888,
+     "bytes_biblioteca": 406503952,
+     "segundos": 428.13,
+     "umbral": "float64",
+     "salida": "float64",
+     "archivo": "random_forest.dylib",
+     "default_left_desde_missing_go_to_left": true,
+     "nodos_internos": 5489515,
+     "default_left_corregidos": 2852431
+    },
+    "mlp": {
+     "biblioteca": "numpy (OpenBLAS sgemm, un hilo por lote)",
+     "dtype": "float32",
+     "lote_filas": 8192,
+     "capas": [
+      [
+       70,
+       128
+      ],
+      [
+       128,
+       64
+      ],
+      [
+       64,
+       1
+      ]
+     ],
+     "segundos": 0.002,
+     "archivo": "mlp_float32.npz",
+     "pasos": "vacías → NaN, recorte de entradas, imputación por mediana, escala, ReLU, recorte de salida"
+    }
+   },
+   "equivalencia": {
+    "filas_sinteticas": 20000,
+    "semilla": [
+     42,
+     7
+    ],
+    "fraccion_nan_agregada": 0.05,
+    "construccion": "cada columna de una muestra del entrenamiento permutada por separado, más faltantes",
+    "dif_max_log1p": {
+     "lightgbm": 1.4210854715202004e-14,
+     "xgboost": 8.58306884765625e-06,
+     "random_forest": 0.0,
+     "mlp": 0.0
+    },
+    "tolerancia_log1p": {
+     "lightgbm": 1e-09,
+     "xgboost": 0.001,
+     "random_forest": 1e-09,
+     "mlp": 0.0001
+    },
+    "equivalentes": {
+     "lightgbm": true,
+     "xgboost": true,
+     "random_forest": true,
+     "mlp": true
+    }
+   },
+   "espera_maquina_libre": {
+    "libre": true,
+    "umbral_carga_1min": 2.0,
+    "espera_s": 150.0,
+    "carga_1min": 1.74,
+    "muestras": 6
+   },
+   "maquina": {
+    "carga_media_inicio": [
+     1.74,
+     4.82,
+     5.01
+    ],
+    "carga_media_fin": [
+     13.32,
+     11.92,
+     8.73
+    ],
+    "procesos_mas_activos_inicio": [
+     {
+      "nombre": "python3.11",
+      "cpu_pct": 140.3
+     },
+     {
+      "nombre": "Codex (Service)",
+      "cpu_pct": 0.9
+     },
+     {
+      "nombre": "ChatGPT",
+      "cpu_pct": 0.7
+     },
+     {
+      "nombre": "Microsoft Outlook",
+      "cpu_pct": 0.7
+     },
+     {
+      "nombre": "Codex (Renderer)",
+      "cpu_pct": 0.6
+     },
+     {
+      "nombre": "claude",
+      "cpu_pct": 0.6
+     },
+     {
+      "nombre": "Finder",
+      "cpu_pct": 0.5
+     },
+     {
+      "nombre": "SkyComputerUseService",
+      "cpu_pct": 0.3
+     }
+    ],
+    "memoria_total_gb": 128.0,
+    "fraccion_maquina_otros_max": 0.2071,
+    "fraccion_maquina_otros_mediana": 0.07394999999999999,
+    "carga_1min_max": 16.15,
+    "bibliotecas_de_hilos": [
+     {
+      "user_api": "blas",
+      "internal_api": "openblas",
+      "num_threads": 12,
+      "version": "0.3.34",
+      "threading_layer": "openmp"
+     },
+     {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 12,
+      "version": null,
+      "threading_layer": null
+     },
+     {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 12,
+      "version": null,
+      "threading_layer": null
+     }
+    ]
+   },
+   "matriz": {
+    "celdas": 838430,
+    "estaciones": 107,
+    "contexto_s": 9.22,
+    "fechas": {
+     "verano": {
+      "fecha": "2022-01-15",
+      "forma": [
+       24,
+       838430,
+       70
+      ],
+      "calentamiento_s": 18.09,
+      "dia_s": 15.66,
+      "columnas_sin_dato": [
+       "aod_terra",
+       "aod_aqua",
+       "aod_dia",
+       "aod_3d"
+      ],
+      "infinitos": 0,
+      "columnas_rellenadas_con_nan_por_la_v1": [],
+      "estaciones_con_obs_por_hora": {
+       "min": 84,
+       "max": 86
+      },
+      "dias_sin_maiac": [
+       "2022-01-14",
+       "2022-01-15"
+      ],
+      "dias_sin_no2": [],
+      "meses_sin_fuente": [],
+      "orden_en_memoria_de_la_v1": [
+       "F"
+      ],
+      "fraccion_nan_media": 0.0878
+     },
+     "transicion": {
+      "fecha": "2022-04-15",
+      "forma": [
+       24,
+       838430,
+       70
+      ],
+      "calentamiento_s": 15.0,
+      "dia_s": 15.7,
+      "columnas_sin_dato": [
+       "aod_aqua"
+      ],
+      "infinitos": 0,
+      "columnas_rellenadas_con_nan_por_la_v1": [],
+      "estaciones_con_obs_por_hora": {
+       "min": 88,
+       "max": 90
+      },
+      "dias_sin_maiac": [],
+      "dias_sin_no2": [],
+      "meses_sin_fuente": [],
+      "orden_en_memoria_de_la_v1": [
+       "F"
+      ],
+      "fraccion_nan_media": 0.0721
+     },
+     "invierno": {
+      "fecha": "2022-07-15",
+      "forma": [
+       24,
+       838430,
+       70
+      ],
+      "calentamiento_s": 13.1,
+      "dia_s": 16.19,
+      "columnas_sin_dato": [],
+      "infinitos": 0,
+      "columnas_rellenadas_con_nan_por_la_v1": [],
+      "estaciones_con_obs_por_hora": {
+       "min": 84,
+       "max": 89
+      },
+      "dias_sin_maiac": [],
+      "dias_sin_no2": [],
+      "meses_sin_fuente": [],
+      "orden_en_memoria_de_la_v1": [
+       "F"
+      ],
+      "fraccion_nan_media": 0.0846
+     }
+    }
+   }
+  },
+  "no2": {
+   "segundos_por_dia": {
+    "lightgbm": 4.182,
+    "xgboost": 16.068,
+    "random_forest": 31.933,
+    "mlp": 4.442,
+    "promedio_simple": 56.625
+   },
+   "produccion": {
+    "lightgbm": {
+     "segundos_por_dia": 4.182,
+     "segundos_2000_2026": 41245.5,
+     "dias_de_maquina": 0.4774,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    },
+    "xgboost": {
+     "segundos_por_dia": 16.068,
+     "segundos_2000_2026": 158460.3,
+     "dias_de_maquina": 1.834,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    },
+    "random_forest": {
+     "segundos_por_dia": 31.933,
+     "segundos_2000_2026": 314926.9,
+     "dias_de_maquina": 3.645,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    },
+    "mlp": {
+     "segundos_por_dia": 4.442,
+     "segundos_2000_2026": 43806.0,
+     "dias_de_maquina": 0.507,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    },
+    "promedio_simple": {
+     "segundos_por_dia": 56.625,
+     "segundos_2000_2026": 558438.7,
+     "dias_de_maquina": 6.4634,
+     "nota": "este contaminante solo; la regla suma los dos (factibilidad)"
+    }
+   },
+   "candidatos": {
+    "xgboost": {
+     "fuera_de_la_decision": false,
+     "estado": "factible",
+     "registro": "xgboost: 3.71 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 3.90 veces LightGBM compilado: factible, sigue en la decisión"
+    },
+    "random_forest": {
+     "fuera_de_la_decision": true,
+     "estado": "no factible",
+     "registro": "random_forest: 7.05 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 7.42 veces LightGBM compilado: no factible, queda fuera de la decisión (cuesta 7.42 veces LightGBM compilado (> 5))"
+    },
+    "mlp": {
+     "fuera_de_la_decision": false,
+     "estado": "factible",
+     "registro": "mlp: 0.94 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 0.99 veces LightGBM compilado: factible, sigue en la decisión"
+    },
+    "promedio_simple": {
+     "fuera_de_la_decision": true,
+     "estado": "no factible",
+     "registro": "promedio_simple: 12.65 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 13.31 veces LightGBM compilado: no factible, queda fuera de la decisión (cuesta 13.31 veces LightGBM compilado (> 5))"
+    }
+   },
+   "dias_produccion": 9862,
+   "detalle_por_motor": {
+    "lightgbm": {
+     "segundos_por_dia": 4.182266666666667,
+     "por_fecha_s": {
+      "invierno": 4.4315,
+      "transicion": 4.2773,
+      "verano": 3.838
+     },
+     "repeticiones_s": {
+      "invierno": [
+       4.25,
+       4.431,
+       4.452
+      ],
+      "transicion": [
+       4.162,
+       4.499,
+       4.277
+      ],
+      "verano": [
+       3.701,
+       3.838,
+       3.924
+      ]
+     },
+     "fraccion_maquina_otros": {
+      "invierno": [
+       0.0698,
+       0.1377,
+       0.1382
+      ],
+      "transicion": [
+       0.1776,
+       0.2141,
+       0.1374
+      ],
+      "verano": [
+       0.0491,
+       0.0693,
+       0.1063
+      ]
+     },
+     "carga_1min_max": {
+      "invierno": [
+       13.79,
+       15.02,
+       14.64
+      ],
+      "transicion": [
+       14.23,
+       14.62,
+       14.66
+      ],
+      "verano": [
+       5.38,
+       13.6,
+       13.84
+      ]
+     },
+     "paralelismo_mediana": {
+      "invierno": 8.368,
+      "transicion": 8.313,
+      "verano": 8.299
+     }
+    },
+    "xgboost": {
+     "segundos_por_dia": 16.067766666666667,
+     "por_fecha_s": {
+      "invierno": 16.1179,
+      "transicion": 16.2135,
+      "verano": 15.8719
+     },
+     "repeticiones_s": {
+      "invierno": [
+       15.62,
+       16.139,
+       16.118
+      ],
+      "transicion": [
+       16.213,
+       16.702,
+       16.046
+      ],
+      "verano": [
+       14.64,
+       16.558,
+       15.872
+      ]
+     },
+     "fraccion_maquina_otros": {
+      "invierno": [
+       0.0691,
+       0.1427,
+       0.1363
+      ],
+      "transicion": [
+       0.1995,
+       0.2433,
+       0.1381
+      ],
+      "verano": [
+       0.0371,
+       0.1958,
+       0.1736
+      ]
+     },
+     "carga_1min_max": {
+      "invierno": [
+       12.88,
+       15.18,
+       14.62
+      ],
+      "transicion": [
+       14.38,
+       14.46,
+       13.79
+      ],
+      "verano": [
+       6.7,
+       11.98,
+       14.23
+      ]
+     },
+     "paralelismo_mediana": {
+      "invierno": 11.903,
+      "transicion": 11.828,
+      "verano": 11.882
+     }
+    },
+    "random_forest": {
+     "segundos_por_dia": 31.933366666666668,
+     "por_fecha_s": {
+      "invierno": 31.9249,
+      "transicion": 34.1197,
+      "verano": 29.7555
+     },
+     "repeticiones_s": {
+      "invierno": [
+       31.326,
+       32.212,
+       31.925
+      ],
+      "transicion": [
+       33.944,
+       35.622,
+       34.12
+      ],
+      "verano": [
+       29.756,
+       30.536,
+       27.947
+      ]
+     },
+     "fraccion_maquina_otros": {
+      "invierno": [
+       0.124,
+       0.1599,
+       0.1418
+      ],
+      "transicion": [
+       0.1987,
+       0.2348,
+       0.1625
+      ],
+      "verano": [
+       0.0745,
+       0.1258,
+       0.028
+      ]
+     },
+     "carga_1min_max": {
+      "invierno": [
+       13.2,
+       15.18,
+       15.02
+      ],
+      "transicion": [
+       14.38,
+       14.89,
+       14.38
+      ],
+      "verano": [
+       9.42,
+       12.93,
+       13.67
+      ]
+     },
+     "paralelismo_mediana": {
+      "invierno": 10.828,
+      "transicion": 10.448,
+      "verano": 10.862
+     }
+    },
+    "mlp": {
+     "segundos_por_dia": 4.4419,
+     "por_fecha_s": {
+      "invierno": 5.043,
+      "transicion": 4.6694,
+      "verano": 3.6133
+     },
+     "repeticiones_s": {
+      "invierno": [
+       4.843,
+       5.043,
+       5.057
+      ],
+      "transicion": [
+       4.669,
+       4.781,
+       4.531
+      ],
+      "verano": [
+       5.089,
+       3.613,
+       3.407
+      ]
+     },
+     "fraccion_maquina_otros": {
+      "invierno": [
+       0.1364,
+       0.1347,
+       0.1371
+      ],
+      "transicion": [
+       0.203,
+       0.1967,
+       0.1371
+      ],
+      "verano": [
+       0.1854,
+       0.0497,
+       0.0175
+      ]
+     },
+     "carga_1min_max": {
+      "invierno": [
+       13.55,
+       14.94,
+       14.7
+      ],
+      "transicion": [
+       14.19,
+       14.76,
+       14.66
+      ],
+      "verano": [
+       10.58,
+       13.6,
+       13.83
+      ]
+     },
+     "paralelismo_mediana": {
+      "invierno": 8.951,
+      "transicion": 10.347,
+      "verano": 13.156
+     }
+    }
+   },
+   "ajuste_s": {
+    "lightgbm": 36.734,
+    "xgboost": 27.495,
+    "random_forest": 88.055,
+    "mlp": 7.891
+   },
+   "compilacion": {
+    "lightgbm": {
+     "biblioteca": "lleaves",
+     "arboles": 800,
+     "segundos": 134.07,
+     "opciones": "compile() por omisión (use_fp64, fblocksize 34, finline, fcodemodel large), como produccion.py:242-246",
+     "entrada": "float64 contiguo (produccion.py:254)",
+     "archivos": {
+      "texto": "lightgbm_modelo.txt",
+      "cache": "lightgbm_compilado.o"
+     },
+     "bytes_objeto": 4891240
+    },
+    "xgboost": {
+     "biblioteca": "treelite → tl2cgen",
+     "toolchain": "clang",
+     "opciones_compilador": "-O3 -fPIC -std=c99",
+     "arboles": 800,
+     "nodos": 202400,
+     "parallel_comp": 11,
+     "hilos_compilacion": 8,
+     "bytes_codigo_c": 19185519,
+     "bytes_biblioteca": 4855632,
+     "segundos": 5.99,
+     "umbral": "float32",
+     "salida": "float32",
+     "archivo": "xgboost.dylib"
+    },
+    "random_forest": {
+     "biblioteca": "treelite → tl2cgen",
+     "toolchain": "clang",
+     "opciones_compilador": "-O3 -fPIC -std=c99",
+     "arboles": 300,
+     "nodos": 10975146,
+     "parallel_comp": 300,
+     "hilos_compilacion": 8,
+     "bytes_codigo_c": 1535482633,
+     "bytes_biblioteca": 406437904,
+     "segundos": 433.04,
+     "umbral": "float64",
+     "salida": "float64",
+     "archivo": "random_forest.dylib",
+     "default_left_desde_missing_go_to_left": true,
+     "nodos_internos": 5487423,
+     "default_left_corregidos": 2833849
+    },
+    "mlp": {
+     "biblioteca": "numpy (OpenBLAS sgemm, un hilo por lote)",
+     "dtype": "float32",
+     "lote_filas": 8192,
+     "capas": [
+      [
+       69,
+       128
+      ],
+      [
+       128,
+       64
+      ],
+      [
+       64,
+       1
+      ]
+     ],
+     "segundos": 0.001,
+     "archivo": "mlp_float32.npz",
+     "pasos": "vacías → NaN, recorte de entradas, imputación por mediana, escala, ReLU, recorte de salida"
+    }
+   },
+   "equivalencia": {
+    "filas_sinteticas": 20000,
+    "semilla": [
+     42,
+     7
+    ],
+    "fraccion_nan_agregada": 0.05,
+    "construccion": "cada columna de una muestra del entrenamiento permutada por separado, más faltantes",
+    "dif_max_log1p": {
+     "lightgbm": 1.2434497875801753e-14,
+     "xgboost": 6.9141387939453125e-06,
+     "random_forest": 0.0,
+     "mlp": 0.0
+    },
+    "tolerancia_log1p": {
+     "lightgbm": 1e-09,
+     "xgboost": 0.001,
+     "random_forest": 1e-09,
+     "mlp": 0.0001
+    },
+    "equivalentes": {
+     "lightgbm": true,
+     "xgboost": true,
+     "random_forest": true,
+     "mlp": true
+    }
+   },
+   "espera_maquina_libre": {
+    "libre": false,
+    "umbral_carga_1min": 2.0,
+    "espera_s": 1200.3,
+    "carga_1min": 5.38,
+    "muestras": 41,
+    "carga_min_vista": 5.38,
+    "nota": "la carga no bajó del umbral en el tope de espera: se midió igual y queda registrado"
+   },
+   "maquina": {
+    "carga_media_inicio": [
+     5.38,
+     6.58,
+     7.46
+    ],
+    "carga_media_fin": [
+     14.61,
+     12.94,
+     10.53
+    ],
+    "procesos_mas_activos_inicio": [
+     {
+      "nombre": "Google Drive",
+      "cpu_pct": 23.8
+     },
+     {
+      "nombre": "claude",
+      "cpu_pct": 4.0
+     },
+     {
+      "nombre": "ControlCenter",
+      "cpu_pct": 2.1
+     },
+     {
+      "nombre": "fileproviderd",
+      "cpu_pct": 2.1
+     },
+     {
+      "nombre": "Codex (Service)",
+      "cpu_pct": 2.1
+     },
+     {
+      "nombre": "ContinuityCaptureAgent",
+      "cpu_pct": 2.0
+     },
+     {
+      "nombre": "ChatGPT",
+      "cpu_pct": 1.9
+     },
+     {
+      "nombre": "com.apple.WebKit.WebContent",
+      "cpu_pct": 1.1
+     }
+    ],
+    "memoria_total_gb": 128.0,
+    "fraccion_maquina_otros_max": 0.2433,
+    "fraccion_maquina_otros_mediana": 0.13755,
+    "carga_1min_max": 15.18,
+    "bibliotecas_de_hilos": [
+     {
+      "user_api": "blas",
+      "internal_api": "openblas",
+      "num_threads": 12,
+      "version": "0.3.34",
+      "threading_layer": "openmp"
+     },
+     {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 12,
+      "version": null,
+      "threading_layer": null
+     },
+     {
+      "user_api": "openmp",
+      "internal_api": "openmp",
+      "num_threads": 12,
+      "version": null,
+      "threading_layer": null
+     }
+    ]
+   },
+   "matriz": {
+    "celdas": 838430,
+    "estaciones": 57,
+    "contexto_s": 5.41,
+    "fechas": {
+     "verano": {
+      "fecha": "2022-01-15",
+      "forma": [
+       24,
+       838430,
+       69
+      ],
+      "calentamiento_s": 12.98,
+      "dia_s": 14.98,
+      "columnas_sin_dato": [
+       "aod_terra",
+       "aod_aqua",
+       "aod_dia",
+       "aod_3d"
+      ],
+      "infinitos": 0,
+      "columnas_rellenadas_con_nan_por_la_v1": [],
+      "estaciones_con_obs_por_hora": {
+       "min": 34,
+       "max": 36
+      },
+      "dias_sin_maiac": [
+       "2022-01-14",
+       "2022-01-15"
+      ],
+      "dias_sin_no2": [],
+      "meses_sin_fuente": [],
+      "orden_en_memoria_de_la_v1": [
+       "F"
+      ],
+      "fraccion_nan_media": 0.0953
+     },
+     "transicion": {
+      "fecha": "2022-04-15",
+      "forma": [
+       24,
+       838430,
+       69
+      ],
+      "calentamiento_s": 10.99,
+      "dia_s": 14.88,
+      "columnas_sin_dato": [
+       "aod_aqua"
+      ],
+      "infinitos": 0,
+      "columnas_rellenadas_con_nan_por_la_v1": [],
+      "estaciones_con_obs_por_hora": {
+       "min": 39,
+       "max": 41
+      },
+      "dias_sin_maiac": [],
+      "dias_sin_no2": [],
+      "meses_sin_fuente": [],
+      "orden_en_memoria_de_la_v1": [
+       "F"
+      ],
+      "fraccion_nan_media": 0.079
+     },
+     "invierno": {
+      "fecha": "2022-07-15",
+      "forma": [
+       24,
+       838430,
+       69
+      ],
+      "calentamiento_s": 10.63,
+      "dia_s": 15.55,
+      "columnas_sin_dato": [],
+      "infinitos": 0,
+      "columnas_rellenadas_con_nan_por_la_v1": [],
+      "estaciones_con_obs_por_hora": {
+       "min": 38,
+       "max": 42
+      },
+      "dias_sin_maiac": [],
+      "dias_sin_no2": [],
+      "meses_sin_fuente": [],
+      "orden_en_memoria_de_la_v1": [
+       "F"
+      ],
+      "fraccion_nan_media": 0.0917
+     }
+    }
+   }
+  }
+ },
+ "factibilidad": {
+  "dias_calendario": 9862,
+  "contaminantes": [
+   "pm25",
+   "no2"
+  ],
+  "factor_maximo": 5.0,
+  "umbral_dias_de_maquina": 21.0,
+  "produccion": {
+   "lightgbm": {
+    "segundos_2000_2026": 82159.3,
+    "por_contaminante_s": {
+     "pm25": 40913.8,
+     "no2": 41245.5
+    },
+    "dias_de_maquina": 0.9509,
+    "cociente_frente_a_lightgbm": 1.0
+   },
+   "xgboost": {
+    "segundos_2000_2026": 320652.1,
+    "por_contaminante_s": {
+     "pm25": 162191.8,
+     "no2": 158460.3
+    },
+    "dias_de_maquina": 3.7113,
+    "cociente_frente_a_lightgbm": 3.9028
+   },
+   "random_forest": {
+    "segundos_2000_2026": 609267.8,
+    "por_contaminante_s": {
+     "pm25": 294340.9,
+     "no2": 314926.9
+    },
+    "dias_de_maquina": 7.0517,
+    "cociente_frente_a_lightgbm": 7.4157
+   },
+   "mlp": {
+    "segundos_2000_2026": 81113.6,
+    "por_contaminante_s": {
+     "pm25": 37307.6,
+     "no2": 43806.0
+    },
+    "dias_de_maquina": 0.9388,
+    "cociente_frente_a_lightgbm": 0.9873
+   },
+   "promedio_simple": {
+    "segundos_2000_2026": 1093192.8,
+    "por_contaminante_s": {
+     "pm25": 534754.1,
+     "no2": 558438.7
+    },
+    "dias_de_maquina": 12.6527,
+    "cociente_frente_a_lightgbm": 13.3058
+   }
+  },
+  "candidatos": {
+   "xgboost": {
+    "factible": true,
+    "fuera_de_la_decision": false,
+    "cumple_factor": true,
+    "cumple_dias": true,
+    "cociente_frente_a_lightgbm": 3.9028,
+    "dias_de_maquina": 3.7113,
+    "registro": "xgboost: 3.71 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 3.90 veces LightGBM compilado: factible, sigue en la decisión"
+   },
+   "random_forest": {
+    "factible": false,
+    "fuera_de_la_decision": true,
+    "cumple_factor": false,
+    "cumple_dias": true,
+    "cociente_frente_a_lightgbm": 7.4157,
+    "dias_de_maquina": 7.0517,
+    "registro": "random_forest: 7.05 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 7.42 veces LightGBM compilado: no factible, queda fuera de la decisión (cuesta 7.42 veces LightGBM compilado (> 5))"
+   },
+   "mlp": {
+    "factible": true,
+    "fuera_de_la_decision": false,
+    "cumple_factor": true,
+    "cumple_dias": true,
+    "cociente_frente_a_lightgbm": 0.9873,
+    "dias_de_maquina": 0.9388,
+    "registro": "mlp: 0.94 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 0.99 veces LightGBM compilado: factible, sigue en la decisión"
+   },
+   "promedio_simple": {
+    "factible": false,
+    "fuera_de_la_decision": true,
+    "cumple_factor": false,
+    "cumple_dias": true,
+    "cociente_frente_a_lightgbm": 13.3058,
+    "dias_de_maquina": 12.6527,
+    "registro": "promedio_simple: 12.65 días de máquina con 12 hilos para 2000-2026 y los dos contaminantes, 13.31 veces LightGBM compilado: no factible, queda fuera de la decisión (cuesta 13.31 veces LightGBM compilado (> 5))"
+   }
+  },
+  "referencia_lightgbm": {
+   "dias_de_maquina": 0.9509,
+   "excede_el_umbral_de_dias": false,
+   "nota": "LightGBM es la referencia y el motor por omisión, no un candidato: la regla no lo excluye"
+  },
+  "orden_por_costo": [
+   "mlp",
+   "xgboost",
+   "random_forest",
+   "promedio_simple"
+  ]
+ },
+ "resumen": {
+  "factibles": [
+   "xgboost",
+   "mlp"
+  ],
+  "no_factibles": [
+   "random_forest",
+   "promedio_simple"
+  ],
+  "orden_por_costo": [
+   "mlp",
+   "xgboost",
+   "random_forest",
+   "promedio_simple"
+  ],
+  "dias_de_maquina": {
+   "lightgbm": 0.9509,
+   "xgboost": 3.7113,
+   "random_forest": 7.0517,
+   "mlp": 0.9388,
+   "promedio_simple": 12.6527
+  },
+  "cociente_frente_a_lightgbm": {
+   "lightgbm": 1.0,
+   "xgboost": 3.9028,
+   "random_forest": 7.4157,
+   "mlp": 0.9873,
+   "promedio_simple": 13.3058
+  }
+ },
+ "advertencias": [
+  "pm25: mlp usó un paralelismo mediano de 13.2 (CPU ÷ pared) con 12 hilos: OpenBLAS, compilado con OpenMP, sigue el omp_get_max_threads() de cada hilo que lo llama y no el tope de threadpoolctl, así que sus llamadas pueden abrir hilos propios dentro de los hilos de la MLP; su tiempo de pared puede estar algo subestimado",
+  "no2: la carga media de 1 minuto no bajó de 2.0 antes de medir (se esperó 1200.3 s; carga 5.38); durante la medición otros procesos usaron una mediana de 14% de la máquina (máximo 24%)"
+ ],
+ "trazas": {
+  "pm25": {
+   "creado_utc": "2026-10-13T09:31:45Z",
+   "git": {
+    "commit": "aa01f4d8e924f986e1a5e60bdef8f9dd39ee2e36",
+    "v2_sin_commit": [
+     "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+     "scripts_modelo_1km/v2/_rutas_v2.py",
+     "scripts_modelo_1km/v2/bootstrap_v2.py",
+     "scripts_modelo_1km/v2/config_v2.json",
+     "scripts_modelo_1km/v2/correr_v2.py",
+     "scripts_modelo_1km/v2/decision_v2.py",
+     "scripts_modelo_1km/v2/factibilidad_v2.py",
+     "scripts_modelo_1km/v2/metricas_v2.py",
+     "scripts_modelo_1km/v2/motores_v2.py",
+     "scripts_modelo_1km/v2/perdidas_v2.py",
+     "scripts_modelo_1km/v2/piloto_v2.py",
+     "scripts_modelo_1km/v2/pliegues_v2.py",
+     "scripts_modelo_1km/v2/retransformacion_v2.py",
+     "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
+     "scripts_modelo_1km/v2/tests/test_bootstrap_v2.py",
+     "scripts_modelo_1km/v2/tests/test_config_v2.py",
+     "scripts_modelo_1km/v2/tests/test_correr_v2.py",
+     "scripts_modelo_1km/v2/tests/test_decision_v2.py",
+     "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py",
+     "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+     "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+     "scripts_modelo_1km/v2/tests/test_motores_v2.py",
+     "scripts_modelo_1km/v2/tests/test_perdidas_v2.py",
+     "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
+     "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
+     "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py",
+     "scripts_modelo_1km/v2/tests/test_rutas_v2.py"
+    ],
+    "arbol_con_cambios_rastreados": true
+   },
+   "codigo": {
+    "hash": "3048f7a10ddb31596e4249d2fdf004e7fd7e43a10f733de47f6d5dbdb00d8284",
+    "archivos": {
+     "scripts_modelo_1km/v2/_rutas_v2.py": "cefd9cf3f7117a3620415eb5c4694d0c48f7800dd3e3804928b44c514f2d2769",
+     "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
+     "scripts_modelo_1km/v2/bootstrap_v2.py": "699c262304593d7cadef0726c6a0e4f168e333ac7741b1175e4188d549f6ad5b",
+     "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
+     "scripts_modelo_1km/v2/correr_v2.py": "7c3baf4469b3261b4d93561cf8026f572fbdf3e188eaa05547465822c98927d3",
+     "scripts_modelo_1km/v2/decision_v2.py": "830b898bc1545ce607fa84cfac86a5b19056b9001b0c95fe0790d3fca211d3f6",
+     "scripts_modelo_1km/v2/factibilidad_v2.py": "65b76d92fdeebe7fb04d04627aecc0387d9cd86c7008c919a1ddc43d49e9f5eb",
+     "scripts_modelo_1km/v2/metricas_v2.py": "93cbb474da22a64d22138ee72502989b88374fa980e7e6d6008e1075c16b1591",
+     "scripts_modelo_1km/v2/motores_v2.py": "e3498e6bf765f7f4d70de05342ca70d434ef585047b2d8e486f3e4b5063815b0",
+     "scripts_modelo_1km/v2/perdidas_v2.py": "c8caaf6b426447bcb0e86197a0935794746cb92503eed6531225321538fff471",
+     "scripts_modelo_1km/v2/piloto_v2.py": "d8b3e5212ee85f413a8a117ee00f9f71674b087c9b5ca284cada37a36a1bfd5c",
+     "scripts_modelo_1km/v2/pliegues_v2.py": "bafaecd14114ccad1b9485d2f645fe81c925bd1cf9bc832abafce9d8c5c1200d",
+     "scripts_modelo_1km/v2/retransformacion_v2.py": "ff92d87b370fdf8386a17a9c171fa42bf70f6b549d9cd58612da49bb471bd1f9",
+     "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
+     "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181",
+     "scripts_modelo_1km/produccion.py": "dd2db2efad4aa202d58186ea2b3b0629614469a632dc891033c6a0568bc246af",
+     "scripts_modelo_1km/_features.py": "8fd699929c117067962e9ed24c0ea6b137d0c58d5ca17b9fce3a3759793d6838",
+     "scripts_modelo_1km/_comun_modelo.py": "a83c0384266554e16ab397749544759ae1cf161f138361eefa7d1ad3e29aa6f4",
+     "scripts_modelo_1km/_red_adicional.py": "f7ab850b4784afa648e7e579294dee8f9e1a34c400b20a766a10e590a395941c",
+     "scripts_modelo_1km/construir_grilla.py": "56c014f9079cb7d69092a84239894a8d8e5d711fba1a66bafe3d97d99bb9742e",
+     "scripts_modelo_1km/producir_serie.py": "360e406d4b5e3ca00aa94c554ac92580dc434e1c91839d1f9c397eea5e6dfce7"
+    }
+   },
+   "contrato": {
+    "raiz": "repo",
+    "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+    "sha256": "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0",
+    "bytes": 28717
+   },
+   "config": {
+    "raiz": "repo",
+    "ruta": "scripts_modelo_1km/v2/config_v2.json",
+    "sha256": "232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c",
+    "bytes": 87026
+   },
+   "insumos": {
+    "celdas": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/celdas.parquet",
+     "sha256": "42b4b19613c7de343c856473af64e2c0a6353351f1884c8dba145361292108c3",
+     "bytes": 1424147
+    },
+    "enlaces_productos": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/enlaces_productos.parquet",
+     "sha256": "f441617b16bc518685483a6304f581d0a6ed610bf8a79518ecf4cbd2a2cedbcc",
+     "bytes": 12805447
+    },
+    "estaticas": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/estaticas.parquet",
+     "sha256": "606701ef942d907b637cfde10bbe6dbb2e157920f6fae2611e82ecd031470049",
+     "bytes": 13275875
+    },
+    "estaticas_lulc": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/estaticas_lulc.parquet",
+     "sha256": "9cb250712379752f33817d42ed72dd9d637f74e61ef8f60f02e37022cf4b9821",
+     "bytes": 71960942
+    },
+    "grilla_metadata": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/metadata.json",
+     "sha256": "83b0b58c35bad3986010c34beb673c70a25c2cd8d561150272f6f531c71b8682",
+     "bytes": 1813
+    },
+    "panel_pm25": {
+     "raiz": "raiz_v1",
+     "ruta": "paneles/panel_pm25.parquet",
+     "sha256": "955ed14469dce75e2c6da6452fbd5749ff3f391345a910758b5550330a9f56cb",
+     "bytes": 778963905
+    }
+   },
+   "bibliotecas": {
+    "python": "3.11.16",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "pyarrow": "25.0.0",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.9.1",
+    "lightgbm": "4.7.0",
+    "xgboost": "3.4.2",
+    "statsmodels": "0.15.0",
+    "pyproj": "3.7.2",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.7.0"
+   },
+   "hilos": {
+    "configurados": 8,
+    "cpu_count": 16,
+    "entorno": {
+     "OMP_NUM_THREADS": "8",
+     "OPENBLAS_NUM_THREADS": "8",
+     "MKL_NUM_THREADS": "8",
+     "VECLIB_MAXIMUM_THREADS": "8",
+     "NUMEXPR_NUM_THREADS": "8"
+    }
+   },
+   "semillas": {
+    "filas": [
+     42
+    ],
+    "motores": 42,
+    "sinteticas": [
+     42,
+     7
+    ]
+   }
+  },
+  "no2": {
+   "creado_utc": "2026-10-13T10:12:39Z",
+   "git": {
+    "commit": "aa01f4d8e924f986e1a5e60bdef8f9dd39ee2e36",
+    "v2_sin_commit": [
+     "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+     "scripts_modelo_1km/v2/_rutas_v2.py",
+     "scripts_modelo_1km/v2/bootstrap_v2.py",
+     "scripts_modelo_1km/v2/config_v2.json",
+     "scripts_modelo_1km/v2/correr_v2.py",
+     "scripts_modelo_1km/v2/decision_v2.py",
+     "scripts_modelo_1km/v2/factibilidad_v2.py",
+     "scripts_modelo_1km/v2/metricas_v2.py",
+     "scripts_modelo_1km/v2/motores_v2.py",
+     "scripts_modelo_1km/v2/perdidas_v2.py",
+     "scripts_modelo_1km/v2/piloto_v2.py",
+     "scripts_modelo_1km/v2/pliegues_v2.py",
+     "scripts_modelo_1km/v2/retransformacion_v2.py",
+     "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
+     "scripts_modelo_1km/v2/tests/test_bootstrap_v2.py",
+     "scripts_modelo_1km/v2/tests/test_config_v2.py",
+     "scripts_modelo_1km/v2/tests/test_correr_v2.py",
+     "scripts_modelo_1km/v2/tests/test_decision_v2.py",
+     "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py",
+     "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+     "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+     "scripts_modelo_1km/v2/tests/test_motores_v2.py",
+     "scripts_modelo_1km/v2/tests/test_perdidas_v2.py",
+     "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
+     "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
+     "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py",
+     "scripts_modelo_1km/v2/tests/test_rutas_v2.py"
+    ],
+    "arbol_con_cambios_rastreados": true
+   },
+   "codigo": {
+    "hash": "3048f7a10ddb31596e4249d2fdf004e7fd7e43a10f733de47f6d5dbdb00d8284",
+    "archivos": {
+     "scripts_modelo_1km/v2/_rutas_v2.py": "cefd9cf3f7117a3620415eb5c4694d0c48f7800dd3e3804928b44c514f2d2769",
+     "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
+     "scripts_modelo_1km/v2/bootstrap_v2.py": "699c262304593d7cadef0726c6a0e4f168e333ac7741b1175e4188d549f6ad5b",
+     "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
+     "scripts_modelo_1km/v2/correr_v2.py": "7c3baf4469b3261b4d93561cf8026f572fbdf3e188eaa05547465822c98927d3",
+     "scripts_modelo_1km/v2/decision_v2.py": "830b898bc1545ce607fa84cfac86a5b19056b9001b0c95fe0790d3fca211d3f6",
+     "scripts_modelo_1km/v2/factibilidad_v2.py": "65b76d92fdeebe7fb04d04627aecc0387d9cd86c7008c919a1ddc43d49e9f5eb",
+     "scripts_modelo_1km/v2/metricas_v2.py": "93cbb474da22a64d22138ee72502989b88374fa980e7e6d6008e1075c16b1591",
+     "scripts_modelo_1km/v2/motores_v2.py": "e3498e6bf765f7f4d70de05342ca70d434ef585047b2d8e486f3e4b5063815b0",
+     "scripts_modelo_1km/v2/perdidas_v2.py": "c8caaf6b426447bcb0e86197a0935794746cb92503eed6531225321538fff471",
+     "scripts_modelo_1km/v2/piloto_v2.py": "d8b3e5212ee85f413a8a117ee00f9f71674b087c9b5ca284cada37a36a1bfd5c",
+     "scripts_modelo_1km/v2/pliegues_v2.py": "bafaecd14114ccad1b9485d2f645fe81c925bd1cf9bc832abafce9d8c5c1200d",
+     "scripts_modelo_1km/v2/retransformacion_v2.py": "ff92d87b370fdf8386a17a9c171fa42bf70f6b549d9cd58612da49bb471bd1f9",
+     "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
+     "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181",
+     "scripts_modelo_1km/produccion.py": "dd2db2efad4aa202d58186ea2b3b0629614469a632dc891033c6a0568bc246af",
+     "scripts_modelo_1km/_features.py": "8fd699929c117067962e9ed24c0ea6b137d0c58d5ca17b9fce3a3759793d6838",
+     "scripts_modelo_1km/_comun_modelo.py": "a83c0384266554e16ab397749544759ae1cf161f138361eefa7d1ad3e29aa6f4",
+     "scripts_modelo_1km/_red_adicional.py": "f7ab850b4784afa648e7e579294dee8f9e1a34c400b20a766a10e590a395941c",
+     "scripts_modelo_1km/construir_grilla.py": "56c014f9079cb7d69092a84239894a8d8e5d711fba1a66bafe3d97d99bb9742e",
+     "scripts_modelo_1km/producir_serie.py": "360e406d4b5e3ca00aa94c554ac92580dc434e1c91839d1f9c397eea5e6dfce7"
+    }
+   },
+   "contrato": {
+    "raiz": "repo",
+    "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+    "sha256": "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0",
+    "bytes": 28717
+   },
+   "config": {
+    "raiz": "repo",
+    "ruta": "scripts_modelo_1km/v2/config_v2.json",
+    "sha256": "232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c",
+    "bytes": 87026
+   },
+   "insumos": {
+    "celdas": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/celdas.parquet",
+     "sha256": "42b4b19613c7de343c856473af64e2c0a6353351f1884c8dba145361292108c3",
+     "bytes": 1424147
+    },
+    "enlaces_productos": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/enlaces_productos.parquet",
+     "sha256": "f441617b16bc518685483a6304f581d0a6ed610bf8a79518ecf4cbd2a2cedbcc",
+     "bytes": 12805447
+    },
+    "estaticas": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/estaticas.parquet",
+     "sha256": "606701ef942d907b637cfde10bbe6dbb2e157920f6fae2611e82ecd031470049",
+     "bytes": 13275875
+    },
+    "estaticas_lulc": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/estaticas_lulc.parquet",
+     "sha256": "9cb250712379752f33817d42ed72dd9d637f74e61ef8f60f02e37022cf4b9821",
+     "bytes": 71960942
+    },
+    "grilla_metadata": {
+     "raiz": "raiz_v1",
+     "ruta": "grilla_1km/metadata.json",
+     "sha256": "83b0b58c35bad3986010c34beb673c70a25c2cd8d561150272f6f531c71b8682",
+     "bytes": 1813
+    },
+    "panel_no2": {
+     "raiz": "raiz_v1",
+     "ruta": "paneles/panel_no2.parquet",
+     "sha256": "513394a296a5bc64ce850e1f7b5b726d86001e738c66db1413ecd889214118a3",
+     "bytes": 425232563
+    }
+   },
+   "bibliotecas": {
+    "python": "3.11.16",
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "pyarrow": "25.0.0",
+    "scipy": "1.17.1",
+    "scikit-learn": "1.9.1",
+    "lightgbm": "4.7.0",
+    "xgboost": "3.4.2",
+    "statsmodels": "0.15.0",
+    "pyproj": "3.7.2",
+    "joblib": "1.6.0",
+    "threadpoolctl": "3.7.0"
+   },
+   "hilos": {
+    "configurados": 8,
+    "cpu_count": 16,
+    "entorno": {
+     "OMP_NUM_THREADS": "8",
+     "OPENBLAS_NUM_THREADS": "8",
+     "MKL_NUM_THREADS": "8",
+     "VECLIB_MAXIMUM_THREADS": "8",
+     "NUMEXPR_NUM_THREADS": "8"
+    }
+   },
+   "semillas": {
+    "filas": [
+     42
+    ],
+    "motores": 42,
+    "sinteticas": [
+     42,
+     7
+    ]
+   }
+  }
+ },
+ "publicacion": {
+  "creado_utc": "2026-10-13T10:16:06Z",
+  "codigo_v2": "828895586700e6e4d32436ae2941e5d0e048052e2bc0d845db552be1b0087d43",
+  "factibilidad_v2_sha256": "2229bd95eed76c37ccb55d3d853280785dd2752131eb624aae9e5a67d00a764f",
+  "mediciones": {
+   "raiz": "raiz_v2",
+   "ruta": "factibilidad/mediciones.json",
+   "sha256": "e44f993360236d1d81d8d57181ebb0160e134ba2d5bd4552253ecce5803d3648"
+  }
+ }
+}

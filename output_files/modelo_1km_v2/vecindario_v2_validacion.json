@@ -1,6 +1,6 @@
 {
  "schema": "airpollution.modelo-1km-v2.vecindario-validacion.v1",
- "creado_utc": "2026-10-12T22:55:58Z",
+ "creado_utc": "2026-10-13T05:46:55Z",
  "descripcion": "Validación del vecindario v2 (vecindario_v2.py): (a) reproducción de las columnas del panel v1 sin exclusiones adicionales; (b) descuento frente al cálculo directo ingenuo y a la suma directa matricial; (c) tiempo de un recálculo completo por pliegue.",
  "criterios": {
   "tolerancia_relativa": 1e-09,
@@ -10,7 +10,7 @@
   ],
   "filas_por_grupo_en_muestra": 40000
  },
- "huella_pliegues": "ec796b04148f190614e0873b62593531c5e6e30c3c8393de0aaec9f83541e8b2",
+ "huella_pliegues": "3e9f5acdef89602510f0aad011986a7ca17225a71a5f17824b0c6b1d2c8343ee",
  "contaminantes": {
   "pm25": {
    "vecindario": {
@@ -20,8 +20,8 @@
     "horas": 234057,
     "origen": "panel v1 (obs float32, sha256 955ed14469dce75e)"
    },
-   "construccion_s": 1.037,
-   "construccion_interna_s": 0.511,
+   "construccion_s": 1.006,
+   "construccion_interna_s": 0.499,
    "a1_fuente_panel_float32": {
     "obs_vec": {
      "filas": 9740634,
@@ -85,7 +85,7 @@
      "mismas_filas_que_el_panel": true,
      "float32_igual_al_panel": true,
      "filas_no_representables_en_float32": 1370835,
-     "segundos": 6.2,
+     "segundos": 8.1,
      "insumos_extra": [
       "catalogo_sinca",
       "grilla_celdas",
@@ -176,7 +176,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.7
+     "segundos": 0.66
     },
     {
      "protocolo": "LOSO-D",
@@ -219,7 +219,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.65
+     "segundos": 0.59
     },
     {
      "protocolo": "LOSO-D",
@@ -262,7 +262,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.83
+     "segundos": 0.79
     },
     {
      "protocolo": "LOSO-D",
@@ -354,11 +354,11 @@
      "protocolo": "BLQ-75",
      "k": 3,
      "grupo": "E001N078",
-     "n_excluidas": 15,
+     "n_excluidas": 18,
      "nota": null,
      "muestra": {
       "entrenamiento": {
-       "disponibles": 8708089,
+       "disponibles": 8380349,
        "en_muestra": 40000
       },
       "prueba": {
@@ -366,32 +366,32 @@
        "en_muestra": 40000
       },
       "dificiles": {
-       "disponibles": 0,
-       "en_muestra": 0
+       "disponibles": 1117,
+       "en_muestra": 1117
       },
       "cerca_del_umbral": {
-       "disponibles": 2404,
-       "en_muestra": 2404
+       "disponibles": 2490,
+       "en_muestra": 2490
       }
      },
-     "filas_muestra": 82395,
+     "filas_muestra": 83500,
      "obs_vec": {
-      "filas": 82395,
+      "filas": 83500,
       "nan_iguales": true,
-      "dif_rel_max": 3.312337395691539e-14,
+      "dif_rel_max": 3.079776853543811e-14,
       "ceros_iguales": true,
       "float32_distintas": 0
      },
      "peso_vec": {
-      "filas": 82395,
+      "filas": 83500,
       "nan_iguales": true,
-      "dif_rel_max": 1.8140759246496862e-15,
+      "dif_rel_max": 3.0880465608478992e-15,
       "ceros_iguales": true,
       "float32_distintas": 0
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.6
+     "segundos": 0.58
     },
     {
      "protocolo": "LRO",
@@ -434,7 +434,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.58
+     "segundos": 0.57
     },
     {
      "protocolo": "LRO",
@@ -477,7 +477,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.83
+     "segundos": 0.8
     },
     {
      "protocolo": "LRO",
@@ -520,7 +520,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.89
+     "segundos": 0.86
     },
     {
      "protocolo": "LRO",
@@ -563,7 +563,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.69
+     "segundos": 0.67
     },
     {
      "protocolo": "LRO",
@@ -606,7 +606,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.62
+     "segundos": 0.61
     },
     {
      "protocolo": "LRO",
@@ -649,7 +649,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.74
+     "segundos": 0.73
     },
     {
      "protocolo": "LRO",
@@ -692,7 +692,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.66
+     "segundos": 0.64
     }
    ],
    "b_base_vs_ingenuo": {
@@ -721,10 +721,10 @@
     "por_protocolo": {
      "LOSO-D": {
       "pliegues": 87,
-      "min_s": 0.274,
-      "mediana_s": 0.35,
-      "max_s": 0.391,
-      "total_s": 29.86,
+      "min_s": 0.264,
+      "mediana_s": 0.323,
+      "max_s": 0.38,
+      "total_s": 27.82,
       "obs_vec_nan_prueba_fraccion": 0.01482,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
        "230",
@@ -733,10 +733,10 @@
      },
      "LBO-10": {
       "pliegues": 87,
-      "min_s": 0.289,
-      "mediana_s": 0.306,
-      "max_s": 0.382,
-      "total_s": 27.98,
+      "min_s": 0.264,
+      "mediana_s": 0.274,
+      "max_s": 0.335,
+      "total_s": 25.11,
       "obs_vec_nan_prueba_fraccion": 0.01648,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
        "230",
@@ -745,11 +745,11 @@
      },
      "BLQ-75": {
       "pliegues": 34,
-      "min_s": 0.296,
-      "mediana_s": 0.345,
-      "max_s": 0.37,
-      "total_s": 11.35,
-      "obs_vec_nan_prueba_fraccion": 0.01668,
+      "min_s": 0.267,
+      "mediana_s": 0.286,
+      "max_s": 0.351,
+      "total_s": 10.18,
+      "obs_vec_nan_prueba_fraccion": 0.01675,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
        "E004N054",
        "E005N100"
@@ -757,10 +757,10 @@
      },
      "LRO": {
       "pliegues": 15,
-      "min_s": 0.288,
-      "mediana_s": 0.323,
-      "max_s": 0.433,
-      "total_s": 5.05,
+      "min_s": 0.269,
+      "mediana_s": 0.286,
+      "max_s": 0.395,
+      "total_s": 4.58,
       "obs_vec_nan_prueba_fraccion": 0.0579,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
        "RII",
@@ -771,16 +771,16 @@
      },
      "LPO": {
       "pliegues": 7,
-      "min_s": 0.118,
-      "mediana_s": 0.122,
-      "max_s": 0.126,
-      "total_s": 0.85,
+      "min_s": 0.105,
+      "mediana_s": 0.106,
+      "max_s": 0.109,
+      "total_s": 0.75,
       "obs_vec_nan_prueba_fraccion": 0.01331,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": []
      }
     },
-    "total_s": 75.1,
-    "construccion_s": 1.037,
+    "total_s": 68.44,
+    "construccion_s": 1.006,
     "nota": "recálculo completo: las tres columnas en todas las filas (entrenamiento, prueba y entorno), en float32, con las huellas sha256; un tiempo no es un resultado (§10)"
    },
    "b_todos_vs_directo": {
@@ -793,7 +793,7 @@
     "dist_iguales_en_todos": true,
     "float32_distintas_total": 0,
     "produccion_float32_igual_al_float64_redondeado": true,
-    "filas_suma_directa_total": 1708922,
+    "filas_suma_directa_total": 1719897,
     "pasa": true
    }
   },
@@ -805,8 +805,8 @@
     "horas": 234071,
     "origen": "panel v1 (obs float32, sha256 513394a296a5bc64)"
    },
-   "construccion_s": 0.571,
-   "construccion_interna_s": 0.289,
+   "construccion_s": 0.503,
+   "construccion_interna_s": 0.252,
    "a1_fuente_panel_float32": {
     "obs_vec": {
      "filas": 5711491,
@@ -870,7 +870,7 @@
      "mismas_filas_que_el_panel": true,
      "float32_igual_al_panel": true,
      "filas_no_representables_en_float32": 5031211,
-     "segundos": 3.8,
+     "segundos": 5.4,
      "insumos_extra": [
       "catalogo_sinca",
       "grilla_celdas",
@@ -961,7 +961,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.47
+     "segundos": 0.43
     },
     {
      "protocolo": "LOSO-D",
@@ -1004,7 +1004,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.46
+     "segundos": 0.41
     },
     {
      "protocolo": "LOSO-D",
@@ -1047,7 +1047,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.36
+     "segundos": 0.32
     },
     {
      "protocolo": "LBO-10",
@@ -1090,17 +1090,17 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.36
+     "segundos": 0.3
     },
     {
      "protocolo": "BLQ-75",
      "k": 1,
      "grupo": "E001N078",
-     "n_excluidas": 11,
+     "n_excluidas": 13,
      "nota": null,
      "muestra": {
       "entrenamiento": {
-       "disponibles": 4687776,
+       "disponibles": 4548656,
        "en_muestra": 40000
       },
       "prueba": {
@@ -1108,24 +1108,24 @@
        "en_muestra": 40000
       },
       "dificiles": {
-       "disponibles": 34656,
-       "en_muestra": 34656
+       "disponibles": 39319,
+       "en_muestra": 39319
       },
       "cerca_del_umbral": {
-       "disponibles": 2033,
-       "en_muestra": 2033
+       "disponibles": 2173,
+       "en_muestra": 2173
       }
      },
-     "filas_muestra": 113777,
+     "filas_muestra": 118398,
      "obs_vec": {
-      "filas": 113777,
+      "filas": 118398,
       "nan_iguales": true,
-      "dif_rel_max": 5.47332447745531e-13,
+      "dif_rel_max": 4.888488967080118e-13,
       "ceros_iguales": true,
       "float32_distintas": 0
      },
      "peso_vec": {
-      "filas": 113777,
+      "filas": 118398,
       "nan_iguales": true,
       "dif_rel_max": 3.1750880856599605e-13,
       "ceros_iguales": true,
@@ -1133,7 +1133,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.41
+     "segundos": 0.36
     },
     {
      "protocolo": "LRO",
@@ -1176,7 +1176,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.41
+     "segundos": 0.35
     },
     {
      "protocolo": "LRO",
@@ -1219,7 +1219,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.45
+     "segundos": 0.39
     },
     {
      "protocolo": "LRO",
@@ -1262,7 +1262,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.38
+     "segundos": 0.33
     },
     {
      "protocolo": "LRO",
@@ -1305,7 +1305,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.45
+     "segundos": 0.4
     },
     {
      "protocolo": "LRO",
@@ -1348,7 +1348,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.43
+     "segundos": 0.38
     },
     {
      "protocolo": "LRO",
@@ -1391,7 +1391,7 @@
      },
      "dist_est_km_iguales": true,
      "pasa": true,
-     "segundos": 0.41
+     "segundos": 0.36
     }
    ],
    "b_base_vs_ingenuo": {
@@ -1420,10 +1420,10 @@
     "por_protocolo": {
      "LOSO-D": {
       "pliegues": 48,
-      "min_s": 0.163,
-      "mediana_s": 0.195,
-      "max_s": 0.216,
-      "total_s": 9.25,
+      "min_s": 0.148,
+      "mediana_s": 0.182,
+      "max_s": 0.197,
+      "total_s": 8.6,
       "obs_vec_nan_prueba_fraccion": 0.01503,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
        "222+251",
@@ -1434,10 +1434,10 @@
      },
      "LBO-10": {
       "pliegues": 48,
-      "min_s": 0.163,
-      "mediana_s": 0.179,
-      "max_s": 0.213,
-      "total_s": 8.84,
+      "min_s": 0.159,
+      "mediana_s": 0.17,
+      "max_s": 0.21,
+      "total_s": 8.52,
       "obs_vec_nan_prueba_fraccion": 0.02285,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
        "222+251",
@@ -1448,10 +1448,10 @@
      },
      "BLQ-75": {
       "pliegues": 18,
-      "min_s": 0.172,
-      "mediana_s": 0.196,
-      "max_s": 0.229,
-      "total_s": 3.51,
+      "min_s": 0.162,
+      "mediana_s": 0.183,
+      "max_s": 0.213,
+      "total_s": 3.31,
       "obs_vec_nan_prueba_fraccion": 0.02327,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
        "E003N065",
@@ -1461,10 +1461,10 @@
      },
      "LRO": {
       "pliegues": 12,
-      "min_s": 0.176,
-      "mediana_s": 0.208,
-      "max_s": 0.226,
-      "total_s": 2.43,
+      "min_s": 0.163,
+      "mediana_s": 0.197,
+      "max_s": 0.203,
+      "total_s": 2.3,
       "obs_vec_nan_prueba_fraccion": 0.05468,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
        "RII",
@@ -1474,15 +1474,15 @@
      "LPO": {
       "pliegues": 7,
       "min_s": 0.069,
-      "mediana_s": 0.071,
-      "max_s": 0.072,
-      "total_s": 0.5,
+      "mediana_s": 0.07,
+      "max_s": 0.071,
+      "total_s": 0.49,
       "obs_vec_nan_prueba_fraccion": 0.01503,
       "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": []
      }
     },
-    "total_s": 24.53,
-    "construccion_s": 0.571,
+    "total_s": 23.21,
+    "construccion_s": 0.503,
     "nota": "recálculo completo: las tres columnas en todas las filas (entrenamiento, prueba y entorno), en float32, con las huellas sha256; un tiempo no es un resultado (§10)"
    },
    "b_todos_vs_directo": {
@@ -1495,7 +1495,7 @@
     "dist_iguales_en_todos": true,
     "float32_distintas_total": 0,
     "produccion_float32_igual_al_float64_redondeado": true,
-    "filas_suma_directa_total": 2082914,
+    "filas_suma_directa_total": 2113455,
     "pasa": true
    }
   }
@@ -1505,14 +1505,14 @@
   "cpu_count": 16,
   "maquina": "arm64",
   "carga_1_5_15_min_inicio": [
-   14.1513671875,
-   8.4169921875,
-   6.3203125
+   3.6787109375,
+   4.74462890625,
+   4.44873046875
   ],
   "carga_1_5_15_min_fin": [
-   7.79345703125,
-   6.91015625,
-   6.18359375
+   4.18359375,
+   3.568359375,
+   3.908203125
   ]
  },
  "veredicto": {
@@ -1539,52 +1539,65 @@
   "tiempos_csv": {
    "raiz": "repo",
    "ruta": "output_files/modelo_1km_v2/vecindario_v2_tiempos.csv",
-   "sha256": "1613a4483bd1cc5fee33fb00aebf0c0cc1e2a3998440cd0171198ceb24f434e9"
+   "sha256": "a7bab39363854d697a36c51475bb3e91a14781b61fda0a99f2109bf7140e20ca"
   },
   "registros": {
    "pm25": {
     "raiz": "raiz_v2",
     "ruta": "vecindario/registro_recalculos_pm25.json",
-    "sha256": "49be6fba6d60fe1a70336a788d72e17ce409cb27bf2c82c53afc57c7d6607e35"
+    "sha256": "2f72f1a7cce3c42744b8eabe8788e39f5e7530f6f7802d3934b2339d429a3b30"
    },
    "no2": {
     "raiz": "raiz_v2",
     "ruta": "vecindario/registro_recalculos_no2.json",
-    "sha256": "15381d8d5fdd1f0a22effc79bf33a5307f5e4b3055ca7dfa1ef2bca637de4a2b"
+    "sha256": "ff2010e3c3b1ea06747e727a269977cdde45889b79b5f2777cf3f3fe1aa3c922"
    }
   }
  },
  "traza": {
-  "creado_utc": "2026-10-12T23:01:28Z",
+  "creado_utc": "2026-10-13T05:52:03Z",
   "programa": "validar_vecindario_v2.py",
   "git": {
-   "commit": "51d125efcdf00fee788d73607f33e143e67ad477",
+   "commit": "aa01f4d8e924f986e1a5e60bdef8f9dd39ee2e36",
    "v2_sin_commit": [
+    "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
     "scripts_modelo_1km/v2/_rutas_v2.py",
-    "scripts_modelo_1km/v2/_traza_v2.py",
-    "scripts_modelo_1km/v2/calidad_v2.py",
     "scripts_modelo_1km/v2/config_v2.json",
+    "scripts_modelo_1km/v2/correr_v2.py",
+    "scripts_modelo_1km/v2/metricas_v2.py",
+    "scripts_modelo_1km/v2/motores_v2.py",
+    "scripts_modelo_1km/v2/perdidas_v2.py",
+    "scripts_modelo_1km/v2/piloto_v2.py",
     "scripts_modelo_1km/v2/pliegues_v2.py",
-    "scripts_modelo_1km/v2/tests/test_calidad_artefacto_v2.py",
-    "scripts_modelo_1km/v2/tests/test_calidad_v2.py",
+    "scripts_modelo_1km/v2/retransformacion_v2.py",
+    "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
     "scripts_modelo_1km/v2/tests/test_config_v2.py",
+    "scripts_modelo_1km/v2/tests/test_correr_v2.py",
     "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+    "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+    "scripts_modelo_1km/v2/tests/test_motores_v2.py",
+    "scripts_modelo_1km/v2/tests/test_perdidas_v2.py",
+    "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
     "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
-    "scripts_modelo_1km/v2/tests/test_rutas_v2.py",
-    "scripts_modelo_1km/v2/tests/test_traza_v2.py",
-    "scripts_modelo_1km/v2/tests/test_vecindario_v2.py",
-    "scripts_modelo_1km/v2/validar_vecindario_v2.py",
-    "scripts_modelo_1km/v2/vecindario_v2.py"
+    "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py",
+    "scripts_modelo_1km/v2/tests/test_rutas_v2.py"
    ],
-   "arbol_con_cambios_rastreados": false
+   "arbol_con_cambios_rastreados": true
   },
   "codigo": {
-   "hash": "b935900f9380e2847fadead5b7587e76eeb6c8b880be49216625c33e28831a87",
+   "hash": "2fa39d65db0fc404a8d996bdd82137cfa7a09b8e0f8e52e3b42eee7f13249b04",
    "archivos": {
-    "scripts_modelo_1km/v2/_rutas_v2.py": "9152d405c898ff97fd3cef1270efae807e0819b8d5791ca4934caf89f39ce5c4",
+    "scripts_modelo_1km/v2/_rutas_v2.py": "faa070bdf008dde1ab33d482ef865c24375158e6266c0d5a436d60acfa3db595",
     "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
+    "scripts_modelo_1km/v2/bootstrap_v2.py": "49581320083f1b32bd0cf72623d3f0730c8920994c3cc1239da7dc8b4d06e400",
     "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
-    "scripts_modelo_1km/v2/pliegues_v2.py": "d95625c8dde4a57cadf684777468e38187ae310e3185eba5368569dee8282958",
+    "scripts_modelo_1km/v2/correr_v2.py": "caba60a9769c5ee477e40b02dbf5dd040c4495fd3718c0beb6b9dd0652b00a17",
+    "scripts_modelo_1km/v2/metricas_v2.py": "93cbb474da22a64d22138ee72502989b88374fa980e7e6d6008e1075c16b1591",
+    "scripts_modelo_1km/v2/motores_v2.py": "ede4fa7a24bf011af623e94dd45d92834a79bc800a2130124985cf201baeae4e",
+    "scripts_modelo_1km/v2/perdidas_v2.py": "c8caaf6b426447bcb0e86197a0935794746cb92503eed6531225321538fff471",
+    "scripts_modelo_1km/v2/piloto_v2.py": "96b6436fff8bde2a3f42dc8e242c3a9f2ad68b73ea0f388ada24e2b422710927",
+    "scripts_modelo_1km/v2/pliegues_v2.py": "bafaecd14114ccad1b9485d2f645fe81c925bd1cf9bc832abafce9d8c5c1200d",
+    "scripts_modelo_1km/v2/retransformacion_v2.py": "ff92d87b370fdf8386a17a9c171fa42bf70f6b549d9cd58612da49bb471bd1f9",
     "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
     "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181"
    }
@@ -1592,14 +1605,14 @@
   "contrato": {
    "raiz": "repo",
    "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
-   "sha256": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
-   "bytes": 9389
+   "sha256": "05218686b3f1808d5379b095789ada4ea69ba02362be8063330a2c2f9f5a5e17",
+   "bytes": 24532
   },
   "config": {
    "raiz": "repo",
    "ruta": "scripts_modelo_1km/v2/config_v2.json",
-   "sha256": "1109e41202b2ed63bb5ad9ae92471c158b3666aca751e9b24289b10d5c7e0df5",
-   "bytes": 22062
+   "sha256": "5e7fbeda8975a96a4a1bfaed6ef4f56468d493ad86bb938f2eed77a0133e5d91",
+   "bytes": 70248
   },
   "insumos": {
    "catalogo_sinca": {
@@ -1629,8 +1642,8 @@
    "manifiesto_pliegues": {
     "raiz": "raiz_v2",
     "ruta": "pliegues_v2.json",
-    "sha256": "42bb1a37cab89c24f9580f0466dbbbd53f411ace4ab8f47c9ecd7a1d7e0e8fef",
-    "bytes": 290791
+    "sha256": "9ba5c1c92ec6170cb04afacd0c6d24fac42a982a62affb1aa7e214a09a57ba8f",
+    "bytes": 339776
    },
    "panel_no2": {
     "raiz": "raiz_v1",

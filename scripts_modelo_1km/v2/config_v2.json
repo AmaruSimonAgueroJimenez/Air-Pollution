@@ -1,17 +1,116 @@
 {
- "schema": "airpollution.modelo-1km-v2.config.v1",
- "descripcion": "Traducción a datos del contrato DISENO_AMBIENTAL_V2.md, fijado el 2026-10-12 antes de estimar ningún motor v2. No agrega decisiones: lo que el contrato no fija queda como «pendiente».",
+ "schema": "airpollution.modelo-1km-v2.config.v2",
+ "descripcion": "Traducción a datos del contrato DISENO_AMBIENTAL_V2.md, fijado el 2026-10-12 antes de estimar ningún motor v2, con su Enmienda 1 y el Complemento de la Enmienda 1 (los dos del 2026-10-13, antes de cualquier ajuste comparativo). No agrega decisiones: lo que el contrato no fija queda como «pendiente».",
  "convenciones": {
   "pendiente": "La cadena «pendiente» marca un valor que el contrato no fija. Cuando hace falta una nota, o cuando el código de alguna etapa necesitó un valor para funcionar, el campo es un objeto {\"estado\": \"pendiente\", \"nota\": ..., \"provisional\": ...}. El «provisional» no es contrato: se ratifica o se corrige por enmienda.",
+  "ratificado": "Un objeto {\"estado\": \"ratificado (Enmienda 1)\", \"punto\": ..., \"valor\": ..., \"nota\": ...} es un provisional que la enmienda ratificó por nombre: «valor» es contrato y es lo que lee el código. Si la enmienda lo ratificó con un cambio, «cambio» dice cuál y, si el valor cambió, «provisional_anterior» guarda el que tenía. «ratificado (Complemento)» marca, con la misma forma, los 7 detalles que el Complemento de la Enmienda 1 ratificó en su punto 4: «punto» remite a los puntos del Complemento y «origen», al punto de la Enmienda 1 que dejó el detalle pendiente.",
+  "lectura": "«lectura» dice cómo se tradujo una frase del contrato que no escribe todos los detalles pero admite una sola lectura razonable. Si admite más de una, el detalle queda «pendiente», con su provisional.",
+  "antes_de_la_enmienda": "Los campos «…_antes_de_la_enmienda» guardan la especificación original que la enmienda cambió, y los «…_antes_del_complemento», la de la Enmienda 1 que cambió el Complemento.",
   "receta_v1": "«receta v1» remite a la receta de la v1 tal como la verificó el mapa Air-Pollution-Health-Chile/auditoria/20261012/mapa_modelo_ambiental_v1.json; qmd = docs/modelo_1km_horario.qmd.",
-  "fuente": "Cada bloque indica la sección del contrato que traduce (§)."
+  "fuente": "Cada bloque indica la sección del contrato que traduce (§) y los puntos de la Enmienda 1 y de su Complemento que lo tocan."
  },
  "contrato": {
   "archivo": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
-  "sha256": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
+  "sha256": "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0",
   "fijado": "2026-10-12",
   "commit": "51d125e",
-  "enmiendas": []
+  "sha256_original": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
+  "nota": "«commit» y «sha256_original» son los del texto fijado el 2026-10-12, que se sigue informando. «sha256» es el del texto vigente, con la Enmienda 1 y su Complemento, que se confirma en git junto con esta configuración y el código antes de cualquier ajuste comparativo (Enmienda 1, punto 14). Cada entrada de «enmiendas» guarda el sha256 del texto tal como quedó con ella.",
+  "enmiendas": [
+   {
+    "id": "Enmienda 1",
+    "fecha": "2026-10-13",
+    "sha256": "05218686b3f1808d5379b095789ada4ea69ba02362be8063330a2c2f9f5a5e17",
+    "sha256_de": "el texto con la Enmienda 1 y sin su Complemento (todo lo anterior a «### Complemento de la Enmienda 1»)",
+    "momento": "antes de cualquier ajuste comparativo",
+    "motivo": "la construcción dejó 39 valores provisionales y 1 pendiente en config_v2.json; el piloto de tiempos y la unión de la bandera de calidad mostraron vacíos de fondo",
+    "revision": "un borrador pasó una revisión independiente con dos enfoques (metodología; caminos que se bifurcan y coherencia); borrador y revisión quedan en el repositorio de salud (privado), en auditoria/20261012/enmienda1_ambiental/",
+    "conocido_al_escribirla": {
+     "v2": "sólo se midieron tiempos; no existe ninguna métrica de desempeño",
+     "v1": [
+      "RF supera a LightGBM en NO2",
+      "retransformación con evidencia mixta: en PM2,5 el smearing global tuvo menor NMB (1,73 % frente a 2,37 %) pero menor R² (0,4031 frente a 0,4054); en NO2, ½·σ² por macrozona ganó en las dos métricas; el smearing por macrozona nunca se probó"
+     ],
+     "salvaguarda": "cada decisión se funda en la literatura, la continuidad o los datos (no en esos resultados), y se informa la alternativa"
+    },
+    "artefactos_congelados": {
+     "plan_corrida_v2.json": "7385414e2b958e9ec65279d0b2f554f3912855fa75ebff1c625540e7282d38e0",
+     "piloto_tiempos/mediciones.json": "aea002f6cd5f6a1ed6c15a1ae5fad3a1918cfa15274d6eac1de029bf52d99db5",
+     "pliegues_v2.json": "5e965c22cfc573c7da2719f7e0a7f51667c7229adeba8f5483b067a9bb6e18fa"
+    },
+    "artefactos_congelados_nota": "Artefactos del piloto en la raíz v2, con el sha256 completo de los prefijos que cita la enmienda. El manifiesto se vuelve a fijar por el punto 8; la versión del piloto queda congelada. El Complemento (punto 9) precisa que el manifiesto congelado del piloto es la copia pliegues_v2_reemplazado_20261013T054105Z.json, con este mismo sha256, y que pliegues_v2.json es el vigente, con el amortiguador (protocolos.manifiesto).",
+    "declaracion": "El 2026-10-13, entre las 00:44 y las 00:46, DISENO_AMBIENTAL_V2.md se reemplazó un minuto y medio por su versión del commit 51d125e, para confirmar la construcción contra el contrato original; en esa ventana sólo corrieron las pruebas unitarias. En adelante las comparaciones con versiones anteriores se hacen con git show a un temporal, nunca reemplazando el archivo.",
+    "puntos": [
+     {"punto": 1, "titulo": "Provisionales ratificados (los 39, por nombre)", "config": [
+      "protocolos.BLQ-75.origen_m", "protocolos.semilla.k",
+      "motores.eje_A.xgboost.colsample.variante", "motores.eje_A.xgboost.min_child_weight", "motores.eje_A.xgboost.max_depth",
+      "motores.eje_A.xgboost.max_bin", "motores.eje_A.xgboost.nthread", "motores.eje_A.xgboost.seed", "motores.eje_A.xgboost.determinismo",
+      "motores.eje_A.random_forest.n_jobs", "motores.eje_A.mlp.parada_temprana.fraccion", "motores.eje_A.mlp.parada_temprana.criterio",
+      "motores.eje_A.promedio_simple.escala", "motores.eje_B.topes_de_filas", "motores.alertas.receta",
+      "motores.apilado_anidado.bases", "motores.apilado_anidado.pliegues_internos", "motores.apilado_anidado.escala",
+      "filas_entrenamiento.permutacion.generador", "filas_entrenamiento.disponibles_menos_que_el_tope",
+      "retransformacion.primaria.global_de_los_demas_con_menos_de_100_filas", "retransformacion.sensibilidad.pliegues_internos",
+      "perdidas.variantes[2].delta.mad", "perdidas.variantes[2].delta.ajuste_cuadratico", "perdidas.variantes[2].implementacion_xgboost",
+      "perdidas.hiperparametros_por_perdida",
+      "calidad_blanco.codigos_qc", "calidad_blanco.snifa.cruce_con_variantes_sinca",
+      "metricas.niveles.mensual.minimo_dias", "metricas.niveles.anual.minimo_meses",
+      "metricas.desagregaciones.regimen_de_predictores.criterio", "metricas.desagregaciones.estrato_de_soporte.distribucion_de_referencia",
+      "metricas.desagregaciones.ponderado_por_poblacion.poblacion",
+      "ruido.valores", "inferencia_diferencias.bootstrap.metodo_del_intervalo", "inferencia_diferencias.bootstrap.semilla",
+      "inferencia_diferencias.bootstrap.nivel_de_agregacion", "inferencia_diferencias.regla_de_superioridad.medida_del_ruido",
+      "presupuesto.piloto.eleccion_de_los_pliegues"]},
+     {"punto": 2, "titulo": "Retransformación (§5)", "config": ["retransformacion", "perdidas.variantes[0]"]},
+     {"punto": 3, "titulo": "Ruido de semillas (§8)", "config": ["ruido", "inferencia_diferencias.regla_de_superioridad.medida_del_ruido"]},
+     {"punto": 4, "titulo": "Ponderación (§8)", "config": ["metricas.desagregaciones.ponderado_por_poblacion"]},
+     {"punto": 5, "titulo": "Inferencia de diferencias (§8)", "config": ["inferencia_diferencias"]},
+     {"punto": 6, "titulo": "Parada temprana de la MLP", "config": ["motores.eje_A.mlp.parada_temprana"]},
+     {"punto": 7, "titulo": "Evaluación y calidad (§7)", "config": ["calidad_blanco.evaluacion", "calidad_blanco.no_validado"]},
+     {"punto": 8, "titulo": "BLQ-75 con amortiguador", "config": ["protocolos.BLQ-75.exclusion_adicional", "protocolos.manifiesto", "regla_exclusion"]},
+     {"punto": 9, "titulo": "Huber y cuantiles (§6)", "config": ["perdidas.variantes[2]", "perdidas.variantes[3]", "perdidas.hiperparametros_por_perdida"]},
+     {"punto": 10, "titulo": "Regímenes de predictores (§8, descriptivo)", "config": ["metricas.desagregaciones.regimen_de_predictores"]},
+     {"punto": 11, "titulo": "Regla de decisión (§9, cerrada)", "config": ["decision", "motores.apilado_anidado"]},
+     {"punto": 12, "titulo": "Presupuesto (§10)", "config": ["presupuesto"]},
+     {"punto": 13, "titulo": "LOSO-D y distancias", "config": ["protocolos.LOSO-D", "protocolos.distancias"]},
+     {"punto": 14, "titulo": "Procedencia y sellado", "config": ["procedencia_y_sellado"]}
+    ],
+    "commit": null,
+    "sellado": "el contrato, la configuración y el código se confirman en git antes de cualquier ajuste comparativo (punto 14); el commit queda en la traza de cada artefacto"
+   },
+   {
+    "id": "Complemento de la Enmienda 1",
+    "fecha": "2026-10-13",
+    "sha256": "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0",
+    "sha256_de": "el texto vigente: la Enmienda 1 y su Complemento",
+    "complementa_a": "Enmienda 1",
+    "momento": "antes de cualquier ajuste comparativo",
+    "motivo": "al implementar la Enmienda 1, la configuración dejó 7 detalles con valor provisional; la verificación independiente encontró además que la regla de factibilidad y la segunda prueba no estaban bien fijadas",
+    "conocido_al_escribirlo": {
+     "v2": "sigue sin existir ninguna métrica de desempeño v2",
+     "fundamento": "todo lo que fija se decide con datos sintéticos, tiempos o principios"
+    },
+    "puntos": [
+     {"punto": 1, "titulo": "Segunda prueba del punto 5", "config": ["inferencia_diferencias.segunda_prueba"]},
+     {"punto": 2, "titulo": "Bootstrap percentil", "config": ["inferencia_diferencias.bootstrap.replicas", "decision.condiciones[0].holm"]},
+     {"punto": 3, "titulo": "Factibilidad", "config": ["decision.factibilidad"]},
+     {"punto": 4, "titulo": "Ratificación de los 7 detalles provisionales", "config": [
+      "motores.eje_A.mlp.parada_temprana.seleccion_en_LRO_y_BLQ-75", "perdidas.variantes[2].delta.particion_honesta",
+      "perdidas.variantes[3].calibracion.respaldo", "metricas.desagregaciones.regimen_de_predictores.sensibilidad.fila_a_fila",
+      "metricas.desagregaciones.ponderado_por_poblacion.desagrupamiento.poblacion_comunal",
+      "inferencia_diferencias.segunda_prueba.metodo", "decision.evidencia_parcial.definicion"]},
+     {"punto": 5, "titulo": "Amortiguador en las particiones internas de BLQ-75", "config": [
+      "protocolos.BLQ-75.exclusion_adicional.particiones_internas", "regla_exclusion.amortiguador_interno",
+      "motores.eje_A.mlp.parada_temprana.amortiguador_interno_en_BLQ-75", "motores.apilado_anidado.amortiguador_interno_en_BLQ-75",
+      "retransformacion.sensibilidad.amortiguador_interno_en_BLQ-75", "perdidas.variantes[2].delta.amortiguador_interno_en_BLQ-75"]},
+     {"punto": 6, "titulo": "Réplicas", "config": ["decision.condiciones[1]", "decision.desempate", "ruido.replicas_exigidas_en_la_decision"]},
+     {"punto": 7, "titulo": "Firma", "config": ["procedencia_y_sellado.firma_de_los_ajustes"]},
+     {"punto": 8, "titulo": "Presupuesto", "config": ["presupuesto.orden_de_recortes_en_el_codigo", "presupuesto.piloto.revision"]},
+     {"punto": 9, "titulo": "Manifiesto congelado del piloto", "config": ["protocolos.manifiesto.congelado_del_piloto", "protocolos.manifiesto.vigente"]},
+     {"punto": 10, "titulo": "Candado", "config": ["procedencia_y_sellado.candado"]}
+    ],
+    "commit": null,
+    "sellado": "como la Enmienda 1 (punto 14): el contrato, la configuración y el código se confirman en git antes de cualquier ajuste comparativo; el commit queda en la traza de cada artefacto"
+   }
+  ]
  },
  "relacion_v1": {
   "fuente": "§0",
@@ -42,14 +141,34 @@
   ]
  },
  "protocolos": {
-  "fuente": "§1",
+  "fuente": "§1; Enmienda 1, puntos 1.1, 8 y 13; Complemento, puntos 5 y 9",
   "manifiesto": {
    "archivo": "pliegues_v2.json",
    "ubicacion": "raíz v2",
    "contiene": ["grupos", "k", "semillas"],
-   "momento": "antes de ajustar ningún motor"
+   "momento": "antes de ajustar ningún motor",
+   "refijado_por_la_enmienda_1": "se vuelve a fijar, con su bitácora, por el amortiguador de BLQ-75 (punto 8), informando por bloque la distancia mínima de prueba a entrenamiento; lista también los conglomerados encadenados de LOSO-D (punto 13). La versión del piloto (sha256 5e965c22…) queda congelada.",
+   "congelado_del_piloto": {
+    "archivo": "pliegues_v2_reemplazado_20261013T054105Z.json",
+    "ubicacion": "raíz v2",
+    "sha256": "5e965c22cfc573c7da2719f7e0a7f51667c7229adeba8f5483b067a9bb6e18fa",
+    "es": "la copia del pliegues_v2.json del piloto, el que la Enmienda 1 declaró congelado (contrato.enmiendas[0].artefactos_congelados)",
+    "fuente": "Complemento de la Enmienda 1, punto 9"
+   },
+   "vigente": {
+    "archivo": "pliegues_v2.json",
+    "ubicacion": "raíz v2",
+    "es": "el manifiesto vigente, con el amortiguador de BLQ-75 (Enmienda 1, punto 8)",
+    "fuente": "Complemento de la Enmienda 1, punto 9"
+   }
   },
   "orden": ["LOSO-D", "LBO-10", "BLQ-75", "LRO", "LPO"],
+  "distancias": {
+   "formula": "haversine",
+   "radio_tierra_km": 6371.0,
+   "alcance": "todos los radios: los 2 km de LOSO-D, los 10 km de LBO-10 y del amortiguador de BLQ-75, y las distancias del vecindario",
+   "fuente": "Enmienda 1, punto 13; como la v1 (_features.py:330-334)"
+  },
   "LOSO-D": {
    "grupo_prueba": "conglomerado de estaciones",
    "umbral_km": 2.0,
@@ -57,6 +176,7 @@
    "metodo": "componentes conexas",
    "une_celdas_compartidas": true,
    "retira_juntos_ejemplos": [["309", "310", "330", "333"], ["B03", "B04"], ["503", "548"]],
+   "encadenamiento": "la regla de componentes conexas a ≤ 2 km se mantiene; hay conglomerados encadenados de hasta 3,7 km, listados en el manifiesto (Enmienda 1, punto 13)",
    "distancia": {
     "formula": "haversine",
     "radio_tierra_km": 6371.0,
@@ -79,12 +199,32 @@
    "lado_m": 75000.0,
    "crs": "EPSG:32719",
    "origen_m": {
-    "estado": "pendiente",
-    "nota": "El contrato fija la rejilla pero no su origen. El manifiesto usa el origen falso de la proyección, (este, norte) = (0, 0), elegido sin mirar resultados, y lo registra junto con los límites de cada bloque.",
-    "provisional": [0.0, 0.0]
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.1",
+    "valor": [0.0, 0.0],
+    "nota": "El contrato fijaba la rejilla pero no su origen. Se ratifica el origen falso de la proyección, (este, norte) = (0, 0), elegido sin mirar resultados; el manifiesto lo registra junto con los límites de cada bloque. Como esa rejilla parte Gran Santiago, Gran Concepción y Quintero-Puchuncaví, se ratifica con el amortiguador de exclusion_adicional (punto 8)."
    },
    "asignacion": "cada estación va al bloque que contiene sus coordenadas proyectadas",
-   "exclusion_adicional": "ninguna"
+   "exclusion_adicional": {
+    "radio_km": 10.0,
+    "comparacion": "<=",
+    "medida_desde": "cualquier estación del bloque de prueba",
+    "universo": "estaciones con celda de las dos redes, como en LBO-10",
+    "se_aplica_como": "parte del conjunto excluido del pliegue (regla única de exclusión): entrenamiento y vecindario, como en LBO-10",
+    "fuente": "Enmienda 1, punto 8: con el origen (0, 0), 10 de 34 bloques de PM2,5 tenían una estación de entrenamiento a menos de 10 km",
+    "antes_de_la_enmienda": "ninguna",
+    "particiones_internas": {
+     "radio_km": 10.0,
+     "comparacion": "<=",
+     "distancia": "haversine (protocolos.distancias)",
+     "medida_desde": "cualquier estación del conjunto interno de validación",
+     "regla": "el radio de 10 km también se aplica en las particiones internas de cada pliegue de BLQ-75: en cada una se sacan del entrenamiento interno las estaciones a ≤ 10 km de las estaciones de su conjunto interno de validación",
+     "se_aplica_en": ["la validación de la MLP", "los pliegues internos del apilado y de la retransformación con OOF interno", "la partición honesta del δ de Huber"],
+     "lectura": "Las estaciones que salen se suman al conjunto excluido de la partición interna, que ya se aplica a sus filas y a su vecindario recalculado (motores.apilado_anidado.pliegues_internos → exclusion; mlp.parada_temprana.criterio → vecindario; perdidas.variantes[2].delta.particion_honesta).",
+     "fuente": "Complemento de la Enmienda 1, punto 5",
+     "antes_del_complemento": "el amortiguador se aplicaba sólo entre el bloque de prueba y el entrenamiento del pliegue externo"
+    }
+   }
   },
   "LRO": {
    "grupo_prueba": "region_sinca",
@@ -107,21 +247,24 @@
   "semilla": {
    "regla": [42, "k"],
    "k": {
-    "estado": "pendiente",
-    "nota": "El contrato nombra k sin fijar el orden de los grupos.",
-    "provisional": "posición de la etiqueta del grupo en orden lexicográfico, por contaminante y protocolo, como la v1 (qmd:2635); LBO-10 comparte etiquetas y k con LOSO-D"
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.1",
+    "valor": "posición de la etiqueta del grupo en orden lexicográfico, por contaminante y protocolo, como la v1 (qmd:2635); LBO-10 comparte etiquetas y k con LOSO-D",
+    "nota": "El contrato nombraba k sin fijar el orden de los grupos; la enmienda ratifica el orden lexicográfico de la v1."
    }
   }
  },
  "regla_exclusion": {
-  "fuente": "§1",
+  "fuente": "§1; Enmienda 1, punto 8; Complemento, punto 5",
   "conjunto": "uno solo por pliegue",
   "se_aplica_a": [
    "filas de entrenamiento",
    "vecindario de entrenamiento",
    "vecindario de prueba",
    "residuos de la retransformación"
-  ]
+  ],
+  "amortiguadores": "en LBO-10 y en BLQ-75 el conjunto excluido incluye las estaciones a ≤ 10 km (haversine) de cualquier estación del grupo de prueba (protocolos.LBO-10 y protocolos.BLQ-75 → exclusion_adicional)",
+  "amortiguador_interno": "en BLQ-75 el radio de 10 km también se aplica en las particiones internas: en cada una se sacan del entrenamiento interno las estaciones a ≤ 10 km de las estaciones de su conjunto interno de validación (protocolos.BLQ-75 → exclusion_adicional → particiones_internas)"
  },
  "vecindario": {
   "fuente": "§2",
@@ -149,12 +292,12 @@
   }
  },
  "motores": {
-  "fuente": "§3",
+  "fuente": "§3; Enmienda 1, puntos 1.2 a 1.5, 6 y 11; Complemento, puntos 4.1 y 5",
   "eje_A": {
    "descripcion": "mismos predictores, blanco y retransformación",
    "blanco": "log1p",
-   "perdida": "cuadrática sobre log1p (la referencia de §6)",
-   "retransformacion": "la primaria (§5)",
+   "perdida": "cuadrática sobre log1p (la referencia de §6: l2_log_smearing)",
+   "retransformacion": "la primaria (§5): smearing de Duan por macrozona × franja (Enmienda 1, punto 2)",
    "predictores": {
     "fuente": "los de la v1 (modelos/<pol>/metricas.json → predictores); en NO2 sin dist_costa_km",
     "pm25": ["hora_local", "hora_sin", "hora_cos", "doy_sin", "doy_cos", "dow", "mes", "anio", "lat", "lon", "macrozona_cod", "elev_m", "pendiente_deg", "dist_costa_km", "vias_km_km2", "vias_princ_km_km2", "lulc_urbano", "lulc_cultivo", "lulc_bosque", "lulc_matorral_pastizal", "lulc_desnudo", "lulc_agua", "lulc_nieve_hielo", "pob_dens", "el_t2m", "el_d2m", "el_rh", "el_sp", "el_u10", "el_v10", "el_wind", "el_wdir_sin", "el_wdir_cos", "el_tp_1h_mm", "blh", "inv_blh", "m2_t2m", "m2_rh2m", "m2_u10m", "m2_v10m", "m2_pblh", "m2_aod", "m2_pm25", "m2_ps", "m2_aod_pblh", "cams_no2", "cams_pm25", "cams_o3", "cams_co", "gcf_no2", "gcf_pm25", "gcf_o3", "gcf_co", "gcf_pm25_blh", "aod_terra", "aod_aqua", "aod_dia", "aod_n", "aod_3d", "aod_7d", "no2_trop", "no2_trop_prec", "no2_trop_hora", "no2_trop_7d", "no2_trop_15d", "acag_pm25", "acag_clim", "obs_vec", "peso_vec", "dist_est_km"],
@@ -178,7 +321,8 @@
     "seed": 42,
     "seed_fuente": "receta v1 (qmd:311); las semillas de ruido van en «ruido»",
     "parada_temprana": false,
-    "resto": "por omisión de LightGBM, como la v1 (max_bin 255, max_depth −1, lambda_l1 0)"
+    "resto": "por omisión de LightGBM, como la v1 (max_bin 255, max_depth −1, lambda_l1 0)",
+    "cortes_del_histograma": "con una muestra de 200.000 filas (bin_construct_sample_cnt por omisión); la receta v1 no se toca (Enmienda 1, punto 1.2)"
    },
    "xgboost": {
     "receta": "equivalente a la de LightGBM",
@@ -191,41 +335,51 @@
     "colsample": {
      "valor": 0.8,
      "variante": {
-      "estado": "pendiente",
-      "nota": "El contrato dice «colsample 0,8» sin decir cuál. El equivalente de feature_fraction de LightGBM, que muestrea por árbol, es colsample_bytree.",
-      "provisional": "colsample_bytree"
+      "estado": "ratificado (Enmienda 1)",
+      "punto": "1.2",
+      "valor": "colsample_bytree",
+      "nota": "El contrato decía «colsample 0,8» sin decir cuál. El equivalente de feature_fraction de LightGBM, que muestrea por árbol, es colsample_bytree."
      }
     },
     "lambda": 1.0,
     "min_child_weight": {
-     "estado": "pendiente",
-     "nota": "El contrato pide un valor «equivalente» a min_data_in_leaf = 50 sin fijarlo. Con pérdida cuadrática la hessiana por fila vale 1 y el equivalente sería 50; con Huber o pinball no hay equivalencia exacta. La v2 usa hessiana 1 en todas las pérdidas (Huber y pinball como LightGBM: perdidas_v2.py), así que 50 es el equivalente.",
-     "provisional": 50
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.2",
+     "valor": 50,
+     "equivalencia": "con hessiana 1",
+     "salvaguarda": "el código impide usar este valor con un objetivo de hessiana no constante",
+     "nota": "Equivalente de min_data_in_leaf = 50: LightGBM cuenta filas y XGBoost suma hessianas, que valen 1 por fila en todas las pérdidas de la v2 (L2 en log y en escala original, Huber y pinball: perdidas_v2.py). Con una pérdida de hessiana no constante (pseudo-Huber, Poisson, Gamma) la equivalencia se rompe."
     },
     "max_depth": {
-     "estado": "pendiente",
-     "nota": "LightGBM usa max_depth −1 (sin límite); con grow_policy lossguide el equivalente de XGBoost es 0.",
-     "provisional": 0
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.2",
+     "valor": 0,
+     "nota": "LightGBM usa max_depth −1 (sin límite); con grow_policy lossguide el equivalente de XGBoost es 0."
     },
     "max_bin": {
-     "estado": "pendiente",
-     "nota": "LightGBM usa max_bin 255 por omisión (XGBoost, 256).",
-     "provisional": 255
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.2",
+     "valor": 255,
+     "nota": "LightGBM usa max_bin 255 por omisión (XGBoost, 256)."
     },
     "nthread": {
-     "estado": "pendiente",
-     "nota": "Los mismos hilos de LightGBM (12, operacion.hilos_maximos); correr_v2 puede bajarlos con --hilos y lo registra en la firma.",
-     "provisional": 12
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.2",
+     "valor": 12,
+     "nota": "Los mismos hilos de LightGBM (12, operacion.hilos_maximos); correr_v2 puede bajarlos con --hilos y lo registra en la firma."
     },
     "seed": {
-     "estado": "pendiente",
-     "nota": "La semilla de LightGBM; en las réplicas de ruido, la de la receta + 1000·r (ruido.valores).",
-     "provisional": 42
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.2",
+     "valor": 42,
+     "nota": "La semilla de LightGBM; en las réplicas de ruido, la de la receta + 1000·r (ruido.valores)."
     },
     "determinismo": {
-     "estado": "pendiente",
-     "nota": "XGBoost no tiene un parámetro deterministic en CPU.",
-     "provisional": "tree_method hist en CPU, QuantileDMatrix, nthread y seed fijos; se verifica con dos corridas idénticas bit a bit (tests/test_correr_v2.py)"
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.2",
+     "valor": "tree_method hist en CPU, QuantileDMatrix, nthread y seed fijos; se verifica con dos corridas idénticas bit a bit (tests/test_correr_v2.py)",
+     "cortes_del_histograma": "LightGBM arma los cortes con una muestra de 200.000 filas y XGBoost con todas las filas de su QuantileDMatrix; la diferencia queda documentada y la receta v1 de LightGBM no se toca",
+     "nota": "XGBoost no tiene un parámetro deterministic en CPU."
     }
    },
    "random_forest": {
@@ -238,9 +392,11 @@
     "random_state": "42 + k (receta v1)",
     "faltantes": "NaN nativos (scikit-learn ≥ 1.4), como la v1",
     "n_jobs": {
-     "estado": "pendiente",
-     "nota": "Los hilos de la corrida; con random_state fijo el bosque de scikit-learn no depende de n_jobs.",
-     "provisional": 12
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.3",
+     "valor": 12,
+     "prediccion": "por trozos, con un hilo por trozo",
+     "nota": "Los hilos de la corrida; con random_state fijo el bosque de scikit-learn no depende de n_jobs, y la predicción por trozos con un hilo por trozo es reproducible bit a bit."
     }
    },
    "mlp": {
@@ -259,16 +415,44 @@
     "columnas_vacias_en_el_entrenamiento": "NaN en la prueba (receta v1)",
     "random_state": "42 + k (receta v1)",
     "parada_temprana": {
-     "validacion": "agrupada por estación, no al azar",
+     "validacion": "agrupada por conglomerados LOSO-D; en LRO y BLQ-75, por grupos completos del protocolo (Enmienda 1, punto 6)",
+     "validacion_antes_de_la_enmienda": "agrupada por estación, no al azar (§3)",
+     "amortiguador_interno_en_BLQ-75": "en BLQ-75 se sacan del entrenamiento interno las estaciones a ≤ 10 km de las estaciones de validación (protocolos.BLQ-75.exclusion_adicional.particiones_internas; Complemento, punto 5)",
      "fraccion": {
-      "estado": "pendiente",
-      "nota": "La v1 usaba validation_fraction = 0,1 de filas al azar. La v2 aparta esa fracción de las estaciones del entrenamiento del pliegue (al menos una y nunca todas), sorteadas con default_rng(random_state de la MLP).",
-      "provisional": 0.1
+      "estado": "ratificado (Enmienda 1)",
+      "punto": "1.3, con el cambio del punto 6",
+      "valor": 0.1,
+      "unidad": {
+       "LOSO-D, LBO-10 y LPO": "conglomerados LOSO-D presentes en el entrenamiento del pliegue: máx(1, round(0,1 × n)) y nunca todos, sorteados con default_rng(random_state de la MLP)",
+       "LRO y BLQ-75": "grupos completos del protocolo (regiones o bloques), hasta ~10 % de las filas con tope del pliegue, estratificado por macrozona (seleccion_en_LRO_y_BLQ-75)"
+      },
+      "nota": "La v1 usaba validation_fraction = 0,1 de filas al azar; la construcción v2 apartaba esa fracción de las estaciones del entrenamiento del pliegue.",
+      "cambio": "Punto 6: la unidad del sorteo pasa de estaciones sueltas a conglomerados LOSO-D y, en LRO y BLQ-75, a grupos completos del protocolo hasta ~10 % de las filas, estratificado por macrozona.",
+      "lectura": "Fuera de LRO y BLQ-75 la fracción se cuenta en conglomerados, como antes se contaba en estaciones; en LRO y BLQ-75 es el tope aproximado de filas."
+     },
+     "seleccion_en_LRO_y_BLQ-75": {
+      "estado": "ratificado (Complemento)",
+      "punto": "4.1",
+      "origen": "Enmienda 1, punto 6",
+      "nota": "El punto 6 pide grupos completos «hasta ~10 % de las filas, estratificado por macrozona» sin dar el algoritmo. Con regiones grandes no se puede tomar un grupo de cada macrozona sin pasar del 10 %.",
+      "valor": "por pliegue: (1) se permutan con default_rng(random_state de la MLP) las etiquetas ordenadas de los grupos del protocolo presentes en el entrenamiento; (2) se recorren en ese orden y un grupo entra si su macrozona (la de la mayoría de sus filas) todavía no aporta ninguno y si con él las filas de validación no pasan del 10 % de las filas con tope; (3) si ninguno cabe, entra el grupo con menos filas; nunca entran todos. Se registran los grupos, sus macrozonas y la fracción de filas."
      },
      "criterio": {
-      "estado": "pendiente",
+      "estado": "ratificado (Enmienda 1)",
+      "punto": "1.3, con el cambio del punto 6",
+      "valor": {
+       "metrica": "R² en log1p de las filas de validación (como MLPRegressor.score)",
+       "tol": 0.0001,
+       "n_iter_no_change": 10,
+       "detencion": "tras más de n_iter_no_change épocas sin una mejora mayor que tol",
+       "epoca_elegida": "la de mejor R² de validación; queda registrada en cada pliegue",
+       "entrenamiento_con_validacion": "época a época (partial_fit) sin las filas de validación; imputación y escala con todo el entrenamiento del pliegue",
+       "vecindario": "recalculado sin las estaciones de validación, en las filas de entrenamiento y en las de validación",
+       "reajuste": "la red final se reajusta desde cero, con la misma semilla, con todas las estaciones del pliegue (y su vecindario) durante el número de épocas elegido"
+      },
       "nota": "El contrato fija la validación agrupada, no el criterio de detención.",
-      "provisional": "R² en log1p de las filas de las estaciones de validación (como MLPRegressor.score), tol 1e-4; se detiene tras más de n_iter_no_change = 10 épocas sin mejora y se restaura la mejor época, como scikit-learn. Imputación y escala con todo el entrenamiento del pliegue; la red se entrena época a época (partial_fit) sólo con las estaciones que no validan."
+      "cambio": "Punto 6: el vecindario se recalcula sin las estaciones de validación y, en lugar de restaurar la mejor época, se reajusta con todas las estaciones del pliegue durante la época elegida, que queda registrada.",
+      "provisional_anterior": "R² en log1p de las filas de las estaciones de validación (como MLPRegressor.score), tol 1e-4; se detiene tras más de n_iter_no_change = 10 épocas sin mejora y se restaura la mejor época, como scikit-learn. Imputación y escala con todo el entrenamiento del pliegue; la red se entrena época a época (partial_fit) sólo con las estaciones que no validan."
      }
     }
    },
@@ -276,9 +460,10 @@
     "motores": ["lightgbm", "xgboost", "random_forest", "mlp"],
     "pesos": "iguales, sin ajustar",
     "escala": {
-     "estado": "pendiente",
-     "nota": "El eje A comparte blanco y retransformación: se promedian las ẑ en log y el promedio pasa por la misma retransformación primaria, con sus propios residuos fuera de pliegue.",
-     "provisional": "log"
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.4",
+     "valor": "log",
+     "nota": "El eje A comparte blanco y retransformación: se promedian las ẑ en log y el promedio pasa por la misma retransformación primaria (smearing_duan), con sus propios residuos fuera de pliegue."
     }
    }
   },
@@ -294,18 +479,20 @@
     "idw": "obs_vec (núcleo gaussiano de 150 km); sin vecinas, la media del entrenamiento del pliegue (qmd:3089-3124)"
    },
    "topes_de_filas": {
-    "estado": "pendiente",
-    "nota": "El contrato dice «cada uno en su diseño» y fija el N común sólo para el eje A. En la v1: GP 3.000 filas estratificadas y LME 300.000; GWR, RK e IDW, todas las filas. En la v2 los topes son prefijos de la permutación común (§4), así que el GP deja de estratificar por estación × franja y su muestra queda anidada en la del LME y la del eje A.",
-    "provisional": {"gp": 3000, "lme": 300000, "gwr": "todas", "rk": "todas", "idw": "todas"}
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.4",
+    "valor": {"gp": 3000, "lme": 300000, "gwr": "todas", "rk": "todas", "idw": "todas"},
+    "nota": "El contrato dice «cada uno en su diseño» y fija el N común sólo para el eje A. Los topes son los de la v1 (GP 3.000 filas y LME 300.000; GWR, RK e IDW, todas), pero como prefijos de la permutación común (§4): a diferencia de la v1, el GP ya no estratifica por estación × franja, y su muestra queda anidada en la del LME y en la del eje A."
    }
   },
   "alertas": {
    "cuantil": 0.8,
    "evaluacion": "se juzga aparte",
    "receta": {
-    "estado": "pendiente",
-    "nota": "v1: LightGBM objective quantile α 0,80, 900 rondas, tasa 0,025, 127 hojas, mínimo 30 filas por hoja, feature_fraction 0,8, sin bagging (qmd:3214-3217). La v2 la conserva con deterministic, force_col_wise e hilos fijos, y entrena con las filas del N común del eje A (la v1 usaba 1,5 M filas de otra submuestra).",
-    "provisional": {"num_boost_round": 900, "learning_rate": 0.025, "num_leaves": 127, "min_data_in_leaf": 30, "feature_fraction": 0.8, "bagging": false, "seed": 42, "blanco": "log1p", "vuelta": "máx(expm1(ẑ), 0), sin corrección (un cuantil conmuta con la transformación monótona)", "filas": "N común del eje A (prefijo de la permutación común)"}
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.4",
+    "valor": {"num_boost_round": 900, "learning_rate": 0.025, "num_leaves": 127, "min_data_in_leaf": 30, "feature_fraction": 0.8, "bagging": false, "seed": 42, "blanco": "log1p", "vuelta": "máx(expm1(ẑ), 0), sin corrección (un cuantil conmuta con la transformación monótona)", "filas": "N común del eje A (prefijo de la permutación común)"},
+    "nota": "La de la v1 (LightGBM objective quantile α 0,80, 900 rondas, tasa 0,025, 127 hojas, mínimo 30 filas por hoja, feature_fraction 0,8, sin bagging: qmd:3214-3217), con deterministic, force_col_wise e hilos fijos, salvo el N: el común del eje A, 750.000 filas, en lugar de las 1,5 M filas de otra submuestra que usaba la v1."
    }
   },
   "hiperparametros": {
@@ -318,34 +505,41 @@
    "nivel_2": "predicciones de pliegues internos agrupados dentro de cada pliegue externo",
    "pesos": {"no_negativos": true, "suman_1": true},
    "compite_fuera_de_esos_protocolos": false,
+   "descriptivo": "sólo descriptivo: no es candidato ni se despliega (Enmienda 1, punto 11)",
+   "ruido": "no tiene réplicas: su ruido es el máximo del de sus bases (Enmienda 1, punto 3)",
+   "amortiguador_interno_en_BLQ-75": "en BLQ-75 cada pliegue interno saca de su entrenamiento las estaciones a ≤ 10 km de las estaciones del pliegue interno (protocolos.BLQ-75.exclusion_adicional.particiones_internas; Complemento, punto 5)",
    "bases": {
-    "estado": "pendiente",
-    "nota": "El contrato no nombra las bases.",
-    "provisional": ["lightgbm", "xgboost", "random_forest", "mlp"]
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.5",
+    "valor": ["lightgbm", "xgboost", "random_forest", "mlp"],
+    "nota": "El contrato no nombraba las bases: son los cuatro motores del eje A."
    },
    "pliegues_internos": {
-    "estado": "pendiente",
-    "nota": "El contrato pide pliegues internos agrupados sin fijar cuántos ni cómo.",
-    "provisional": {"n": 5, "agrupacion": "grupos del protocolo externo presentes en el entrenamiento (regiones en LRO, bloques en BLQ-75)", "asignacion": "permutación default_rng([42, k, 1000]) de las etiquetas ordenadas, repartidas en turnos; con menos grupos que pliegues, un grupo por pliegue", "filas": "las filas con tope del pliegue externo (réplica 0)", "exclusion": "conjunto excluido externo ∪ estaciones del pliegue interno, en filas y vecindario"}
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.5",
+    "valor": {"n": 5, "agrupacion": "grupos del protocolo externo presentes en el entrenamiento (regiones en LRO, bloques en BLQ-75)", "asignacion": "permutación default_rng([42, k, 1000]) de las etiquetas ordenadas, repartidas en turnos; con menos grupos que pliegues, un grupo por pliegue", "filas": "las filas con tope del pliegue externo (réplica 0)", "exclusion": "conjunto excluido externo ∪ estaciones del pliegue interno, en filas y vecindario"},
+    "nota": "El contrato pedía pliegues internos agrupados sin fijar cuántos ni cómo: 5, agrupados."
    },
    "escala": {
-    "estado": "pendiente",
-    "nota": "Como el promedio simple: en log, y la combinación pasa por la retransformación primaria con sus propios residuos.",
-    "provisional": "log"
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.5",
+    "valor": "log",
+    "nota": "Como el promedio simple: en log, y la combinación pasa por la retransformación primaria (smearing_duan) con sus propios residuos."
    }
   }
  },
  "filas_entrenamiento": {
-  "fuente": "§4",
+  "fuente": "§4; Enmienda 1, puntos 1.6 y 11",
   "permutacion": {
    "una_por_pliegue": true,
    "semilla": [42, "k"],
    "compartida_por_todos_los_motores": true,
    "topes": "prefijos de la permutación, de modo que quedan anidados",
    "generador": {
-    "estado": "pendiente",
-    "nota": "La v1 usaba numpy.random.default_rng([42, k]).choice sin reemplazo (qmd:2650). Falta fijar el algoritmo de la permutación y el orden canónico de los índices disponibles.",
-    "provisional": "numpy.random.default_rng(semilla).permutation(n) sobre los índices disponibles en orden ascendente del panel; filas del tope N = sort(disponibles[perm[:N]]); las variantes de calidad filtran esa misma permutación antes de cortar"
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.6",
+    "valor": "numpy.random.default_rng(semilla).permutation(n) sobre los índices disponibles en orden ascendente del panel; filas del tope N = sort(disponibles[perm[:N]]); las variantes de calidad filtran esa misma permutación antes de cortar",
+    "nota": "La v1 usaba numpy.random.default_rng([42, k]).choice sin reemplazo (qmd:2650); la enmienda fija la permutación y el orden canónico de los índices disponibles."
    }
   },
   "N_comun_eje_A": 750000,
@@ -356,20 +550,28 @@
    "xgboost": [300000, 750000, 1500000, "todas"],
    "random_forest": [300000, 750000, 1500000]
   },
-  "pares_de_evaluacion": "intersección de las predicciones finitas de todos los motores, impuesta en el código antes de agregar",
-  "validado_igual_desplegado": "el modelo que se proponga para producción se valida con el mismo N con que se despliega",
+  "pares_de_evaluacion": "intersección de las predicciones finitas de todos los motores, impuesta en el código antes de agregar (la decisión usa sus propios pares: decision.pares_de_la_decision)",
+  "validado_igual_desplegado": "el modelo que se proponga para producción se valida con el mismo N con que se despliega (N de producción: decision.N_de_produccion)",
   "disponibles_menos_que_el_tope": {
-   "estado": "pendiente",
-   "nota": "Con menos filas disponibles que el tope.",
-   "provisional": "se usan todas las disponibles y se registra el N efectivo"
+   "estado": "ratificado (Enmienda 1)",
+   "punto": "1.6",
+   "valor": "se usan todas las disponibles y se registra el N efectivo",
+   "nota": "Con menos filas disponibles que el tope."
   }
  },
  "retransformacion": {
-  "fuente": "§5",
+  "fuente": "§5; Enmienda 1, puntos 1.7, 2 y 11; Complemento, punto 5",
+  "formas": {
+   "smearing_duan": "adj = log(media de exp(r)) de los residuos log r de la clave; ŷ = exp(ẑ + adj) − 1 (Duan 1983)",
+   "lognormal_medio_sigma2": "adj = 0,5 × varianza poblacional (ddof = 0) de los residuos log de la clave; ŷ = exp(ẑ + adj) − 1 (la corrección que la v1 publica como duan_oof: qmd:2688; produccion.py:153)",
+   "nombres_anteriores": {"duan": "lognormal_medio_sigma2", "smearing": "smearing_duan", "l2_log_duan": "l2_log_smearing"},
+   "registro": "la forma usada queda en consolidado.json, en las trazas y en las tablas"
+  },
   "primaria": {
-   "metodo": "Duan por macrozona × franja",
-   "forma": "adj = 0,5 × varianza poblacional (ddof = 0) del residuo log; ŷ = exp(ẑ + adj) − 1",
-   "forma_fuente": "«Duan» en el sentido de la v1 (duan_oof: qmd:2688; produccion.py:153), que es la forma que la v1 publica como duan_oof_macrozona; el smearing no paramétrico (smearing_oof) no es la primaria",
+   "metodo": "smearing de Duan (1983) por macrozona × franja",
+   "forma": "smearing_duan",
+   "fundamento": "es consistente sin suponer errores normales ni homocedásticos y además corrige el sesgo medio en log",
+   "antes_de_la_enmienda": "«Duan» en el sentido de la v1: adj = ½·varianza del residuo log (hoy lognormal_medio_sigma2)",
    "clave": "macrozona|franja",
    "macrozona": "macrozona_cod del panel, como la v1",
    "franja_diurna_horas_locales": [8, 18],
@@ -377,73 +579,158 @@
    "residuos": "log, fuera de pliegue, de los demás grupos, con la misma exclusión del protocolo",
    "minimo_filas": 100,
    "respaldo": ["franja de los demás grupos", "global de los demás grupos"],
+   "respaldo_honesto": {
+    "macrozona_franja": {"minimo_conglomerados_loso_d": 3, "minimo_grupos_del_protocolo": 2, "grupos": "distintos del retirado", "minimo_filas": 100},
+    "orden": ["macrozona|franja de los demás", "franja de los demás", "global de los demás"],
+    "franja_y_global": "mínimo de 100 filas (§5)",
+    "registro_por_pliegue": ["nivel usado", "estaciones que aportan", "factor"],
+    "lectura": "El requisito de unidades independientes del punto 2 se pide a la clave macrozona × franja; la franja y el global de los demás conservan el mínimo de 100 filas del §5."
+   },
    "prohibido": "un total que incluya al propio grupo",
    "global_de_los_demas_con_menos_de_100_filas": {
-    "estado": "pendiente",
-    "nota": "El contrato no dice qué hacer si incluso el global de los demás grupos tiene menos de 100 filas (con los paneles vigentes no ocurre).",
-    "provisional": "sin corrección (adj = 0), registrado como nivel sin_correccion"
-   }
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.7",
+    "valor": "sin corrección (adj = 0), registrado como nivel sin_correccion",
+    "nota": "El contrato no decía qué hacer si incluso el global de los demás grupos tiene menos de 100 filas (con los paneles vigentes no ocurre): sin corrección, con marca."
+   },
+   "fuga_de_segundo_orden": "declarada: los residuos de los demás grupos vienen de modelos que vieron al grupo retirado; la sensibilidad con OOF interno la elimina, pero tiende a sobrecorregir"
+  },
+  "sensibilidad_fija": {
+   "forma": "lognormal_medio_sigma2",
+   "motores": "todos los motores en log",
+   "protocolos": "todos",
+   "clave": "la de la primaria",
+   "exclusion": "la de la primaria",
+   "respaldo": "el respaldo honesto de la primaria",
+   "par_en_el_bootstrap": true,
+   "uso": ["continuidad con la v1 (referencia l2_log_medio_sigma2)", "la decisión se repite con esta corrección (decision.condiciones, n = 6)"]
   },
   "sensibilidad": {
    "protocolos": ["LRO", "BLQ-75"],
    "metodo": "Duan con OOF interno dentro de cada pliegue externo",
+   "forma": "smearing_duan",
+   "lectura": "«Duan» del §5 en el sentido del punto 2: el smearing de Duan (1983).",
    "pliegues_internos": {
-    "estado": "pendiente",
-    "nota": "El contrato no fija los pliegues internos de la sensibilidad.",
-    "provisional": "los del apilado anidado (motores.apilado_anidado.pliegues_internos), sobre las filas con tope del pliegue externo; mismo respaldo: franja y luego global del entrenamiento del pliegue externo"
-   }
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.7",
+    "valor": "los del apilado anidado (motores.apilado_anidado.pliegues_internos), sobre las filas con tope del pliegue externo; mismo respaldo: franja y luego global del entrenamiento del pliegue externo",
+    "nota": "El contrato no fijaba los pliegues internos de la sensibilidad: son los del apilado."
+   },
+   "sesgo_declarado": "tiende a sobrecorregir",
+   "amortiguador_interno_en_BLQ-75": "en BLQ-75 cada pliegue interno saca de su entrenamiento las estaciones a ≤ 10 km de las estaciones del pliegue interno, como el apilado (protocolos.BLQ-75.exclusion_adicional.particiones_internas; Complemento, punto 5)"
   },
-  "metricas_en_log": true
+  "metricas_en_log": true,
+  "regla_previa": "un reemplazo de motor sólo vale si la decisión coincide con smearing_duan y con lognormal_medio_sigma2 (decision.condiciones, n = 6)",
+  "comparaciones_v2_frente_a_v1": "con la misma corrección (smearing frente a smearing, ½·σ² frente a ½·σ²), para separar el aporte del motor del de la corrección",
+  "produccion": "los residuos fuera de pliegue de LRO con el mismo N (decision.retransformacion_de_produccion)"
  },
  "perdidas": {
-  "fuente": "§6 (etapa 8)",
+  "fuente": "§6 (etapa 8); Enmienda 1, puntos 1.8, 2 y 9; Complemento, puntos 4.2, 4.3 y 5",
   "motores": ["lightgbm", "xgboost"],
   "N": "el mismo del eje A (§4)",
   "pliegues": "los mismos",
   "variantes": [
-   {"id": "l2_log_duan", "perdida": "cuadrática en log + Duan", "blanco": "log1p", "uso": "referencia (v1)"},
+   {
+    "id": "l2_log_smearing",
+    "perdida": "cuadrática en log + smearing de Duan",
+    "blanco": "log1p",
+    "uso": "referencia (§6), con la retransformación primaria",
+    "id_antes_de_la_enmienda": "l2_log_duan",
+    "referencia_v1": {"id": "l2_log_medio_sigma2", "perdida": "cuadrática en log + ½·σ²", "nota": "el mismo ajuste, retransformado con la sensibilidad fija lognormal_medio_sigma2"}
+   },
    {"id": "l2_original", "perdida": "cuadrática en escala original", "blanco": "y", "uso": "media condicional directa"},
    {
     "id": "huber",
     "perdida": "Huber",
     "blanco": "y",
     "uso": "robustez a picos",
+    "estima_la_media": false,
+    "compite_en_la_decision": false,
     "delta": {
      "factor": 1.345,
-     "escala": "MAD de los residuos de un ajuste cuadrático del entrenamiento del pliegue",
+     "escala": "MAD normalizado de residuos honestos de un ajuste cuadrático en escala original (Enmienda 1, punto 9)",
+     "escala_antes_de_la_enmienda": "MAD de los residuos de un ajuste cuadrático del entrenamiento del pliegue (§6)",
+     "comun_a_los_dos_motores": true,
      "mad": {
-      "estado": "pendiente",
-      "nota": "No se dice si es el MAD crudo, mediana(|r − mediana(r)|), o el normalizado (× 1,4826). 1,345 es la constante de Huber relativa a σ, que el MAD normalizado estima.",
-      "provisional": "normalizado: 1,4826 × mediana(|r − mediana(r)|)"
+      "estado": "ratificado (Enmienda 1)",
+      "punto": "1.8, con el cambio del punto 9",
+      "valor": "normalizado: 1,4826 × mediana(|r − mediana(r)|)",
+      "nota": "1,345 es la constante de Huber relativa a σ, que el MAD normalizado estima.",
+      "cambio": "Punto 9: el MAD se calcula con residuos honestos (ajuste_cuadratico), no con los del propio entrenamiento."
      },
      "ajuste_cuadratico": {
-      "estado": "pendiente",
-      "nota": "No se dice con qué motor ni si los residuos son del propio entrenamiento (in-sample).",
-      "provisional": "el mismo motor con la variante l2_original y las mismas filas del pliegue; residuos y − ŷ en esas filas (in-sample)"
-     }
+      "estado": "ratificado (Enmienda 1)",
+      "punto": "1.8, con el cambio del punto 9",
+      "valor": {"motor": "lightgbm", "variante": "l2_original", "receta": "la del eje A", "comun_a": ["lightgbm", "xgboost"], "residuos": "honestos: partición agrupada en dos dentro del entrenamiento del pliegue; cada mitad se predice con el ajuste de la otra (particion_honesta); r = y − ŷ"},
+      "nota": "El contrato no decía con qué motor ni si los residuos eran del propio entrenamiento.",
+      "cambio": "Punto 9: δ es el mismo para LightGBM y XGBoost en cada pliegue; sale del l2_original de LightGBM, con residuos honestos en lugar de los del propio entrenamiento (que subestiman la escala del error).",
+      "provisional_anterior": "el mismo motor con la variante l2_original y las mismas filas del pliegue; residuos y − ŷ en esas filas (in-sample)"
+     },
+     "particion_honesta": {
+      "estado": "ratificado (Complemento)",
+      "punto": "4.2",
+      "origen": "Enmienda 1, punto 9",
+      "nota": "La enmienda pide residuos honestos «de una partición agrupada en dos dentro del entrenamiento» sin nombrar la unidad de agrupación, el sorteo ni el vecindario de cada mitad.",
+      "valor": "dos mitades de los conglomerados LOSO-D presentes en las filas con tope del pliegue: etiquetas ordenadas, permutadas con default_rng([42, k, 1001]) y repartidas en turnos; cada mitad se predice con el l2_original de LightGBM (receta del eje A) ajustado en la otra, con el vecindario recalculado sin las estaciones de la mitad que se predice; r = y − ŷ en todas las filas con tope"
+     },
+     "amortiguador_interno_en_BLQ-75": "en BLQ-75 el ajuste de cada mitad saca de su entrenamiento las estaciones a ≤ 10 km de las estaciones de la mitad que se predice (protocolos.BLQ-75.exclusion_adicional.particiones_internas; Complemento, punto 5)",
+     "sensibilidad": {"delta": "cuantil 0,9 de |r|", "residuos": "los mismos residuos honestos", "fuente": "Friedman (2001)"},
+     "registro_por_pliegue": ["δ", "fracción de filas recortadas (|y − ŷ| > δ)", "pérdida final de entrenamiento"]
     },
     "implementacion_xgboost": {
-     "estado": "pendiente",
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.8, con el cambio del punto 9",
+     "valor": "objetivo propio con el gradiente y la hessiana del Huber de LightGBM (recorte(ŷ − y, ±δ) y 1 en todas las filas) y base_score = media del blanco, el inicio de LightGBM",
      "nota": "XGBoost ofrece reg:pseudohubererror (huber_slope), que no es la Huber exacta de LightGBM (objective huber, alpha = δ).",
-     "provisional": "objetivo propio con el gradiente y la hessiana del Huber de LightGBM (recorte(ŷ − y, ±δ) y 1 en todas las filas) y base_score = media del blanco, el inicio de LightGBM"
-    }
+     "cambio": "Punto 9: XGBoost recibe el δ común del pliegue, calculado con LightGBM."
+    },
+    "declaracion": "con el gradiente recortado y 800 rondas, los picos invernales pueden quedar fuera de alcance; Huber no estima la media y no compite en el §9"
    },
-   {"id": "pinball", "perdida": "cuantílica (pinball)", "taus": [0.05, 0.5, 0.95], "blanco": "y", "uso": "mediana e intervalos de predicción del 90 %"}
+   {
+    "id": "pinball",
+    "perdida": "cuantílica (pinball)",
+    "taus": [0.05, 0.5, 0.95],
+    "blanco": "y",
+    "uso": "mediana e intervalos de predicción del 90 %",
+    "q50_estima_la_media": false,
+    "q50_compite_en_la_decision": false,
+    "reordenamiento": {"regla": "q05 ≤ q50 ≤ q95", "momento": "antes de medir la cobertura", "se_informan": "los cruces", "fuente": "Enmienda 1, punto 9 (reordenamiento de Chernozhukov et al. 2010)"},
+    "calibracion": {
+     "metodo": "conformal agrupado (CQR; Romano et al. 2019)",
+     "residuos": "fuera de pliegue, de los demás grupos, con la misma exclusión del protocolo",
+     "clave": "macrozona|franja",
+     "nivel": 0.9,
+     "puntaje": "E = máx(q05 − y, y − q95), con los cuantiles reordenados",
+     "intervalo": "[q05 − Q, q95 + Q], con Q el valor ⌈(n + 1)·0,9⌉-ésimo de los E ordenados de la clave",
+     "lectura": "La forma estándar de CQR al 90 %, con los puntajes de los demás grupos en lugar de un conjunto de calibración aparte.",
+     "respaldo": {
+      "estado": "ratificado (Complemento)",
+      "punto": "4.3",
+      "origen": "Enmienda 1, punto 9",
+      "nota": "La enmienda fija la clave macrozona × franja para CQR sin decir qué hacer con una clave de pocos puntajes o de una sola cuenca.",
+      "valor": "el respaldo honesto de la retransformación primaria: macrozona × franja si reúne al menos 3 conglomerados LOSO-D de al menos 2 grupos distintos del retirado y 100 filas; si no, la franja de los demás y después el global de los demás; se registran el nivel y Q por pliegue"
+     },
+     "uso": "capa de incertidumbre por celda del §9 (decision.no2)"
+    }
+   }
   ],
   "hiperparametros_por_perdida": {
-   "estado": "pendiente",
+   "estado": "ratificado (Enmienda 1)",
+   "punto": "1.8, con el cambio del punto 9",
+   "valor": "la receta del eje A sin cambios; sólo cambian el objetivo y el blanco; base_score de XGBoost: media (l2 y Huber) o cuantil τ (pinball) del entrenamiento; las predicciones en escala original se recortan en 0",
    "nota": "El contrato fija las pérdidas, no si cambia la receta.",
-   "provisional": "la receta del eje A sin cambios; sólo cambian el objetivo y el blanco; base_score de XGBoost: media (l2 y Huber) o cuantil τ (pinball) del entrenamiento; las predicciones en escala original se recortan en 0"
+   "cambio": "Punto 9: la receta no cambia, pero el δ de Huber es común a los dos motores, los cuantiles se reordenan y se calibran (CQR) después del ajuste, y se declara que con el gradiente recortado y 800 rondas los picos invernales pueden quedar fuera de alcance."
   },
   "metricas_comunes_escala_original": ["R2", "RMSE", "MAE", "NMB"],
   "metricas_cuantiles": {
    "cobertura_del_intervalo": 0.9,
    "puntaje_de_intervalo": true,
-   "calibracion_por": ["decil de predicción", "macrozona", "franja"]
+   "calibracion_por": ["decil de predicción", "macrozona", "franja"],
+   "cuantiles": "reordenados antes de medir (punto 9)"
   }
  },
  "calidad_blanco": {
-  "fuente": "§7 (etapa 9, sin descargas nuevas)",
+  "fuente": "§7 (etapa 9, sin descargas nuevas); Enmienda 1, puntos 1.9 y 7",
   "bandera": {
    "variable": "qc_observacion",
    "origen": "derivado SINCA, en sólo lectura",
@@ -456,19 +743,44 @@
    {"id": "solo_validado", "descripcion": "sólo validado"}
   ],
   "codigos_qc": {
-   "estado": "pendiente",
-   "nota": "Los códigos de la bandera son los de calidad_v2.py (QC_SINCA y QC_SNIFA); falta decir cuáles entran en cada variante y cuáles cuentan como validados al evaluar.",
-   "provisional": {"todo": ["validado", "preliminar", "no_validado", "usable_native", "solo_numeric_usable"], "validado_y_preliminar": ["validado", "preliminar", "usable_native"], "solo_validado": ["validado", "usable_native"], "evaluacion_validadas": ["validado", "usable_native"]}
+   "estado": "ratificado (Enmienda 1)",
+   "punto": "1.9",
+   "valor": {"todo": ["validado", "preliminar", "no_validado", "usable_native", "solo_numeric_usable"], "validado_y_preliminar": ["validado", "preliminar", "usable_native"], "solo_validado": ["validado", "usable_native"], "evaluacion_validadas": ["validado", "usable_native"]},
+   "nota": "Los códigos son los de calidad_v2.py (QC_SINCA y QC_SNIFA). «todo» = validado + preliminar + no validado, más SNIFA numeric_usable (usable_native y solo_numeric_usable); «validado y preliminar» = validado + preliminar, más SNIFA usable_native; «sólo validado» = validado, más SNIFA usable_native."
   },
   "snifa": {
    "variantes": ["numeric_usable", "usable_native"],
    "cruce_con_variantes_sinca": {
-    "estado": "pendiente",
-    "nota": "El contrato compara numeric_usable con usable_native sin decir cómo entra SNIFA en las variantes SINCA.",
-    "provisional": "SNIFA entra con numeric_usable en «todo» (como la v1) y con usable_native en «validado_y_preliminar» y «solo_validado»"
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.9",
+    "valor": "SNIFA entra con numeric_usable en «todo» (como la v1) y con usable_native en «validado_y_preliminar» y «solo_validado»",
+    "nota": "El contrato comparaba numeric_usable con usable_native sin decir cómo entraba SNIFA en las variantes SINCA."
    }
   },
-  "evaluacion": ["filas validadas (siempre)", "todas las filas"],
+  "no_validado": "«no validado» no distingue un dato sin revisar de uno rechazado; E1 lo trata como observación, como la v1 (Enmienda 1, punto 1.9)",
+  "evaluacion": {
+   "antes_de_la_enmienda": ["filas validadas (siempre)", "todas las filas"],
+   "conjuntos": {
+    "E1": {"filas": "todas", "codigos": "todos (codigos_qc → todo)"},
+    "E2": {"filas": "validadas", "codigos": ["validado", "usable_native"], "nota": "el «validado» de SINCA y el usable_native de SNIFA (codigos_qc → evaluacion_validadas)"},
+    "E2-SINCA": {"filas": "validadas de SINCA, sin SNIFA", "codigos": ["validado"]},
+    "E1′": {"filas": "todas las filas de las estaciones que tienen alguna fila en E2", "uso": "separar calidad de composición", "lectura": "las estaciones con al menos un par de evaluación en E2"}
+   },
+   "decision": {
+    "coprimarios": ["E1", "E2"],
+    "E1": "el reemplazo exige superioridad en E1",
+    "E2": "exige el mismo signo del ΔR² diario civil ponderado sobre los pares comunes validados, en LRO y en BLQ-75"
+   },
+   "evaluabilidad": {
+    "por_protocolo": true,
+    "minimo_fraccion_del_peso_de_E1": 0.5,
+    "minimo_grupos_con_filas_E2": 5,
+    "si_no_es_evaluable": "no bloquea; se informa como «sin confirmación con datos validados»",
+    "lectura": "El peso es el de la decisión (pesos fijos por estación, punto 4) sobre los pares del nivel diario civil; los grupos son los del protocolo (regiones en LRO, bloques en BLQ-75)."
+   },
+   "registro": "los pliegues y las estaciones sin E2",
+   "cobertura_conocida": {"pm25": "45 de las 107 estaciones no tienen ninguna fila validada", "no2": "33 de las 54 estaciones SINCA no tienen ninguna fila validada"}
+  },
   "comparacion_de_variantes": {
    "motor": "lightgbm",
    "eje": "A",
@@ -476,7 +788,7 @@
   }
  },
  "metricas": {
-  "fuente": "§8 (las métricas comunes, de §6)",
+  "fuente": "§8 (las métricas comunes, de §6); Enmienda 1, puntos 1.10, 4 y 10; Complemento, puntos 4.4 y 4.5",
   "comunes_escala_original": ["R2", "RMSE", "MAE", "NMB"],
   "niveles": {
    "horario": {},
@@ -485,128 +797,424 @@
     "minimo_horas": 18
    },
    "mensual": {
-    "minimo_dias": {"estado": "pendiente", "nota": "v1: 20 días válidos (qmd:3618-3656). La v2 cuenta días civiles (America/Santiago) válidos.", "provisional": 20}
+    "minimo_dias": {
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.10",
+     "valor": 20,
+     "nota": "v1: 20 días válidos (qmd:3618-3656). La v2 cuenta días civiles (America/Santiago) válidos."
+    }
    },
    "anual": {
-    "minimo_meses": {"estado": "pendiente", "nota": "v1: 9 meses válidos (qmd:3618-3656).", "provisional": 9}
+    "minimo_meses": {
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.10",
+     "valor": 9,
+     "nota": "v1: 9 meses válidos (qmd:3618-3656)."
+    }
    }
   },
   "desagregaciones": {
    "macrozona": true,
    "estacion": true,
    "regimen_de_predictores": {
-    "definicion": "con o sin GEOS-CF y TROPOMI",
-    "criterio": {"estado": "pendiente", "nota": "v1: período 2019–2024 (REGIMEN_SAT, qmd:355), por año local de cada par.", "provisional": [2019, 2024]}
+    "definicion": "con o sin GEOS-CF y TROPOMI (§8), separado por disponibilidad de predictores (Enmienda 1, punto 10)",
+    "criterio": {
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.10, ver el punto 10",
+     "valor": [
+      {"id": "2000-2002", "anios": [2000, 2002], "disponibilidad": "sin CAMS"},
+      {"id": "2003-2018", "anios": [2003, 2018], "disponibilidad": "sin GEOS-CF ni TROPOMI"},
+      {"id": "2019-2024", "anios": [2019, 2024], "disponibilidad": "con GEOS-CF y con TROPOMI en ~70 % de las filas"},
+      {"id": "2025", "anios": [2025, 2025], "disponibilidad": "sin GEOS-CF ni TROPOMI y con ACAG climatológico"},
+      {"id": "2026", "anios": [2026, 2026], "disponibilidad": "además sin CAMS y con MERRA-2 y BLH incompletos"}
+     ],
+     "anio": "año local de cada par (columna anio del panel, UTC−4)",
+     "nota": "v1: período 2019–2024 frente al resto (REGIMEN_SAT, qmd:355).",
+     "cambio": "Punto 10: cinco regímenes por disponibilidad en lugar de dos.",
+     "provisional_anterior": [2019, 2024]
+    },
+    "sensibilidad": {
+     "fila_a_fila": {
+      "estado": "ratificado (Complemento)",
+      "punto": "4.4",
+      "origen": "Enmienda 1, punto 10",
+      "nota": "La enmienda pide como sensibilidad la disponibilidad fila a fila sin decir con qué columnas ni con qué regla una familia de predictores está disponible.",
+      "valor": {"familias": {"cams": ["cams_no2", "cams_pm25", "cams_o3", "cams_co"], "geos_cf": ["gcf_no2", "gcf_pm25", "gcf_o3", "gcf_co", "gcf_pm25_blh"], "tropomi": ["no2_trop", "no2_trop_prec", "no2_trop_hora", "no2_trop_7d", "no2_trop_15d"], "merra2": ["m2_t2m", "m2_rh2m", "m2_u10m", "m2_v10m", "m2_pblh", "m2_aod", "m2_pm25", "m2_ps", "m2_aod_pblh"], "blh": ["blh", "inv_blh"], "acag_climatologico": ["acag_clim"]}, "regla": "una familia está disponible en una fila si alguna de sus columnas es finita (ACAG climatológico: acag_clim = 1); el régimen de la fila es la combinación de familias disponibles"}
+     }
+    },
+    "LPO": "2024 se informa aparte de 2025-2026",
+    "alcance": "descriptivo: los regímenes no alteran el §9"
    },
    "estrato_de_soporte": {
     "variables": ["peso_vec", "dist_est_km"],
     "cortes": "cuartiles",
     "distribucion_de_referencia": {
-     "estado": "pendiente",
-     "nota": "El contrato no dice sobre qué filas se calculan los cuartiles.",
-     "provisional": "cuartiles de las filas horarias de evaluación (pares comunes) de cada contaminante y protocolo, con los valores recalculados en el pliegue; en los niveles agregados, la media de sus horas"
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.10",
+     "valor": "cuartiles de las filas horarias de evaluación (pares comunes) de cada contaminante y protocolo, con los valores recalculados en el pliegue; en los niveles agregados, la media de sus horas",
+     "nota": "El contrato no decía sobre qué filas se calculan los cuartiles: los pares de evaluación con el vecindario recalculado."
     }
    },
    "ponderado_por_poblacion": {
     "poblacion": {
-     "estado": "pendiente",
-     "nota": "El contrato no dice qué población.",
-     "provisional": "pob_dens de la celda de la estación en cada fila del panel (hab./km², ≈ habitantes de la celda de 1 km²); en los niveles agregados, su media; se pondera el total, la macrozona y el régimen"
+     "estado": "ratificado (Enmienda 1)",
+     "punto": "1.10, ver el punto 4",
+     "valor": {"variable": "pob_dens de la celda de la estación (hab./km², ≈ habitantes de la celda de 1 km²)", "peso_fijo_por_estacion": "mediana de pob_dens sobre los años con filas de la estación en el panel", "niveles_agregados": "el mismo peso fijo de la estación", "se_pondera": ["total", "macrozona", "regimen"]},
+     "nota": "Aproximación declarada: la densidad de la celda no es la población que la estación representa. En los paneles v1, pob_dens es constante dentro de cada estación × año.",
+     "cambio": "Punto 4: el peso deja de variar con el año de cada fila y se fija por estación como la mediana de sus años, para que los saltos del ráster entre versiones (2013, 2017 y 2022) no cambien el peso.",
+     "provisional_anterior": "pob_dens de la celda de la estación en cada fila del panel (hab./km², ≈ habitantes de la celda de 1 km²); en los niveles agregados, su media; se pondera el total, la macrozona y el régimen"
+    },
+    "desagrupamiento": {
+     "uso": "sensibilidad",
+     "peso": "población de la comuna dividida por las estaciones de la red en ella",
+     "poblacion_comunal": {
+      "estado": "ratificado (Complemento)",
+      "punto": "4.5",
+      "origen": "Enmienda 1, punto 4",
+      "nota": "La enmienda fija el peso de desagrupamiento sin decir la fuente ni el año de la población comunal ni qué estaciones cuentan como «de la red».",
+      "valor": "población total INE de la comuna de la estación (cod_comuna del universo de estaciones de pliegues_v2.json), mediana de los años con filas de la estación (un año sin dato INE toma el más cercano), dividida por el número de estaciones del panel del contaminante, de las dos redes, en esa comuna"
+     }
+    },
+    "sin_ponderar": "la dirección de todo reemplazo debe repetirse sin ponderación (decision.condiciones, n = 5)",
+    "g_efectivo": {
+     "grupos": "(Σ_g W_g)² / Σ_g W_g², con W_g el peso total de los pares del grupo",
+     "estaciones_kish": "(Σ_s W_s)² / Σ_s W_s², con W_s el peso total de los pares de la estación",
+     "se_informa": "junto a cada métrica ponderada"
     }
    }
   },
   "metricas_en_log": "también se informan (§5)"
  },
  "ruido": {
-  "fuente": "§8",
+  "fuente": "§8; Enmienda 1, puntos 1.11 y 3; Complemento, punto 6",
   "semillas": 3,
   "que_varia": ["submuestra", "motor"],
   "protocolos_con_3_semillas": ["LRO", "BLQ-75"],
   "motores": "los del eje A",
   "semillas_en_los_demas_protocolos": 1,
   "valores": {
-   "estado": "pendiente",
-   "nota": "La réplica principal usa la permutación [42, k] (§4); las otras dos semillas, de submuestra y de motor, no están fijadas.",
-   "provisional": {"replicas": [0, 1, 2], "permutacion": "[42, k] en la réplica 0 y [42, k, r] en las réplicas 1 y 2", "semilla_motor": "la de la receta + 1000·r"}
+   "estado": "ratificado (Enmienda 1)",
+   "punto": "1.11",
+   "valor": {"replicas": [0, 1, 2], "permutacion": "[42, k] en la réplica 0 y [42, k, r] en las réplicas 1 y 2", "semilla_motor": "la de la receta + 1000·r"},
+   "nota": "La réplica principal usa la permutación [42, k] (§4); el contrato no fijaba las otras dos semillas, de submuestra y de motor."
+  },
+  "medida": "el ruido de la diferencia entre motores (inferencia_diferencias.regla_de_superioridad.medida_del_ruido)",
+  "apilado": "no tiene réplicas: su ruido es el máximo del de sus bases",
+  "publicacion": "se publican los tres Δ_r",
+  "replicas_exigidas_en_la_decision": {
+   "valor": 3,
+   "regla": "la condición 2 de la decisión (ruido de la diferencia) exige las 3 réplicas comunes; con menos queda «no evaluada» y el candidato no puede reemplazar a LightGBM; lo mismo vale para el desempate (decision.condiciones[1] y decision.desempate)",
+   "fuente": "Complemento de la Enmienda 1, punto 6"
   }
  },
  "inferencia_diferencias": {
-  "fuente": "§8",
+  "fuente": "§8; Enmienda 1, puntos 1.11, 3 y 5; Complemento, puntos 1, 2 y 4.6",
   "estadisticos": ["delta_R2", "delta_RMSE", "delta_NMB"],
   "pareadas": true,
+  "estimacion_puntual": "Δ̄, la media de los Δ_r de las réplicas r = 0, 1, 2 con los mismos pares, nivel y ponderación (con una sola réplica, Δ_0)",
   "bootstrap": {
    "tipo": "por bloques",
-   "replicas": 2000,
+   "replicas": 1999,
+   "replicas_antes_del_complemento": 2000,
+   "replicas_motivo": "B = 1.999 en lugar de 2.000, para que el umbral de Holm nunca caiga en un empate exacto con el intervalo escalonado: con B = 1.999 ningún (α_j/2)·B es entero (α_j = 0,05/(4 − j + 1), j = 1…4). La decisión usa el intervalo escalonado publicado (Complemento, punto 2).",
+   "lectura_de_la_semilla": "la semilla ratificada [42, 2000, p] (semilla) no cambia: el Complemento cambia el número de réplicas, no la semilla. Lo que la Enmienda 1 dijo de la segunda prueba provisional («no sortea») ya no rige: la que decide desde el Complemento, el cambio de signo, sortea con su propia semilla, [42, 3000, p] (segunda_prueba.metodo)",
    "unidad": {
-    "LOSO-D": "conglomerado",
-    "LBO-10": "conglomerado",
+    "LOSO-D": "bloque",
+    "LBO-10": "bloque",
     "BLQ-75": "bloque",
     "LRO": "region",
     "LPO": "cuatrienio"
    },
+   "bloque": "bloque de 75 km de la rejilla de BLQ-75 (origen (0, 0) en EPSG:32719) que contiene a la estación",
+   "unidad_antes_de_la_enmienda": {"LOSO-D": "conglomerado", "LBO-10": "conglomerado"},
+   "motivo_del_cambio": "en LOSO-D y LBO-10 el bloque de 75 km capta la dependencia de cuenca (Enmienda 1, punto 5)",
    "metodo_del_intervalo": {
-    "estado": "pendiente",
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.11, con los cambios de los puntos 3 y 5",
+    "valor": "percentil (2,5 % y 97,5 %)",
     "nota": "El contrato fija el bootstrap por bloques y el 95 %, no el método del intervalo.",
-    "provisional": "percentil (2,5 % y 97,5 %)"
+    "cambio": "Puntos 3, 5 y 11: el percentil se mantiene y se calcula sobre Δ̄; se le suma la segunda prueba; en la decisión, el nivel se ajusta por Holm sobre los 4 candidatos.",
+    "lectura": "Δ̄* es la media de los Δ*_r de las tres réplicas recalculados con los mismos bloques sorteados, porque la estimación puntual es Δ̄ (punto 3)."
    },
    "semilla": {
-    "estado": "pendiente",
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.11, con los cambios de los puntos 3 y 5",
+    "valor": "[42, 2000, p], con p la posición del protocolo en protocolos.orden",
     "nota": "Los mismos sorteos para todas las comparaciones de un protocolo y nivel (pareado).",
-    "provisional": "[42, 2000, p], con p la posición del protocolo en protocolos.orden"
+    "cambio": "Puntos 3 y 5: los mismos sorteos sirven a las tres réplicas, a los conjuntos de evaluación y a las dos ponderaciones; la segunda prueba provisional (jackknife CV3) no sortea."
    },
    "nivel_de_agregacion": {
-    "estado": "pendiente",
-    "nota": "El contrato no dice a qué nivel se remuestrea.",
-    "provisional": "todos los niveles de §8 sobre los pares comunes, sin ponderar y ponderado por población; el bloque de un par es el grupo de su pliegue externo (en los niveles agregados, el más frecuente entre sus horas)"
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.11, con los cambios de los puntos 3 y 5",
+    "valor": "todos los niveles de §8 sobre los pares comunes, sin ponderar y con los pesos fijos por estación; el bloque de un par es el bloque de 75 km de su estación en LOSO-D, LBO-10 y BLQ-75, la región en LRO y el cuatrienio en LPO (descriptivo); en los niveles agregados, el más frecuente entre sus horas",
+    "nota": "El contrato no decía a qué nivel se remuestrea.",
+    "cambio": "Punto 5: en LOSO-D y LBO-10 el bloque pasa del conglomerado al bloque de 75 km; punto 4: la ponderación usa los pesos fijos por estación.",
+    "provisional_anterior": "todos los niveles de §8 sobre los pares comunes, sin ponderar y ponderado por población; el bloque de un par es el grupo de su pliegue externo (en los niveles agregados, el más frecuente entre sus horas)"
+   }
+  },
+  "segunda_prueba": {
+   "fuente": "Enmienda 1, punto 5; Complemento, puntos 1 y 4.6",
+   "fundamento": "ΔR² = −ΔSSE/SST con un SST común a los dos motores: su signo es el de la media ponderada de d = e_A² − e_B²",
+   "sobre": "los totales por bloque de w·(e_A² − e_B²)",
+   "opciones_del_contrato": ["jackknife por bloque (CV3) con t de G − 1 gl", "prueba de cambio de signo del bootstrap salvaje por conglomerado (Rademacher; Webb si G < 12)"],
+   "metodo": {
+    "estado": "ratificado (Complemento)",
+    "punto": "4.6, con el cambio del punto 1",
+    "origen": "Enmienda 1, punto 5",
+    "nota": "El punto 5 ofrecía dos pruebas unidas por «o» sin elegir una (elegir después de ver resultados sería un camino que se bifurca) y no fijaba el estimador, el uso de las réplicas ni el nivel con que la prueba «coincide» en la decisión. El Complemento elige la prueba que decide (punto 1) y ratifica el resto del provisional: el estimador, con d̄ = media de las réplicas, y el nivel de la decisión (punto 4.6).",
+    "valor": {
+     "prueba_que_decide": "cambio_de_signo_salvaje",
+     "cambio_de_signo_salvaje": {
+      "descripcion": "prueba de cambio de signo del bootstrap salvaje por bloque sobre los totales T_g = Σ w·d̄",
+      "nula": "impuesta: T*_g = ε_g·T_g",
+      "estadistico": "t = θ̂ / √CV1, con CV1 = G/(G − 1) · Σ_g (T_g − θ̂·W_g)² / (Σ_g W_g)²",
+      "p": "bilateral: fracción de los sorteos (o de los 2^G vectores de signos) con |t*| ≥ |t|",
+      "a_favor_del_candidato": "θ̂ < 0 (el candidato tiene menos SSE)",
+      "G": "bloques del protocolo con peso (W_g > 0)",
+      "G_minimo_rademacher": 12,
+      "G_maximo_enumeracion_completa": 16,
+      "sorteos": 9999,
+      "pesos": [
+       {"G": "G < 12", "distribucion": "webb", "valores": "±√1,5, ±1 y ±√0,5, cada uno con probabilidad 1/6", "sorteos": 9999},
+       {"G": "12 ≤ G ≤ 16", "distribucion": "rademacher", "valores": "±1", "sorteos": "enumeración completa de los 2^G vectores de signos"},
+       {"G": "G > 16", "distribucion": "rademacher", "valores": "±1", "sorteos": 9999}
+      ],
+      "semilla": [42, 3000, "p"],
+      "semilla_nota": "p es la posición del protocolo en protocolos.orden, como en el bootstrap percentil; la enumeración completa no sortea",
+      "lectura": "El estadístico, la nula impuesta y el p bilateral son los de bootstrap_v2.cambio_de_signo_salvaje, la variante cuyo tamaño midió la simulación que cita el motivo del Complemento."
+     },
+     "estimador": "θ̂ = Σ_g T_g / Σ_g W_g, con T_g = Σ_{i∈g} w_i·d̄_i, d̄_i = media sobre las réplicas de e_c,i² − e_lightgbm,i² y W_g = Σ_{i∈g} w_i",
+     "jackknife_cv3": {"uso": "sólo informa: no entra en la decisión", "varianza": "CV3: (G − 1)/G · Σ_g (θ̂_(−g) − θ̄)², con θ̂_(−g) sin el bloque g y θ̄ la media de los θ̂_(−g)", "estadistico": "t = θ̂ / √CV3, con t de G − 1 gl, bilateral; a favor del candidato si θ̂ < 0"},
+     "nivel_en_la_decision": "Holm sobre los 4 candidatos con los p del cambio de signo, aparte del de la prueba percentil; coincide si las dos declaran a favor del candidato"
+    },
+    "cambio": "Complemento, punto 1: decide el cambio de signo del bootstrap salvaje por bloque sobre los totales T_g (pesos de Webb y 9.999 sorteos con G < 12; Rademacher con enumeración completa con 12 ≤ G ≤ 16; Rademacher con 9.999 sorteos con G > 16; semilla [42, 3000, p]); el jackknife CV3 con t de G − 1 gl, que decidía en el provisional, sólo informa.",
+    "motivo_del_cambio": "en simulación, con la concentración real del peso, el CV3 rechaza por encima de lo nominal y el cambio de signo mantiene el tamaño",
+    "lectura": "La ratificación «con el valor que tienen en config_v2.json» (punto 4) abarca el detalle entero y el punto 1 cambia sólo la prueba que decide: el resto del provisional se mantiene, incluido el nivel de la decisión (Holm sobre los 4 candidatos, aparte del de la prueba percentil), ahora con los p del cambio de signo.",
+    "provisional_anterior": {"prueba": "jackknife por bloque (CV3) con t de G − 1 gl, la primera nombrada; determinista, no sortea", "estimador": "θ̂ = Σ_g T_g / Σ_g W_g, con T_g = Σ_{i∈g} w_i·d̄_i, d̄_i = media sobre las réplicas de e_c,i² − e_lightgbm,i² y W_g = Σ_{i∈g} w_i", "varianza": "CV3: (G − 1)/G · Σ_g (θ̂_(−g) − θ̄)², con θ̂_(−g) sin el bloque g y θ̄ la media de los θ̂_(−g)", "estadistico": "t = θ̂ / √varianza, con t de G − 1 gl, bilateral; a favor del candidato si θ̂ < 0", "nivel_en_la_decision": "Holm sobre los 4 candidatos, aparte del de la prueba percentil; coincide si las dos declaran a favor del candidato", "bootstrap_salvaje": "no entra en la decisión"}
    }
   },
   "regla_de_superioridad": {
    "nivel_del_intervalo": 0.95,
    "el_intervalo_excluye_0": true,
+   "la_segunda_prueba_coincide": true,
    "la_diferencia_supera_el_ruido_de_semillas": true,
    "medida_del_ruido": {
-    "estado": "pendiente",
-    "nota": "El contrato no dice cómo se mide el ruido de semillas.",
-    "provisional": "rango (máximo − mínimo) de la métrica entre las 3 semillas del motor; se exige |Δ| mayor que el rango del más ruidoso de los dos; sin semillas medidas, la condición queda no evaluada"
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.11, con el cambio del punto 3",
+    "valor": {"que_se_mide": "el ruido de la diferencia, no el de cada motor", "replicas": "Δ_r en cada réplica r = 0, 1, 2, con los mismos pares, nivel y ponderación", "estimacion_puntual": "Δ̄, la media de los Δ_r", "condicion": "|Δ̄| > rango(Δ_r) = máx − mín (implica el mismo signo en las tres réplicas)", "tasa_de_paso_por_azar": 0.081, "publicacion": "los tres Δ_r", "apilado": "el máximo del ruido de sus bases", "sin_replicas": "en LOSO-D, LBO-10 y LPO la condición queda no evaluada"},
+    "nota": "Con 3 réplicas la tasa de paso por azar es fija (8,1 %) para cualquier correlación entre motores; tests/test_config_v2.py la comprueba por simulación.",
+    "cambio": "Punto 3: se mide el rango de la diferencia entre réplicas en lugar del rango de cada motor, y la estimación puntual es la media de las tres réplicas en lugar de la réplica 0.",
+    "provisional_anterior": "rango (máximo − mínimo) de la métrica entre las 3 semillas del motor; se exige |Δ| mayor que el rango del más ruidoso de los dos; sin semillas medidas, la condición queda no evaluada"
    }
-  }
+  },
+  "influencia": {
+   "bloque_mas_influyente": {"LRO": "RM", "BLQ-75": "E004N083"},
+   "regla": "la superioridad debe sobrevivir a quitar el bloque más influyente; si no, se informa como no robusta",
+   "lectura": "Los bloques los nombra la enmienda (son los de mayor peso poblacional en los dos contaminantes). «Sobrevivir» es volver a cumplir la superioridad (las dos pruebas, con el nivel de Holm de la decisión) sin ese bloque."
+  },
+  "informes": ["G", "G efectivo", "Δ sin cada bloque"],
+  "LPO": "descriptivo: no declara superioridad"
  },
  "decision": {
-  "fuente": "§9",
-  "criterio": "R² diario (día civil) ponderado por población",
+  "fuente": "§9; Enmienda 1, punto 11 (regla cerrada); Complemento, puntos 1, 2, 3, 4.7 y 6",
+  "por_contaminante": true,
+  "por_omision": "lightgbm: se mantiene si ningún candidato cumple la regla",
+  "candidatos": ["xgboost", "random_forest", "mlp", "promedio_simple"],
+  "no_candidatos": {"apilado": "sólo descriptivo; no se despliega", "huber": "no estima la media (punto 9)", "q50": "no estima la media (punto 9)", "eje_B": "líneas base de diseño restringido", "alertas": "el cuantil 0,80 se juzga aparte"},
   "protocolos": ["LRO", "BLQ-75"],
-  "combinacion_de_protocolos": "pendiente",
-  "por_omision": "lightgbm: se mantiene si ningún motor lo supera según §8",
+  "combinacion_de_protocolos": "un candidato reemplaza a LightGBM si cumple las siete condiciones en LRO y en BLQ-75, todas a la vez",
+  "criterio": "R² diario (día civil) ponderado con los pesos fijos por estación (Enmienda 1, punto 4)",
+  "estadistico": {
+   "diferencia": "ΔR² = R²(candidato) − R²(lightgbm)",
+   "nivel": "diario_civil",
+   "ponderacion": "pesos fijos por estación (metricas.desagregaciones.ponderado_por_poblacion.poblacion)",
+   "conjunto": "E1",
+   "retransformacion": "smearing_duan",
+   "estimacion_puntual": "Δ̄, la media de las 3 réplicas",
+   "pares": "decision.pares_de_la_decision"
+  },
+  "condiciones": [
+   {
+    "n": 1,
+    "id": "superioridad",
+    "regla": "el ΔR² diario civil, ponderado con los pesos fijos y sobre E1, tiene un IC percentil del 95 % ajustado por Holm sobre los 4 candidatos que excluye 0 a favor del candidato, y la segunda prueba (punto 5) coincide",
+    "holm": {"m": 4, "alfa_de_la_familia": 0.05, "familia": "los 4 candidatos, por contaminante y protocolo", "procedimiento": "escalonado: con p = 2·mín(fracción de Δ̄* ≤ 0, fracción de Δ̄* ≥ 0), el candidato j-ésimo por p creciente se declara si p ≤ 0,05/(4 − j + 1) y se declararon los anteriores; equivale a que su IC percentil al nivel 1 − 0,05/(4 − j + 1) excluya 0", "intervalo_de_la_decision": "el intervalo escalonado publicado; con las 1.999 réplicas del bootstrap (inferencia_diferencias.bootstrap.replicas) ningún umbral cae en un empate exacto y coincide con el p (Complemento, punto 2)"},
+    "lectura": "Una declaración cuenta sólo si favorece al candidato. Δ̄* es la media de los Δ*_r de las tres réplicas con los mismos bloques sorteados.",
+    "segunda_prueba": "decide el cambio de signo del bootstrap salvaje por bloque, con su propio Holm sobre los 4 candidatos; el jackknife CV3 sólo informa (inferencia_diferencias.segunda_prueba.metodo; Complemento, punto 1)"
+   },
+   {"n": 2, "id": "ruido_de_la_diferencia", "regla": "|Δ̄| supera el ruido de la diferencia: |Δ̄| > rango(Δ_r) (punto 3)", "replicas_exigidas": 3, "con_menos_replicas": "queda «no evaluada» y el candidato no puede reemplazar a LightGBM (Complemento, punto 6)"},
+   {
+    "n": 3,
+    "id": "consistencia_con_E2",
+    "regla": "el Δ̄ del mismo estadístico sobre los pares comunes validados (E2) tiene el signo de E1; si E2 no es evaluable en el protocolo, no bloquea y se informa como «sin confirmación con datos validados» (punto 7)",
+    "lectura": "Los pares comunes validados son los pares de la decisión que están en E2."
+   },
+   {
+    "n": 4,
+    "id": "influencia",
+    "regla": "sobrevive a quitar el bloque más influyente (RM en LRO, E004N083 en BLQ-75); si no, se informa como no robusta",
+    "lectura": "La condición 1 completa (los cuatro candidatos, Holm y la segunda prueba) se rehace sin ese bloque."
+   },
+   {
+    "n": 5,
+    "id": "signo_sin_ponderar_y_en_log",
+    "regla": "el signo de Δ̄ se repite sin ponderar y en las métricas en log",
+    "lectura": "Dos comprobaciones: el mismo estadístico sin pesos, y el mismo estadístico en escala log (ẑ frente a log1p(y), promediados en log en el día civil, como metricas_v2)."
+   },
+   {
+    "n": 6,
+    "id": "misma_decision_con_lognormal",
+    "regla": "la decisión se repite con la corrección ½·σ² (lognormal_medio_sigma2)",
+    "lectura": "La regla completa se aplica también con la sensibilidad fija; el reemplazo vale sólo si las dos eligen el mismo motor; si no, se mantiene LightGBM y se informa (regla previa del punto 2)."
+   },
+   {
+    "n": 7,
+    "id": "no_inferioridad_en_sesgo",
+    "regla": "|NMB_c| ≤ |NMB_lightgbm| + 1 punto porcentual",
+    "margen_puntos_porcentuales": 1.0,
+    "lectura": "NMB = Σ(p − o)/Σo, en porcentaje, con el mismo nivel, ponderación, conjunto, pares y retransformación del estadístico, como media de las 3 réplicas."
+   }
+  ],
+  "desempate": {
+   "regla": "si varios candidatos pasan, gana la mayor media simple de sus dos R² (LRO y BLQ-75), diarios civiles, ponderados y sobre E1",
+   "empate": "ante diferencias menores que el ruido se prefiere un motor único al promedio simple, y después el más barato de producir",
+   "lectura": "Cada R² es la media de sus 3 réplicas; el ruido de la diferencia entre dos candidatos es el rango de esa diferencia entre réplicas (punto 3); «más barato» es el menor tiempo medido para la factibilidad.",
+   "replicas_exigidas": 3,
+   "con_menos_replicas": "como en la condición 2: el desempate exige las 3 réplicas comunes; con menos queda «no evaluado» y no puede dar a un candidato el reemplazo de LightGBM (Complemento, punto 6)"
+  },
+  "evidencia_parcial": {
+   "regla": "un candidato superior en un protocolo y no inferior en el otro se informa como «evidencia parcial»",
+   "consecuencia": "sus superficies pasan a ser sensibilidad de exposición (etapa 10); no reemplaza a LightGBM",
+   "definicion": {
+    "estado": "ratificado (Complemento)",
+    "punto": "4.7",
+    "origen": "Enmienda 1, punto 11",
+    "nota": "La enmienda no define «superior en un protocolo» ni «no inferior en el otro».",
+    "valor": "superior en un protocolo: cumple allí las siete condiciones; no inferior en el otro: el IC percentil del 95 % sin ajustar del mismo ΔR² no excluye 0 en contra del candidato"
+   }
+  },
+  "pares_de_la_decision": {
+   "interseccion_de": ["lightgbm", "xgboost", "random_forest", "mlp", "promedio_simple"],
+   "se_informa": "cuántos pares quita cada familia (eje B, pérdidas, cuantiles, alertas, variantes de calidad y sensibilidades)",
+   "lectura": "Para lo demás sigue la intersección de todos los motores del §4."
+  },
+  "N_de_produccion": 750000,
+  "N_de_produccion_nota": "el mismo N con que se valida el motor elegido en los dos protocolos; LightGBM con todas las filas se informa como sensibilidad en LRO, con la curva de aprendizaje",
+  "retransformacion_de_produccion": {
+   "residuos": "fuera de pliegue de LRO con el mismo N (750.000)",
+   "forma": "smearing_duan",
+   "clave": "macrozona|franja",
+   "lectura": "La forma y la clave de la primaria; en producción no hay grupo retirado."
+  },
+  "factibilidad": {
+   "fuente": "Complemento de la Enmienda 1, punto 3 (reemplaza la factibilidad del punto 11)",
+   "momento": "se mide antes de cualquier ajuste comparativo",
+   "medicion": "el tiempo de predecir un día completo de superficies con cada candidato y con LightGBM, con los predictores de producción (sólo tiempo)",
+   "predictores_de_produccion": {
+    "lightgbm": "compilado con lleaves, como la producción v1",
+    "xgboost": "compilado con treelite / tl2cgen",
+    "random_forest": "compilado con treelite / tl2cgen",
+    "mlp": "float32, por lotes"
+   },
+   "datos": {
+    "matrices": "reales, de predictores de 3 días, armadas con el código de producción v1 en sólo lectura y escritas en un temporal",
+    "dias": ["verano", "invierno", "transición"],
+    "fechas": {
+     "estado": "pendiente",
+     "origen": "Complemento, punto 3",
+     "nota": "El Complemento pide 3 días reales (verano, invierno y transición) sin fijar las fechas. Como la regla y su medición no se revisan después de ver resultados, las fechas quedan fijadas antes de medir.",
+     "provisional": "las fija y registra el código de factibilidad antes de medir y sin mirar ninguna predicción: un día de verano (diciembre a febrero), uno de invierno (junio a agosto) y uno de transición (marzo a mayo o septiembre a noviembre) del período 2000-2026, cada uno con su matriz real armada por la producción v1"
+    }
+   },
+   "periodo": [2000, 2026],
+   "contaminantes": ["pm25", "no2"],
+   "hilos": 12,
+   "factor_maximo_frente_a_lightgbm": 5.0,
+   "umbral_dias_de_maquina": 21,
+   "regla": "un candidato es factible si su producción 2000-2026 de los dos contaminantes cuesta ≤ 5 veces la de LightGBM compilado y ≤ 21 días de máquina con 12 hilos",
+   "promedio_simple": "cuesta la suma de sus miembros (LightGBM, XGBoost, RF y MLP)",
+   "si_no_es_factible": "el candidato queda fuera de la decisión, con registro",
+   "irrevisable": true,
+   "irrevisable_nota": "esta regla y su medición no se revisan después de ver resultados",
+   "lectura": "Por contaminante, la producción 2000-2026 cuesta la media de los tiempos de los 3 días medidos por los 9.862 días del calendario 2000-2026; se suman los dos contaminantes, y con esas sumas se calculan los días de máquina y el cociente frente a LightGBM compilado. LightGBM es la referencia, no un candidato: la regla no lo excluye.",
+   "antes_del_complemento": {
+    "medicion": "antes de la corrida, el tiempo de predecir un día completo de superficies con cada candidato (sólo tiempo)",
+    "periodo": [2000, 2026],
+    "umbral_dias_de_maquina": 7,
+    "si_excede": "el candidato queda fuera de la decisión, con registro",
+    "momento": "fijada antes de la corrida",
+    "lectura": "Por contaminante y con los hilos de la corrida; la producción 2000-2026 se estima como el tiempo de un día por los 9.862 días del calendario 2000-2026."
+   }
+  },
+  "implementacion": {"funcion": "decidir_motor", "probada_antes_de_la_corrida": true, "decision_a_mano": false},
   "no2": {
    "mascara_de_soporte": {
     "variables": ["peso_vec", "dist_est_km"],
     "criterio": "fuera del rango del entrenamiento"
    },
-   "incertidumbre_por_celda": "a partir de los modelos cuantílicos"
+   "incertidumbre_por_celda": "a partir de los modelos cuantílicos, reordenados y calibrados con CQR (perdidas.variantes[3])"
   },
   "produccion": "paso posterior y aparte (etapa 10), con su agregado diario civil",
   "resultados_que_no_ganan": "se guardan todos"
  },
  "presupuesto": {
-  "fuente": "§10",
+  "fuente": "§10; Enmienda 1, puntos 1.12 y 12; Complemento, punto 8",
   "piloto": {
    "pliegues_por_protocolo_y_motor": 2,
    "nota": "un tiempo no es un resultado",
    "eleccion_de_los_pliegues": {
-    "estado": "pendiente",
-    "nota": "El contrato fija 2 pliegues por protocolo y motor, no cuáles. La instrucción de la etapa del piloto (2026-10-12) pide los de más y menos filas de entrenamiento; el provisional anterior ordenaba por filas de prueba. Los dos criterios eligen el mismo par salvo en LBO-10, donde la exclusión de 10 km rompe la complementariedad entre entrenamiento y prueba (pm25: k 73 en vez de 74; no2: k 36 en vez de 17).",
-    "provisional": "por contaminante y protocolo, el pliegue con más filas de entrenamiento disponibles y el de menos (desempate: menor k), con los cuatro motores del eje A y el N común; curvas de aprendizaje (LightGBM y XGBoost: los puntos que no son el N común; RF: el más alto, 1,5 M) en el pliegue de LRO con más filas de entrenamiento; el piloto no guarda predicciones ni calcula métricas (piloto_v2.py)"
+    "estado": "ratificado (Enmienda 1)",
+    "punto": "1.12",
+    "valor": "por contaminante y protocolo, el pliegue con más filas de entrenamiento disponibles y el de menos (desempate: menor k), con los cuatro motores del eje A y el N común; curvas de aprendizaje (LightGBM y XGBoost: los puntos que no son el N común; RF: el más alto, 1,5 M) en el pliegue de LRO con más filas de entrenamiento; el piloto no guarda predicciones ni calcula métricas (piloto_v2.py)",
+    "nota": "El contrato fija 2 pliegues por protocolo y motor, no cuáles: el de más y el de menos filas de entrenamiento. Ordenar por filas de prueba elegiría otro par sólo en LBO-10 (pm25: k 73 en vez de 74; no2: k 36 en vez de 17)."
+   },
+   "revision": {
+    "cuando": "antes de la corrida",
+    "que": "se vuelve a medir el piloto con la máquina libre (--remedir-contaminadas 0.5) y se rehace el plan con el nuevo orden de recortes",
+    "maquina_libre": {"carga_media_maxima_al_empezar": 2.0, "comparacion": "<", "otros_trabajos_pesados": false},
+    "incluye_el_costo_nuevo_de": ["la MLP: validación y reajuste (Enmienda 1, punto 6)", "el δ honesto de Huber (Enmienda 1, punto 9)"],
+    "plan": "el código rehace el plan con esa medición, sin elección a mano",
+    "lectura": "La carga media es la del sistema en el último minuto (os.getloadavg), al empezar la medición.",
+    "fuente": "Enmienda 1, punto 12; Complemento de la Enmienda 1, punto 8",
+    "antes_del_complemento": "antes de la corrida se vuelve a medir el piloto con la máquina libre (--remedir-contaminadas 0.5) y se rehace el plan con el nuevo orden de recortes"
    }
   },
   "umbral_horas_maquina": 120,
   "umbral_aproximado": true,
   "orden_de_recortes": [
-   {"orden": 1, "recorte": "semillas sólo en LRO"},
-   {"orden": 2, "recorte": "curvas de aprendizaje sólo en LRO"},
-   {"orden": 3, "recorte": "MLP sólo en LRO y BLQ-75"}
+   {"orden": 1, "recorte": "curvas de aprendizaje fuera de LRO", "elemento": "curvas_de_aprendizaje", "se_conserva_en": ["LRO"]},
+   {"orden": 2, "recorte": "MLP fuera de LRO y BLQ-75", "elemento": "mlp", "se_conserva_en": ["LRO", "BLQ-75"]},
+   {"orden": 3, "recorte": "semillas fuera de LRO y BLQ-75", "elemento": "semillas", "se_conserva_en": ["LRO", "BLQ-75"], "advertencia": "Leído con el §8 (3 semillas sólo en LRO y BLQ-75; 1 en los demás protocolos), este recorte no quita nada. La revisión proponía dejar las semillas de BLQ-75 para el final, que sería «semillas sólo en LRO». Se traduce tal cual; aclararlo exige una enmienda."},
+   {"orden": 4, "recorte": "pérdidas del §6 fuera de LRO, BLQ-75 y LOSO-D", "elemento": "perdidas", "se_conserva_en": ["LRO", "BLQ-75", "LOSO-D"]}
   ],
+  "orden_de_recortes_en_el_codigo": "los cuatro recortes, incluido el 4, se implementan en el código: el plan los aplica en este orden hasta quedar bajo el umbral, sin elección a mano (Complemento, punto 8)",
+  "orden_de_recortes_antes_de_la_enmienda": ["semillas sólo en LRO", "curvas de aprendizaje sólo en LRO", "MLP sólo en LRO y BLQ-75"],
+  "efecto_estimado": "con los recortes 1 y 2, 115,65 h de máquina, y se conservan las semillas de BLQ-75 (un tiempo, no un resultado)",
+  "punto_6_del_borrador": "sin efecto: el ruido de BLQ-75 no se toma de LRO",
   "registro_de_recortes": "bitácora del manifiesto (pliegues_v2.json → bitacora)",
   "paralelizacion": "por pliegue, con puntos de control atómicos y reanudables"
+ },
+ "procedencia_y_sellado": {
+  "fuente": "Enmienda 1, punto 14; Complemento, puntos 7 y 10",
+  "firma_de_los_ajustes": {
+   "incluye": ["sha256 de la lista ordenada de predictores", "receta", "pérdida", "variante de calidad", "sha256 del contrato", "sha256 de la configuración", "hash del código de las funciones de ajuste"],
+   "incluye_antes_del_complemento": ["sha256 de la lista ordenada de predictores", "receta", "pérdida", "variante de calidad", "sha256 del contrato", "sha256 de la configuración"],
+   "codigo_de_ajuste": {
+    "que": "el hash del código de las funciones de ajuste, en particular la validación de la MLP y el δ honesto de Huber",
+    "version_a_mano": false,
+    "nota": "la firma cambia cuando cambia ese código, sin depender de subir una versión a mano",
+    "fuente": "Complemento de la Enmienda 1, punto 7"
+   },
+   "retransformacion": "no entra en la firma del ajuste: se aplica al consolidar y queda registrada en consolidado.json"
+  },
+  "guardia_de_escritura": "compara rutas sin distinguir mayúsculas ni la forma Unicode, o por st_dev y st_ino",
+  "candado": {
+   "alcance": "por artefacto",
+   "nombres": "normalizados (casefold + NFC), como la guardia de escritura",
+   "fuente": "Enmienda 1, punto 14; Complemento de la Enmienda 1, punto 10",
+   "antes_del_complemento": "por artefacto, sin normalizar los nombres"
+  },
+  "sellado": "el contrato, la configuración y el código se confirman en git antes de cualquier ajuste comparativo"
  },
  "fuera_del_contrato": {
   "fuente": "§11",

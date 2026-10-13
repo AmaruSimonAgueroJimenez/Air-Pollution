@@ -159,21 +159,30 @@ def manifiesto_sintetico(panel: pd.DataFrame) -> dict:
     return m
 
 
+def _vigente(item: dict) -> str:
+    """Clave del valor que lee el código en un objeto de la configuración: «valor» si una enmienda lo ratificó,
+    «provisional» si sigue pendiente (``_rutas_v2.valor_vigente``)."""
+    return "valor" if rv.estado_vigente(item) == "ratificado" else "provisional"
+
+
 def config_pequena(n_comun: int = 1200, internos: int = 2) -> dict:
-    """La configuración real con recetas diminutas (mismas claves y provisionales), para que todo corra en segundos."""
+    """La configuración real con recetas diminutas (mismas claves y valores vigentes), para que todo corra en segundos."""
     cfg = json.loads((V2 / rv.NOMBRE_CONFIG).read_text(encoding="utf-8"))
     cfg = copy.deepcopy(cfg)
     a = cfg["motores"]["eje_A"]
     a["predictores"]["pm25"] = list(PREDICTORES)
     a["lightgbm"].update({"num_boost_round": 12, "num_leaves": 7, "min_data_in_leaf": 10})
     a["xgboost"].update({"num_boost_round": 12, "max_leaves": 7})
-    a["xgboost"]["min_child_weight"]["provisional"] = 10
+    mcw = a["xgboost"]["min_child_weight"]
+    mcw[_vigente(mcw)] = 10
     a["random_forest"].update({"n_estimators": 8, "min_samples_leaf": 10})
     a["mlp"].update({"hidden_layer_sizes": [8], "max_iter": 6})
-    al = cfg["motores"]["alertas"]["receta"]["provisional"]
-    al.update({"num_boost_round": 10, "num_leaves": 7, "min_data_in_leaf": 10})
-    cfg["motores"]["eje_B"]["topes_de_filas"]["provisional"].update({"gp": 120, "lme": 1500})
-    cfg["motores"]["apilado_anidado"]["pliegues_internos"]["provisional"]["n"] = internos
+    rec = cfg["motores"]["alertas"]["receta"]
+    rec[_vigente(rec)].update({"num_boost_round": 10, "num_leaves": 7, "min_data_in_leaf": 10})
+    topes = cfg["motores"]["eje_B"]["topes_de_filas"]
+    topes[_vigente(topes)].update({"gp": 120, "lme": 1500})
+    pint = cfg["motores"]["apilado_anidado"]["pliegues_internos"]
+    pint[_vigente(pint)]["n"] = internos
     f = cfg["filas_entrenamiento"]
     f["N_comun_eje_A"] = n_comun
     f["curvas_de_aprendizaje"] = {"protocolos": ["LRO", "BLQ-75"], "lightgbm": [500, n_comun, 2400, "todas"],

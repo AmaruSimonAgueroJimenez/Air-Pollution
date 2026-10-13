@@ -1,6 +1,9 @@
-"""Pruebas de ``motores_v2``: recetas desde la configuración, permutación común con topes anidados, determinismo de
-cada motor del eje A, validación agrupada de la MLP, diseño del LME aprendido en el pliegue, GWR/RK/IDW por
-estadísticos suficientes contra una implementación directa, pesos del apilado en el símplex y pliegues internos."""
+"""Pruebas de ``motores_v2``: recetas desde la configuración (con el amortiguador interno de BLQ-75 y el orden de
+recortes del Complemento, puntos 5 y 8), permutación común con topes anidados, determinismo de cada motor del eje A,
+parada temprana agrupada de la MLP con reajuste desde cero (Enmienda 1, punto 6) y sin entrenar con las filas del
+amortiguador, selección de la validación por conglomerados y por grupos, partición honesta del δ de Huber (punto 9),
+diseño del LME aprendido en el pliegue, GWR/RK/IDW por estadísticos suficientes contra una implementación directa,
+pesos del apilado en el símplex y pliegues internos."""
 from __future__ import annotations
 
 import sys
@@ -30,8 +33,13 @@ class RecetasTests(unittest.TestCase):
         x = r["xgboost"]["params"]
         self.assertEqual((x["colsample_bytree"], x["min_child_weight"], x["max_depth"], x["max_bin"], x["nthread"],
                           x["seed"], x["tree_method"], x["grow_policy"]), (0.8, 50.0, 0, 255, 12, 42, "hist", "lossguide"))
+        self.assertEqual(r["xgboost"]["min_child_weight_equivalencia"], "hessiana_1")     # Enmienda 1, punto 1.2
         self.assertEqual(r["random_forest"]["params"]["n_jobs"], 12)
-        self.assertEqual((r["mlp"]["fraccion_validacion"], r["mlp"]["n_iter_no_change"]), (0.1, 10))
+        self.assertEqual((r["mlp"]["fraccion_validacion"], r["mlp"]["n_iter_no_change"], r["mlp"]["tol"]), (0.1, 10, 1e-4))
+        self.assertEqual(r["mlp"]["validacion"]["grupos_en"], ["LRO", "BLQ-75"])           # Enmienda 1, punto 6
+        self.assertIn("vecindario", r["mlp"]["criterio"])
+        self.assertEqual((r["huber"]["factor"], r["huber"]["ajuste_cuadratico"]["motor"]), (1.345, "lightgbm"))
+        self.assertEqual(r["huber"]["sensibilidad"]["cuantil_de_abs_r"], 0.9)
         self.assertEqual((r["gp"]["tope"], r["lme"]["tope"], r["lineales"]["tope"], r["N_comun"]), (3000, 300000, None, 750000))
         self.assertEqual(r["alertas"]["params"]["alpha"], 0.8)
         self.assertNotIn("bagging_fraction", r["alertas"]["params"])
@@ -41,6 +49,27 @@ class RecetasTests(unittest.TestCase):
         self.assertEqual((r6["lightgbm"]["params"]["num_threads"], r6["xgboost"]["params"]["nthread"]), (6, 6))
         with self.assertRaises(ValueError):
             mv.recetas_de(cfg, hilos=13)
+        # Complemento, punto 5: amortiguador de 10 km (haversine, <=) en las particiones internas de BLQ-75
+        a = r["amortiguador_interno"]
+        self.assertEqual((a["protocolos"], a["radio_km"], a["comparacion"], a["distancia"]), (["BLQ-75"], 10.0, "<=", "haversine"))
+        self.assertEqual(len(a["se_aplica_en"]), 3)
+        # Enmienda 1, punto 12, con el recorte 4 (Complemento, punto 8): el orden de recortes de la configuración
+        self.assertEqual([(x["orden"], x["elemento"], x["se_conserva_en"]) for x in r["recortes"]],
+                         [(1, "curvas_de_aprendizaje", ["LRO"]), (2, "mlp", ["LRO", "BLQ-75"]),
+                          (3, "semillas", ["LRO", "BLQ-75"]), (4, "perdidas", ["LRO", "BLQ-75", "LOSO-D"])])
+        import copy
+        malo = copy.deepcopy(cfg)
+        del malo["protocolos"]["BLQ-75"]["exclusion_adicional"]["particiones_internas"]
+        with self.assertRaises(ValueError):
+            mv.recetas_de(malo)
+        malo = copy.deepcopy(cfg)
+        malo["presupuesto"]["orden_de_recortes"] = malo["presupuesto"]["orden_de_recortes"][:3]
+        with self.assertRaises(ValueError):
+            mv.recetas_de(malo)
+        malo = copy.deepcopy(cfg)
+        malo["presupuesto"]["orden_de_recortes"][3]["orden"] = 5
+        with self.assertRaises(ValueError):
+            mv.recetas_de(malo)
 
 
 class FilasTests(unittest.TestCase):
@@ -84,11 +113,16 @@ class EjeATests(unittest.TestCase):
         cls.recetas = mv.recetas_de(sx.config_pequena(), hilos=2)
         cls.X, cls.y, cls.est = datos_eje_a()
 
+    def validacion(self, semilla=43):
+        return mv.validacion_por_unidades(self.est, semilla, self.recetas["mlp"]["fraccion_validacion"])
+
     def test_cada_motor_es_determinista(self):
+        ref = pv.Variante(mv.VARIANTE_REFERENCIA)
         for motor in (*mv.MOTORES_EJE_A, "alertas"):
             with self.subTest(motor=motor):
-                p = [mv.crear_modelo(motor, self.recetas, pv.Variante("l2_log_duan"), 0, k=3)
-                     .ajustar(self.X, self.y, self.est).predecir(self.X[:500]) for _ in range(2)]
+                opciones = {"validacion": self.validacion()} if motor == "mlp" else {}
+                p = [mv.crear_modelo(motor, self.recetas, ref, 0, k=3)
+                     .ajustar(self.X, self.y, self.est, **opciones).predecir(self.X[:500]) for _ in range(2)]
                 self.assertTrue(np.array_equal(p[0], p[1]))
                 self.assertTrue(np.isfinite(p[0]).all())
         for etiqueta in ("l2_original", "q05", "q95"):
@@ -98,35 +132,172 @@ class EjeATests(unittest.TestCase):
                 self.assertTrue(np.array_equal(p[0], p[1]), f"{motor} {etiqueta}")
 
     def test_replicas_cambian_la_semilla_del_motor(self):
-        m0 = mv.crear_modelo("lightgbm", self.recetas, pv.Variante("l2_log_duan"), 0, replica=0)
-        m1 = mv.crear_modelo("lightgbm", self.recetas, pv.Variante("l2_log_duan"), 0, replica=1)
+        ref = pv.Variante(mv.VARIANTE_REFERENCIA)
+        m0 = mv.crear_modelo("lightgbm", self.recetas, ref, 0, replica=0)
+        m1 = mv.crear_modelo("lightgbm", self.recetas, ref, 0, replica=1)
         self.assertEqual((m0.params["seed"], m1.params["seed"]), (42, 1042))
-        rf = mv.crear_modelo("random_forest", self.recetas, pv.Variante("l2_log_duan"), 0, replica=2, k=5)
+        rf = mv.crear_modelo("random_forest", self.recetas, ref, 0, replica=2, k=5)
         self.assertEqual(rf.semilla, 42 + 5 + 2000)
         with self.assertRaises(ValueError):
             mv.crear_modelo("random_forest", self.recetas, pv.Variante("l2_original"), 0)
 
-    def test_huber_toma_delta_del_ajuste_cuadratico(self):
-        m = mv.crear_modelo("lightgbm", self.recetas, pv.Variante("l2_original"), 0).ajustar(self.X, self.y)
-        d, info = mv.delta_desde_ajuste(m, self.X, self.y)
-        res = self.y - m.predecir(self.X)
-        self.assertAlmostEqual(d, pv.delta_huber(res))
-        self.assertEqual(info["residuos_in_sample"], len(self.y))
-        h = mv.crear_modelo("xgboost", self.recetas, pv.Variante("huber", delta=d), 0).ajustar(self.X, self.y)
-        self.assertTrue(h.info["objetivo_propio"].startswith("huber_lightgbm"))
+    def test_huber_con_delta_comun_en_los_dos_motores(self):
+        """El δ sale de residuos honestos (partición agrupada en dos) y lo usan LightGBM y XGBoost (punto 9)."""
+        en_1, definicion = mv.particion_honesta(self.est, k=3)
+        r = np.full(len(self.y), np.nan)
+        for mitad in (0, 1):
+            pred = en_1 if mitad else ~en_1
+            m = mv.crear_modelo("lightgbm", self.recetas, pv.Variante("l2_original"), 0).ajustar(self.X[~pred], self.y[~pred])
+            r[pred] = self.y[pred] - m.predecir(self.X[pred])
+        d = pv.deltas_honestos(r)
+        self.assertTrue(np.isfinite(r).all())                                  # cada fila, predicha por la otra mitad
+        self.assertAlmostEqual(d["mad"], 1.345 * pv.mad(r))
+        self.assertAlmostEqual(d["friedman"], float(np.quantile(np.abs(r), 0.9)))
+        self.assertEqual(sorted(definicion["conglomerados"][0] + definicion["conglomerados"][1]), sorted(set(self.est)))
+        for motor in mv.MOTORES_PERDIDAS:
+            h = mv.crear_modelo(motor, self.recetas, pv.Variante("huber", delta=d["mad"]), 0).ajustar(self.X, self.y)
+            self.assertTrue(np.isfinite(h.predecir(self.X[:50])).all())
+        hx = mv.crear_modelo("xgboost", self.recetas, pv.Variante("huber", delta=d["friedman"], regla="friedman"), 0)
+        hx.ajustar(self.X, self.y)
+        self.assertTrue(hx.info["objetivo_propio"].startswith("huber_lightgbm"))
+        self.assertEqual(hx.info["min_child_weight_equivalencia"], "hessiana_1")
 
-    def test_mlp_valida_agrupado_por_estacion(self):
-        m = mv.crear_modelo("mlp", self.recetas, pv.Variante("l2_log_duan"), 0, k=1).ajustar(self.X, self.y, self.est)
+    def test_mlp_exige_su_validacion(self):
+        with self.assertRaises(ValueError):
+            mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0).ajustar(self.X, self.y, self.est)
+
+    def test_mlp_valida_agrupado_y_reajusta_desde_cero(self):
+        val = self.validacion(semilla=43)
+        self.assertEqual(len(val.registro["unidades"]), 1)                    # 10 % de 10 unidades
+        m = mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0, k=1).ajustar(
+            self.X, self.y, self.est, validacion=val)
         i = m.info
         self.assertTrue(i["validacion_agrupada"])
-        self.assertEqual(len(i["estaciones_validacion"]), 1)                  # 10 % de 10 estaciones
-        self.assertEqual(i["filas_validacion"], int(np.isin(self.est, i["estaciones_validacion"]).sum()))
+        self.assertEqual(i["filas_validacion"], int(np.isin(self.est, val.registro["unidades"]).sum()))
         self.assertGreaterEqual(i["mejor_epoca"], 1)
-        una = mv.crear_modelo("mlp", self.recetas, pv.Variante("l2_log_duan"), 0).ajustar(self.X, self.y,
-                                                                                          np.full(len(self.y), "S"))
-        self.assertFalse(una.info["validacion_agrupada"])                     # una sola estación: sin validación
+        self.assertEqual(i["epocas_reajuste"], i["mejor_epoca"])               # la época elegida
+        self.assertGreaterEqual(i["epocas_validacion"], i["mejor_epoca"])
+        self.assertFalse(i["vecindario_validacion_recalculado"])
+        # El reajuste es desde cero, con la misma semilla y todas las filas, durante la época elegida.
+        from sklearn.neural_network import MLPRegressor
+        rc = self.recetas["mlp"]
+        red = MLPRegressor(**rc["params"], max_iter=1, shuffle=True, early_stopping=False, tol=rc["tol"],
+                           n_iter_no_change=rc["n_iter_no_change"], random_state=np.random.RandomState(m.semilla))
+        Xs = m.esc.transform(m.imp.transform(self.X)).astype("float32")
+        ylog = np.log1p(np.clip(self.y, 0, None))
+        for _ in range(i["epocas_reajuste"]):
+            red.partial_fit(Xs, ylog)
+        for a, b in zip(red.coefs_, m.modelo.coefs_):
+            np.testing.assert_array_equal(a, b)
         z = m.predecir(self.X[:50])
         self.assertTrue(((z >= m.lo) & (z <= m.hi)).all())                   # salida recortada a q0,005–q0,99
+
+    def test_mlp_usa_la_matriz_de_validacion(self):
+        """La fase de validación usa la matriz con el vecindario sin las estaciones de validación."""
+        base = self.validacion(semilla=43)
+        otra_X = self.X.copy()
+        otra_X[:, 0] = 0.0                                                     # otra «matriz de validación»
+        con = mv.ValidacionMLP(filas=base.filas, X=otra_X, registro={"unidad": "prueba"})
+        m1 = mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0, k=1).ajustar(
+            self.X, self.y, self.est, validacion=base)
+        m2 = mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0, k=1).ajustar(
+            self.X, self.y, self.est, validacion=con)
+        self.assertTrue(m2.info["vecindario_validacion_recalculado"])
+        self.assertNotEqual(m1.info["mejor_r2_log_validacion"], m2.info["mejor_r2_log_validacion"])
+        with self.assertRaises(ValueError):
+            mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0).ajustar(
+                self.X, self.y, self.est, validacion=mv.ValidacionMLP(filas=base.filas, X=self.X[:10]))
+
+    def test_mlp_no_entrena_con_el_amortiguador(self):
+        """Complemento, punto 5: las filas del amortiguador (``ValidacionMLP.fuera``) no entrenan en la fase de
+        validación ni la evalúan; sí entran al reajuste con todas las estaciones del pliegue."""
+        base = self.validacion(semilla=43)
+        otra = np.array(sorted(set(self.est) - set(base.registro["unidades"])))[0]
+        fuera = np.isin(self.est, [otra])
+        con = mv.ValidacionMLP(filas=base.filas, X=None, registro={"unidad": "prueba"}, fuera=fuera)
+        np.testing.assert_array_equal(con.entrenan(), ~base.filas & ~fuera)
+        m1 = mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0, k=1).ajustar(
+            self.X, self.y, self.est, validacion=con)
+        self.assertEqual(m1.info["filas_amortiguador"], int(fuera.sum()))
+        self.assertEqual(m1.info["filas_entrenamiento_validacion"], int((~base.filas & ~fuera).sum()))
+        y2 = self.y.copy()
+        y2[fuera] *= 5.0                                                       # sólo cambia lo del amortiguador
+        m2 = mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0, k=1).ajustar(
+            self.X, y2, self.est, validacion=con)
+        self.assertEqual(m1.info["mejor_r2_log_validacion"], m2.info["mejor_r2_log_validacion"])   # fase intacta
+        self.assertEqual(m1.info["epocas_reajuste"], m2.info["epocas_reajuste"])
+        self.assertFalse(np.array_equal(m1.predecir(self.X[:50]), m2.predecir(self.X[:50])))   # el reajuste sí las usa
+        m0 = mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0, k=1).ajustar(
+            self.X, self.y, self.est, validacion=base)
+        self.assertNotEqual(m0.info["mejor_r2_log_validacion"], m1.info["mejor_r2_log_validacion"])
+        todo_fuera = mv.ValidacionMLP(filas=base.filas, fuera=~base.filas)
+        self.assertFalse(todo_fuera.agrupada)                                 # nada que entrene en la validación
+        with self.assertRaises(ValueError):
+            mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0).ajustar(
+                self.X, self.y, self.est, validacion=mv.ValidacionMLP(filas=base.filas, fuera=fuera[:10]))
+
+    def test_mlp_sin_unidades_de_validacion(self):
+        una = mv.validacion_por_unidades(np.full(len(self.y), "S"), 1, 0.1)
+        self.assertFalse(una.agrupada)
+        m = mv.crear_modelo("mlp", self.recetas, pv.Variante(mv.VARIANTE_REFERENCIA), 0).ajustar(
+            self.X, self.y, self.est, validacion=una)
+        self.assertFalse(m.info["validacion_agrupada"])                       # una sola unidad: sin validación
+        self.assertEqual(m.info["epocas_reajuste"], self.recetas["mlp"]["max_iter"])
+
+
+class ValidacionMLPTests(unittest.TestCase):
+    def test_sorteo_por_conglomerados(self):
+        u = [f"C{i:02d}" for i in range(23)]
+        a = mv.sortear_conglomerados_validacion(u, 44, 0.1)
+        self.assertEqual(len(a), 2)                                            # round(2,3) = 2
+        self.assertEqual(a, mv.sortear_conglomerados_validacion(list(reversed(u)) + u, 44, 0.1))
+        self.assertEqual(a, sorted(a))
+        self.assertNotEqual(a, mv.sortear_conglomerados_validacion(u, 45, 0.1))
+        self.assertEqual(len(mv.sortear_conglomerados_validacion(u[:3], 1, 0.1)), 1)     # al menos uno
+        self.assertEqual(mv.sortear_conglomerados_validacion(u[:1], 1, 0.1), [])          # nunca todos
+
+    def test_grupos_completos_estratificados_por_macrozona(self):
+        rng = np.random.default_rng(0)
+        grupos = np.array([f"G{i}" for i in range(12)])
+        tam = np.array([50, 40, 30, 30, 20, 20, 15, 10, 10, 5, 5, 4]) * 100
+        mz_grupo = np.array([0, 0, 1, 1, 2, 2, 0, 1, 2, 0, 1, 2])
+        g = np.repeat(grupos, tam)
+        mz = np.repeat(mz_grupo, tam)
+        mz[rng.random(len(mz)) < 0.05] = 9                                   # ruido de minoría: no cambia la mayoría
+        for semilla in range(20):
+            elegidos, reg = mv.seleccionar_grupos_validacion(g, mz, semilla, 0.1)
+            with self.subTest(semilla=semilla):
+                self.assertTrue(elegidos)
+                self.assertLessEqual(reg["filas_validacion"], 0.1 * len(g) + 1e-9)
+                self.assertEqual(reg["filas_validacion"], int(np.isin(g, elegidos).sum()))
+                macro = [int(mz_grupo[list(grupos).index(e)]) for e in elegidos]
+                self.assertEqual(len(macro), len(set(macro)))                  # a lo más uno por macrozona
+                self.assertEqual(reg["macrozonas"], dict(zip(elegidos, macro)))
+                self.assertLess(len(elegidos), len(grupos))
+        self.assertEqual(mv.seleccionar_grupos_validacion(g, mz, 3, 0.1)[0],
+                         mv.seleccionar_grupos_validacion(g[::-1], mz[::-1], 3, 0.1)[0])   # no depende del orden
+        # Si ninguno cabe en el 10 %, entra el de menos filas; con un solo grupo, no hay validación.
+        grande = np.repeat(np.array(["A", "B", "C"]), [500, 400, 300])
+        elegidos, reg = mv.seleccionar_grupos_validacion(grande, np.zeros(1200, dtype=int), 0, 0.1)
+        self.assertEqual((elegidos, reg["respaldo_grupo_con_menos_filas"]), (["C"], True))
+        self.assertEqual(mv.seleccionar_grupos_validacion(np.full(10, "A"), np.zeros(10, dtype=int), 0, 0.1)[0], [])
+
+
+class ParticionHonestaTests(unittest.TestCase):
+    def test_mitades_de_conglomerados(self):
+        congl = np.repeat(np.array(["A1+A2", "B", "C", "D", "E"]), [30, 20, 25, 10, 15])
+        en_1, d = mv.particion_honesta(congl, k=7)
+        self.assertEqual(d["semilla"], [42, 7, 1001])
+        self.assertEqual(sorted(d["conglomerados"][0] + d["conglomerados"][1]), ["A1+A2", "B", "C", "D", "E"])
+        self.assertEqual((len(d["conglomerados"][0]), len(d["conglomerados"][1])), (3, 2))   # en turnos
+        for c in np.unique(congl):                                             # cada conglomerado, entero en una mitad
+            self.assertEqual(len(set(en_1[congl == c])), 1)
+        self.assertEqual(d["filas"], [int((~en_1).sum()), int(en_1.sum())])
+        en_1b, _ = mv.particion_honesta(congl[::-1], k=7)
+        np.testing.assert_array_equal(en_1b, en_1[::-1])                      # no depende del orden de las filas
+        self.assertNotEqual(mv.particion_honesta(congl, k=8)[1]["conglomerados"], d["conglomerados"])
+        with self.assertRaises(ValueError):
+            mv.particion_honesta(np.full(5, "A"), k=0)
 
     def test_salida_de_alertas(self):
         np.testing.assert_allclose(mv.salida_alertas([-1.0, 0.0, 1.0]), np.array([0.0, 0.0, np.e - 1], dtype="float32"),

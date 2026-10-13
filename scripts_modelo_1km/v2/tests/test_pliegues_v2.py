@@ -154,9 +154,76 @@ class ProtocolosTests(unittest.TestCase):
             self.assertEqual(sorted(prueba), sorted(self.por_est.index))
             self.assertEqual(sum(f["filas_prueba"] for f in pl), self.total)
             for f in pl:
-                self.assertEqual(f["excluidas"], f["estaciones_prueba"])
-                self.assertEqual(f["filas_entrenamiento_disponibles"], self.total - f["filas_prueba"])
-                self.assertEqual(f["filas_fuera_del_pliegue"], 0)
+                fuera = sorted(set(f["excluidas"]) - set(f["estaciones_prueba"]))
+                if prot != "BLQ-75":                                         # BLQ-75 lleva el amortiguador
+                    self.assertEqual(fuera, [])
+                filas_fuera = int(self.por_est.loc[fuera, "filas"].sum()) if fuera else 0
+                self.assertTrue(set(f["estaciones_prueba"]) <= set(f["excluidas"]))
+                self.assertEqual(f["filas_fuera_del_pliegue"], filas_fuera)
+                self.assertEqual(f["filas_entrenamiento_disponibles"], self.total - f["filas_prueba"] - filas_fuera)
+
+    def test_blq_75_con_amortiguador(self):
+        """Enmienda 1, punto 8: el bloque de prueba excluye además toda estación a <= 10 km de alguna suya."""
+        u = universo_sintetico().set_index("estacion")
+        km = {c: k for c, k, *_ in ESTACIONES}
+        en_panel = set(self.por_est.index)
+        for f in self.prot["BLQ-75"]["pliegues"]:
+            miembros = f["estaciones_prueba"]
+            cerca = sorted(s for s in en_panel if any(abs(km[s] - km[m]) <= 10.0 for m in miembros))
+            fuera_panel = sorted(s for s in u.index if s not in en_panel and any(abs(km[s] - km[m]) <= 10.0 for m in miembros))
+            with self.subTest(bloque=f["grupo"]):
+                self.assertEqual(f["excluidas"], sorted(set(miembros) | set(cerca)))
+                self.assertEqual(f["amortiguador"]["excluidas_por_amortiguador"], sorted(set(cerca) - set(miembros)))
+                self.assertEqual(f["amortiguador"]["radio_incluye_fuera_del_panel"], fuera_panel)
+                self.assertEqual(f["amortiguador"]["radio_km"], 10.0)
+                entrena = [s for s in en_panel if s not in f["excluidas"]]
+                otras = [s for s in en_panel if s not in miembros]
+                self.assertAlmostEqual(f["distancia_minima_entrenamiento_km"],
+                                       min(abs(km[s] - km[m]) for s in entrena for m in miembros), places=4)
+                self.assertAlmostEqual(f["distancia_minima_sin_amortiguador_km"],
+                                       min(abs(km[s] - km[m]) for s in otras for m in miembros), places=4)
+                self.assertGreater(f["distancia_minima_entrenamiento_km"], 10.0)
+        # G1 y G2 (a 3 km) quedan en bloques distintos: cada una sale del entrenamiento del bloque de la otra, y H
+        # (fuera del panel, a 1,5 km) sólo se registra.
+        g1 = next(f for f in self.prot["BLQ-75"]["pliegues"] if "G1" in f["estaciones_prueba"])
+        g2 = next(f for f in self.prot["BLQ-75"]["pliegues"] if "G2" in f["estaciones_prueba"])
+        self.assertNotEqual(g1["grupo"], g2["grupo"])
+        self.assertIn("G2", g1["amortiguador"]["excluidas_por_amortiguador"])
+        self.assertIn("G1", g2["amortiguador"]["excluidas_por_amortiguador"])
+        self.assertEqual(g2["amortiguador"]["radio_incluye_fuera_del_panel"], ["H"])
+        self.assertAlmostEqual(g2["distancia_minima_sin_amortiguador_km"], 3.0, places=4)
+        reg = {b["grupo"]: b for b in self.d["bloques_blq75"]}
+        self.assertEqual(reg[g2["grupo"]]["excluidas_por_amortiguador"], g2["amortiguador"]["excluidas_por_amortiguador"])
+        self.assertEqual(reg[g2["grupo"]]["distancia_minima_entrenamiento_km"], g2["distancia_minima_entrenamiento_km"])
+
+    def test_distancia_minima_en_los_protocolos_espaciales(self):
+        km = {c: k for c, k, *_ in ESTACIONES}
+        en_panel = set(self.por_est.index)
+        for prot in ("LOSO-D", "LBO-10", "LRO"):
+            for f in self.prot[prot]["pliegues"]:
+                entrena = [s for s in en_panel if s not in f["excluidas"]]
+                esperada = min(abs(km[s] - km[m]) for s in entrena for m in f["estaciones_prueba"])
+                self.assertAlmostEqual(f["distancia_minima_entrenamiento_km"], esperada, places=4, msg=f"{prot} {f['grupo']}")
+            umbral = {"LOSO-D": 2.0, "LBO-10": 10.0, "LRO": 0.0}[prot]           # por construcción de cada protocolo
+            self.assertTrue(all(f["distancia_minima_entrenamiento_km"] > umbral for f in self.prot[prot]["pliegues"]))
+        self.assertTrue(all("distancia_minima_entrenamiento_km" not in f for f in self.prot["LPO"]["pliegues"]))
+
+    def test_parametros_de_la_enmienda(self):
+        parametros, valores = pv.parametros_de(CFG)
+        self.assertEqual(parametros["BLQ-75"]["amortiguador"]["radio_km"], 10.0)
+        self.assertEqual(parametros["BLQ-75"]["amortiguador"]["comparacion"], "<=")
+        self.assertEqual(parametros["BLQ-75"]["origen_m"], [0.0, 0.0])
+        self.assertEqual(parametros["distancias"], {"formula": "haversine", "radio_tierra_km": 6371.0})
+        self.assertEqual({v["campo"]: v["estado"] for v in valores},
+                         {"protocolos.BLQ-75.origen_m": "ratificado", "protocolos.semilla.k": "ratificado"})
+        sin = copy.deepcopy(CFG)
+        sin["protocolos"]["BLQ-75"]["exclusion_adicional"] = "ninguna"            # la especificación original
+        self.assertNotIn("amortiguador", pv.parametros_de(sin)[0]["BLQ-75"])
+        self.assertIsNone(pv.radio_amortiguador_blq(sin))
+        d = pv.construir_contaminante("pm25", universo_sintetico(), self.por_est, self.conteos, sin,
+                                      {"sha256": "0" * 64})
+        for f in d["protocolos"]["BLQ-75"]["pliegues"]:
+            self.assertEqual(f["excluidas"], f["estaciones_prueba"])
 
     def test_lbo_10(self):
         self.assertEqual(self.grupos("LBO-10"), self.grupos("LOSO-D"))
@@ -208,6 +275,17 @@ class ProtocolosTests(unittest.TestCase):
         self.assertEqual(dg["pliegues_loso_v1_por_celda"], 10)            # 11 estaciones, C1 y C2 en una celda
         self.assertIn("lbo10_pliegues_iguales_a_loso_d", dg)
         self.assertLess(dg["coordenadas_panel_vs_modelo_dif_max_grados"], pv.TOLERANCIA_COORD_GRADOS)
+        # Enmienda 1, punto 13: los conglomerados con diámetro mayor que 2 km quedan listados (B1–B2–B3 en cadena,
+        # C1–C2 unidos por la celda).
+        self.assertEqual([c["grupo"] for c in dg["conglomerados_encadenados"]], ["B1+B2+B3", "C1+C2"])
+        self.assertEqual(dg["conglomerados_encadenados"][0], {"grupo": "B1+B2+B3", "diametro_km": 3.0, "arista_max_km": 1.5})
+        self.assertEqual([c["encadenado"] for c in self.d["conglomerados_loso_d"]], [False, True, True])
+        am = dg["blq75_amortiguador"]
+        self.assertEqual(am["radio_km"], 10.0)
+        self.assertEqual(am["bloques_con_exclusion_adicional"],
+                         sum(1 for f in self.prot["BLQ-75"]["pliegues"] if len(f["excluidas"]) > len(f["estaciones_prueba"])))
+        self.assertTrue(am["bloques_con_entrenamiento_a_radio_o_menos_sin_amortiguador"])
+        self.assertGreater(am["distancia_minima_tras_amortiguador_km"], 10.0)
 
     def test_determinista_ante_el_orden_de_entrada(self):
         por_est, conteos = panel_sintetico()
@@ -331,12 +409,69 @@ class CicloCompletoTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             self.ejecutar()
         self.assertEqual(rv.leer_json(self.r.manifiesto_pliegues)["huella_pliegues"], en_disco["huella_pliegues"])
-        m3, estado3 = self.ejecutar(reemplazar=True)
+        sha_anterior = hashlib.sha256(self.r.manifiesto_pliegues.read_bytes()).hexdigest()
+        m3, estado3 = self.ejecutar(reemplazar=True, motivo="Enmienda 1, punto 8")
         self.assertEqual(estado3, "reemplazado")
-        self.assertEqual([e["evento"] for e in m3["bitacora"]], ["fijado", "recorte", "reemplazo", "fijado"])
+        # La bitácora nueva empieza con el reemplazo, que guarda la anterior entera; el respaldo conserva los bytes.
+        self.assertEqual([e["evento"] for e in m3["bitacora"]], ["reemplazo", "fijado"])
+        reemplazo = m3["bitacora"][0]
+        self.assertEqual([e["evento"] for e in reemplazo["bitacora_anterior"]], ["fijado", "recorte"])
+        self.assertEqual((reemplazo["huella_anterior"], reemplazo["motivo"]), (en_disco["huella_pliegues"], "Enmienda 1, punto 8"))
         respaldos = list(self.r.raiz_v2.glob("pliegues_v2_reemplazado_*.json"))
         self.assertEqual(len(respaldos), 1)
         self.assertEqual(rv.leer_json(respaldos[0])["huella_pliegues"], en_disco["huella_pliegues"])
+        self.assertEqual(hashlib.sha256(respaldos[0].read_bytes()).hexdigest(), sha_anterior)
+        self.assertEqual(reemplazo["respaldo"], {"raiz": "raiz_v2", "ruta": respaldos[0].name, "sha256": sha_anterior})
+        self.assertEqual(m3["bitacora"][-1]["huella_pliegues"], m3["huella_pliegues"])
+
+    def test_refijar_bajo_otro_contrato_sin_cambiar_los_pliegues(self):
+        """--refijar: con la misma huella, el manifiesto se vuelve a fijar bajo el contrato vigente; el anterior queda
+        como respaldo (mismos bytes y fechas) y la bitácora sigue, con los recortes anotados antes, y termina en un
+        «fijado» que cita los dos contratos. Si los pliegues cambian, --refijar se niega."""
+        import os
+        with self.assertRaises(SystemExit):                              # no hay manifiesto que volver a fijar
+            self.ejecutar(refijar=True)
+        m1, _ = self.ejecutar()
+        pv.anotar_bitacora({"evento": "recorte_presupuesto", "recorte": 2, "etiqueta": "principal",
+                            "aplicados": ["a", "b"]}, self.r)
+        antes = self.r.manifiesto_pliegues.read_bytes()
+        mtime_antes = self.r.manifiesto_pliegues.stat().st_mtime_ns
+        con_recorte = rv.leer_json(self.r.manifiesto_pliegues)
+        # una enmienda cambia el contrato (y la configuración declara su sha256), no los pliegues
+        contrato = self.r.contrato
+        contrato.write_text(contrato.read_text(encoding="utf-8") + "\n### Enmienda de prueba\n", encoding="utf-8")
+        sha_nuevo = hashlib.sha256(contrato.read_bytes()).hexdigest()
+        cfg = json.loads(self.r.config.read_text(encoding="utf-8"))
+        cfg["contrato"]["sha256"] = sha_nuevo
+        self.r.config.write_text(json.dumps(cfg, ensure_ascii=False), encoding="utf-8")
+        with self.assertRaises(SystemExit):
+            self.ejecutar(reemplazar=True, refijar=True)
+        m2, estado = self.ejecutar(refijar=True, motivo="contrato vigente")
+        self.assertEqual(estado, "refijado")
+        self.assertEqual(m2["huella_pliegues"], m1["huella_pliegues"])
+        self.assertEqual(pv.huella_pliegues(m2), m1["huella_pliegues"])
+        self.assertEqual([e["evento"] for e in m2["bitacora"]], ["fijado", "recorte_presupuesto", "fijado"])
+        self.assertEqual(m2["bitacora"][:2], con_recorte["bitacora"])
+        ev = m2["bitacora"][-1]
+        self.assertEqual((ev["huella_pliegues"], ev["motivo"]), (m1["huella_pliegues"], "contrato vigente"))
+        self.assertEqual(ev["refijado"]["contrato"], {"anterior": m1["traza"]["contrato"]["sha256"], "vigente": sha_nuevo})
+        self.assertNotEqual(ev["refijado"]["contrato"]["anterior"], sha_nuevo)
+        self.assertEqual(m2["traza"]["contrato"]["sha256"], sha_nuevo)
+        self.assertEqual(m2["fijado_utc"], m1["fijado_utc"])
+        self.assertIn("refijado_utc", m2)
+        respaldo = self.r.raiz_v2 / ev["refijado"]["respaldo"]["ruta"]
+        self.assertTrue(respaldo.name.startswith("pliegues_v2_reemplazado_"))
+        self.assertEqual(respaldo.read_bytes(), antes)                   # el anterior, intacto
+        self.assertEqual(ev["refijado"]["respaldo"]["sha256"], hashlib.sha256(antes).hexdigest())
+        self.assertEqual(os.stat(respaldo).st_mtime_ns, mtime_antes)     # con sus fechas (como cp -p)
+        self.assertEqual(rv.leer_json(self.r.manifiesto_pliegues), m2)
+        # si los pliegues cambian, volver a fijar no sirve: hay que reemplazar (enmienda)
+        self.escribir_panel("pm25", {"S1": {2000: 3}, "S2": {2005: 4}, "S3": {2024: 1}, "S4": {2015: 2}, "S5": {2016: 5}})
+        en_disco = self.r.manifiesto_pliegues.read_bytes()
+        with self.assertRaises(SystemExit):
+            self.ejecutar(refijar=True)
+        self.assertEqual(self.r.manifiesto_pliegues.read_bytes(), en_disco)
+        self.assertEqual(len(list(self.r.raiz_v2.glob("pliegues_v2_reemplazado_*.json"))), 1)
 
     def test_no_escribir_no_crea_nada(self):
         m, estado = self.ejecutar(escribir=False)
