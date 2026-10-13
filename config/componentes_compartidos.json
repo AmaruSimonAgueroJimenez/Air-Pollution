@@ -1,7 +1,7 @@
 {
   "esquema": "componentes-compartidos/v1",
   "descripcion": "Componentes ambientales compartidos entre Air-Pollution (canónico, público) y Air-Pollution-Health-Chile (espejo, privado). Todo cambio se hace primero en el canónico y se copia al espejo; las diferencias permitidas se declaran en «adaptado», con motivo y plan. Lo comprueba others_scripts/verificar_componentes_compartidos.py; el procedimiento está en others_scripts/README.md. Rutas relativas a la raíz de cada repositorio.",
-  "generado": "2026-10-13T09:18:46-03:00",
+  "generado": "2026-10-13T11:39:16-03:00",
   "generador": {
     "script": "others_scripts/verificar_componentes_compartidos.py",
     "sha256": "abf59f70943661ae8afbf4589b6f369f42bca3f84867ae82bda51216efce6d01"
@@ -9,7 +9,7 @@
   "canonico": {
     "repo": "Air-Pollution",
     "alias": "AP",
-    "commit_ancla": "aa01f4d8e924f986e1a5e60bdef8f9dd39ee2e36",
+    "commit_ancla": "c7c47e85d35889269ac30ae3582d96fbe697b6f8",
     "rama": "main",
     "rutas_sin_confirmar": {
       "sin_rastrear": [
@@ -20,52 +20,15 @@
         "config/meteorologia/arranque_dmc_20261011_optimizacion1.json",
         "config/meteorologia/arranque_dmc_20261012_reanudacion1.json",
         "config/meteorologia/arranque_dmc_20261012_reanudacion2.json",
+        "config/meteorologia/arranque_dmc_20261013_reanudacion3.json",
         "config/meteorologia/recuperacion_automatica_dmc_20261009.json",
-        "output_files/modelo_1km_v2/factibilidad_produccion.json",
-        "output_files/modelo_1km_v2/factibilidad_produccion_reemplazado_20261013T101240Z.json",
-        "scripts_modelo_1km/v2/decision_v2.py",
-        "scripts_modelo_1km/v2/factibilidad_v2.py",
-        "scripts_modelo_1km/v2/tests/test_congelados_v2.py",
-        "scripts_modelo_1km/v2/tests/test_decision_v2.py",
-        "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py",
         "scripts_pipeline/_meteo_guard.py",
         "scripts_pipeline/descargar_meteo_chile_horaria.py",
         "scripts_pipeline/lanzar_meteo_al_conectar.py",
         "scripts_pipeline/tests/test_meteo_chile_horaria.py",
         "scripts_pipeline/tests/test_meteo_guard.py"
       ],
-      "modificadas": [
-        "output_files/modelo_1km_v2/pliegues_v2_bloques_blq75.csv",
-        "output_files/modelo_1km_v2/pliegues_v2_conglomerados_loso_d.csv",
-        "output_files/modelo_1km_v2/pliegues_v2_pliegues.csv",
-        "output_files/modelo_1km_v2/pliegues_v2_resumen.csv",
-        "output_files/modelo_1km_v2/pliegues_v2_tablas.json",
-        "output_files/modelo_1km_v2/vecindario_v2_tiempos.csv",
-        "output_files/modelo_1km_v2/vecindario_v2_validacion.json",
-        "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
-        "scripts_modelo_1km/v2/_rutas_v2.py",
-        "scripts_modelo_1km/v2/bootstrap_v2.py",
-        "scripts_modelo_1km/v2/config_v2.json",
-        "scripts_modelo_1km/v2/correr_v2.py",
-        "scripts_modelo_1km/v2/metricas_v2.py",
-        "scripts_modelo_1km/v2/motores_v2.py",
-        "scripts_modelo_1km/v2/perdidas_v2.py",
-        "scripts_modelo_1km/v2/piloto_v2.py",
-        "scripts_modelo_1km/v2/pliegues_v2.py",
-        "scripts_modelo_1km/v2/retransformacion_v2.py",
-        "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
-        "scripts_modelo_1km/v2/tests/test_bootstrap_v2.py",
-        "scripts_modelo_1km/v2/tests/test_config_v2.py",
-        "scripts_modelo_1km/v2/tests/test_correr_v2.py",
-        "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
-        "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
-        "scripts_modelo_1km/v2/tests/test_motores_v2.py",
-        "scripts_modelo_1km/v2/tests/test_perdidas_v2.py",
-        "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
-        "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
-        "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py",
-        "scripts_modelo_1km/v2/tests/test_rutas_v2.py"
-      ]
+      "modificadas": []
     }
   },
   "espejos": [
@@ -305,6 +268,7 @@
         "config/meteorologia/arranque_dmc_20261011_optimizacion1.json": "7305d75bc1408b00e8bdfd2abda0c0f79b57715a4a078458f86290c492fdb977",
         "config/meteorologia/arranque_dmc_20261012_reanudacion1.json": "9158674251ec3315594dae140d419886f40a476b1b9bf1b4622d07763164c68a",
         "config/meteorologia/arranque_dmc_20261012_reanudacion2.json": "8dbb99cf60a44c9a6533e10b45ec8db7331eaba2d75f09ea257c084096639dc9",
+        "config/meteorologia/arranque_dmc_20261013_reanudacion3.json": "7f38451e524ceac38508897f46c8a662c31f3c3106aee57072616890f8974f29",
         "config/meteorologia/recuperacion_automatica_dmc_20261009.json": "5854a30bb8dd191a824716ae470f197166fe310f2a9d0394901798dd8a90c820",
         "config/sinca/README.md": "e7b4f1fda51031e2b58131499da0fa3932d1f3bb7d220f81ba7519e08a4579b4",
         "config/sinca/config_sinca_estaciones.json": "851e8696a3aae3804bad7da60d2658fb458082f17df90574763e5477fcf2f50b",
