@@ -1,0 +1,31 @@
+contaminante,base,medida,v2,auditoria,coincide,referencia
+pm25,sinca_panel,filas,9740634,,,ambiental_modelo.md:202 (verificación del 2026-10-12)
+pm25,sinca_panel,validado,6082771,,,ambiental_modelo.md:202 (verificación del 2026-10-12)
+pm25,sinca_panel,preliminar,846366,,,ambiental_modelo.md:202 (verificación del 2026-10-12)
+pm25,sinca_panel,no_validado,2811497,,,ambiental_modelo.md:202 (verificación del 2026-10-12)
+pm25,sinca_panel,pct_no_validado_o_preliminar,37.5526,37.55,True,ambiental_modelo.md:202 (verificación del 2026-10-12)
+pm25,sinca_antes_de_rachas,filas,9789656,9789656,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+pm25,sinca_antes_de_rachas,validado,6094454,6094454,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+pm25,sinca_antes_de_rachas,preliminar,847459,847459,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+pm25,sinca_antes_de_rachas,no_validado,2847743,2847743,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+pm25,sinca_antes_de_rachas,pct_no_validado_o_preliminar,37.746,37.75,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+pm25,sinca_anual,dif_max_fraccion_por_anio,0.0,0.0,True,ambiental_modelo.json → calidad_sinca_por_anio
+no2,sinca_panel,filas,5557032,,,ambiental_modelo.md:202 (verificación del 2026-10-12)
+no2,sinca_panel,validado,1799555,,,ambiental_modelo.md:202 (verificación del 2026-10-12)
+no2,sinca_panel,preliminar,1455111,,,ambiental_modelo.md:202 (verificación del 2026-10-12)
+no2,sinca_panel,no_validado,2302366,,,ambiental_modelo.md:202 (verificación del 2026-10-12)
+no2,sinca_panel,pct_no_validado_o_preliminar,67.6166,67.62,True,ambiental_modelo.md:202 (verificación del 2026-10-12)
+no2,sinca_antes_de_rachas,filas,5594887,5594887,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+no2,sinca_antes_de_rachas,validado,1813313,1813313,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+no2,sinca_antes_de_rachas,preliminar,1461473,1461473,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+no2,sinca_antes_de_rachas,no_validado,2320101,2320101,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+no2,sinca_antes_de_rachas,pct_no_validado_o_preliminar,67.5898,67.59,True,ambiental_modelo.md:280 (AM-02) y :192; validadas y porcentajes: ambiental_modelo.json (calidad_sinca_usada)
+no2,snifa_antes_de_rachas,horas,155675,155675,True,ambiental_datos.md:190 y :520
+no2,snifa_antes_de_rachas,SNIFA-CHARRUA,60096,60096,True,ambiental_datos.md:190 y :520
+no2,snifa_antes_de_rachas,SNIFA-PROGRESO,59105,59105,True,ambiental_datos.md:190 y :520
+no2,snifa_antes_de_rachas,SNIFA-ELPENON,36474,36474,True,ambiental_datos.md:190 y :520
+no2,snifa_antes_de_rachas,registros_no_usable_native,8931,8931,True,ambiental_datos.md:190 y :520
+no2,snifa_antes_de_rachas,conflicto_de_valor,8873,8873,True,ambiental_datos.md:190 y :520
+no2,snifa_antes_de_rachas,conflicto_de_codigo,58,58,True,ambiental_datos.md:190 y :520
+no2,snifa_antes_de_rachas,horas_promediadas,34,34,True,ambiental_datos.md:190 y :520
+no2,sinca_anual,dif_max_fraccion_por_anio,0.0,0.0,True,ambiental_modelo.json → calidad_sinca_por_anio

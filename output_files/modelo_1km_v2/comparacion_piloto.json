@@ -1,0 +1,211 @@
+{
+ "schema": "airpollution.modelo-1km-v2.comparacion-piloto.v1",
+ "nota": "un tiempo no es un resultado: el piloto no guarda predicciones ni métricas de desempeño",
+ "tabla": {
+  "archivo": "comparacion_piloto_tiempos.csv",
+  "sha256": "8c41ce82d4c371d4d5e5526def829abb6cb9d13ac432071f978a4cd4b4a23c9f",
+  "filas": 483
+ },
+ "plan": {
+  "raiz": "raiz_v2",
+  "ruta": "plan_corrida_v2.json",
+  "sha256": "7385414e2b958e9ec65279d0b2f554f3912855fa75ebff1c625540e7282d38e0"
+ },
+ "horas_por_recorte": {
+  "0": {
+   "horas": 135.07,
+   "horas_media_global": 130.6,
+   "horas_sin_contencion_fuerte": 130.62,
+   "horas_menos_contencion": 120.84,
+   "horas_cpu": 683.49
+  },
+  "1": {
+   "horas": 126.16,
+   "horas_media_global": 123.05,
+   "horas_sin_contencion_fuerte": 121.71,
+   "horas_menos_contencion": 112.95,
+   "horas_cpu": 643.45
+  },
+  "2": {
+   "horas": 114.78,
+   "horas_media_global": 111.42,
+   "horas_sin_contencion_fuerte": 112.24,
+   "horas_menos_contencion": 103.71,
+   "horas_cpu": 570.9
+  },
+  "3": {
+   "horas": 106.73,
+   "horas_media_global": 102.18,
+   "horas_sin_contencion_fuerte": 104.19,
+   "horas_menos_contencion": 96.98,
+   "horas_cpu": 559.64
+  }
+ },
+ "recorte_aplicado": 2,
+ "excede_tras_recortes": false,
+ "contencion": {
+  "fases": 168,
+  "horas_pared_medidas": 2.39,
+  "fraccion_maquina_otros_media_ponderada": 0.317,
+  "fraccion_maquina_otros_p50": 0.173,
+  "fraccion_maquina_otros_p90": 0.601,
+  "fraccion_maquina_otros_max": 0.878,
+  "carga_1min_max": 91.08,
+  "paralelismo_mediano_ajuste": {
+   "alertas": 4.46,
+   "gp": 4.19,
+   "lightgbm": 5.37,
+   "lme": 1.77,
+   "mlp": 1.38,
+   "random_forest": 11.62,
+   "xgboost": 4.54
+  }
+ },
+ "traza": {
+  "creado_utc": "2026-10-13T03:12:58Z",
+  "programa": "correr_v2.py",
+  "git": {
+   "commit": "51d125efcdf00fee788d73607f33e143e67ad477",
+   "v2_sin_commit": [
+    "scripts_modelo_1km/v2/_rutas_v2.py",
+    "scripts_modelo_1km/v2/_traza_v2.py",
+    "scripts_modelo_1km/v2/bootstrap_v2.py",
+    "scripts_modelo_1km/v2/calidad_v2.py",
+    "scripts_modelo_1km/v2/config_v2.json",
+    "scripts_modelo_1km/v2/correr_v2.py",
+    "scripts_modelo_1km/v2/metricas_v2.py",
+    "scripts_modelo_1km/v2/motores_v2.py",
+    "scripts_modelo_1km/v2/perdidas_v2.py",
+    "scripts_modelo_1km/v2/piloto_v2.py",
+    "scripts_modelo_1km/v2/pliegues_v2.py",
+    "scripts_modelo_1km/v2/retransformacion_v2.py",
+    "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
+    "scripts_modelo_1km/v2/tests/test_bootstrap_v2.py",
+    "scripts_modelo_1km/v2/tests/test_calidad_artefacto_v2.py",
+    "scripts_modelo_1km/v2/tests/test_calidad_v2.py",
+    "scripts_modelo_1km/v2/tests/test_config_v2.py",
+    "scripts_modelo_1km/v2/tests/test_correr_v2.py",
+    "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+    "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+    "scripts_modelo_1km/v2/tests/test_motores_v2.py",
+    "scripts_modelo_1km/v2/tests/test_perdidas_v2.py",
+    "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
+    "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
+    "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py",
+    "scripts_modelo_1km/v2/tests/test_rutas_v2.py",
+    "scripts_modelo_1km/v2/tests/test_traza_v2.py",
+    "scripts_modelo_1km/v2/tests/test_vecindario_v2.py",
+    "scripts_modelo_1km/v2/validar_vecindario_v2.py",
+    "scripts_modelo_1km/v2/vecindario_v2.py"
+   ],
+   "arbol_con_cambios_rastreados": false
+  },
+  "codigo": {
+   "hash": "168d1cb5e0d25980b93d6670e09c32d75db66fb80905178588e677509b53c597",
+   "archivos": {
+    "scripts_modelo_1km/v2/_rutas_v2.py": "9152d405c898ff97fd3cef1270efae807e0819b8d5791ca4934caf89f39ce5c4",
+    "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
+    "scripts_modelo_1km/v2/bootstrap_v2.py": "49581320083f1b32bd0cf72623d3f0730c8920994c3cc1239da7dc8b4d06e400",
+    "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
+    "scripts_modelo_1km/v2/correr_v2.py": "0218f475a8565328d6e46ede778b51d2c38dda0fbde976ee8d76ee251612eccf",
+    "scripts_modelo_1km/v2/metricas_v2.py": "a359bac6bdd99aa7638cbecf8942f299f03389ed9ab997345e86160dac50f43e",
+    "scripts_modelo_1km/v2/motores_v2.py": "fcd188ef7bcde09c2d588fc70fb4d07c32b33dd283fb2c868843692b87a66af3",
+    "scripts_modelo_1km/v2/perdidas_v2.py": "0d7fb9835ece43e8bd2c99382b5fb32eabecd759fbfe72a0eb901743abde2208",
+    "scripts_modelo_1km/v2/piloto_v2.py": "8371bc9c30f6b627e1edaaa9955a27d9c3c19c876139eb893b4f1bfaa6e52928",
+    "scripts_modelo_1km/v2/pliegues_v2.py": "d95625c8dde4a57cadf684777468e38187ae310e3185eba5368569dee8282958",
+    "scripts_modelo_1km/v2/retransformacion_v2.py": "c8524831dfa879165216da8e316ee2b242122b2c2aacf26ded55af57f5805a74",
+    "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
+    "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181"
+   }
+  },
+  "contrato": {
+   "raiz": "repo",
+   "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+   "sha256": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
+   "bytes": 9389
+  },
+  "config": {
+   "raiz": "repo",
+   "ruta": "scripts_modelo_1km/v2/config_v2.json",
+   "sha256": "30b0a1bc5524e528176164d0f5838af6758dfcc00a46cc1ecbe0581093a33341",
+   "bytes": 31267
+  },
+  "insumos": {
+   "calidad_no2": {
+    "raiz": "raiz_v2",
+    "ruta": "paneles/calidad_no2.parquet",
+    "sha256": "c6c45e6c42f58976b532a990039539b963dccd69cf842990f3e96a332d90a8ab",
+    "bytes": 5243872
+   },
+   "calidad_pm25": {
+    "raiz": "raiz_v2",
+    "ruta": "paneles/calidad_pm25.parquet",
+    "sha256": "f10d0bab00eb4b7c7d6358aabd7f4a75f45a012cc6459c40d8ad61f0f8d46eff",
+    "bytes": 6400467
+   },
+   "manifiesto_pliegues": {
+    "raiz": "raiz_v2",
+    "ruta": "pliegues_v2.json",
+    "sha256": "5e965c22cfc573c7da2719f7e0a7f51667c7229adeba8f5483b067a9bb6e18fa",
+    "bytes": 291288
+   },
+   "mediciones_piloto": {
+    "raiz": "raiz_v2",
+    "ruta": "piloto_tiempos/mediciones.json",
+    "sha256": "aea002f6cd5f6a1ed6c15a1ae5fad3a1918cfa15274d6eac1de029bf52d99db5",
+    "bytes": 377646
+   },
+   "panel_no2": {
+    "raiz": "raiz_v1",
+    "ruta": "paneles/panel_no2.parquet",
+    "sha256": "513394a296a5bc64ce850e1f7b5b726d86001e738c66db1413ecd889214118a3",
+    "bytes": 425232563
+   },
+   "panel_pm25": {
+    "raiz": "raiz_v1",
+    "ruta": "paneles/panel_pm25.parquet",
+    "sha256": "955ed14469dce75e2c6da6452fbd5749ff3f391345a910758b5550330a9f56cb",
+    "bytes": 778963905
+   }
+  },
+  "bibliotecas": {
+   "python": "3.11.16",
+   "numpy": "2.2.6",
+   "pandas": "2.3.3",
+   "pyarrow": "25.0.0",
+   "scipy": "1.17.1",
+   "scikit-learn": "1.9.1",
+   "lightgbm": "4.7.0",
+   "xgboost": "3.4.2",
+   "statsmodels": "0.15.0",
+   "pyproj": "3.7.2",
+   "joblib": "1.6.0",
+   "threadpoolctl": "3.7.0"
+  },
+  "python": {
+   "entorno": "amb_v2",
+   "implementacion": "CPython",
+   "sistema": "macOS-26.6.2-arm64-arm-64bit",
+   "maquina": "arm64"
+  },
+  "hilos": {
+   "configurados": 12,
+   "cpu_count": 16,
+   "entorno": {
+    "OMP_NUM_THREADS": "12",
+    "OPENBLAS_NUM_THREADS": "12",
+    "MKL_NUM_THREADS": "12",
+    "VECLIB_MAXIMUM_THREADS": "12",
+    "NUMEXPR_NUM_THREADS": "12"
+   }
+  },
+  "semillas": {
+   "permutacion": "[42, k] (réplica 0, §4)",
+   "motores": "las de la receta (§3): LightGBM, XGBoost y alertas 42; RF y MLP 42 + k; GP 42 + k",
+   "nota": "el piloto sólo mide tiempos; las semillas fijan qué filas y qué ajuste se cronometran"
+  },
+  "parametros": {
+   "criterio_pliegues": "entrenamiento"
+  }
+ }
+}

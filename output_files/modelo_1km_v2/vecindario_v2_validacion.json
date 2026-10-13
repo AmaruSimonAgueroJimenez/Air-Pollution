@@ -1,0 +1,1712 @@
+{
+ "schema": "airpollution.modelo-1km-v2.vecindario-validacion.v1",
+ "creado_utc": "2026-10-12T22:55:58Z",
+ "descripcion": "Validación del vecindario v2 (vecindario_v2.py): (a) reproducción de las columnas del panel v1 sin exclusiones adicionales; (b) descuento frente al cálculo directo ingenuo y a la suma directa matricial; (c) tiempo de un recálculo completo por pliegue.",
+ "criterios": {
+  "tolerancia_relativa": 1e-09,
+  "semilla_muestra": [
+   42,
+   "k"
+  ],
+  "filas_por_grupo_en_muestra": 40000
+ },
+ "huella_pliegues": "ec796b04148f190614e0873b62593531c5e6e30c3c8393de0aaec9f83541e8b2",
+ "contaminantes": {
+  "pm25": {
+   "vecindario": {
+    "huella": "35e0fc098908e0b1ae61889d54e385538f5a4c8df9ad566c9725b34ea392aafd",
+    "filas": 9740634,
+    "estaciones": 107,
+    "horas": 234057,
+    "origen": "panel v1 (obs float32, sha256 955ed14469dce75e)"
+   },
+   "construccion_s": 1.037,
+   "construccion_interna_s": 0.511,
+   "a1_fuente_panel_float32": {
+    "obs_vec": {
+     "filas": 9740634,
+     "nan_iguales": true,
+     "nan": 129645,
+     "bit_a_bit": 9429546,
+     "a_1_ulp": 181443,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 1.1920830900987128e-07,
+     "dif_abs_max": 6.103515625e-05
+    },
+    "peso_vec": {
+     "filas": 9740634,
+     "nan_iguales": true,
+     "nan": 0,
+     "bit_a_bit": 9740634,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "dist_est_km": {
+     "filas": 9740634,
+     "nan_iguales": true,
+     "nan": 0,
+     "bit_a_bit": 9740634,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "explicacion": "peso_vec y dist_est_km no dependen de los valores: bit a bit. obs_vec: el panel guarda obs en float32 y la v1 promedió los valores float64; |Δ| ≤ 2^-24·obs_vec (V ≥ 0), menos de 1 ULP antes de redondear y como mucho 1 ULP después.",
+    "produccion_float32_igual": true
+   },
+   "a2_fuente_v1_float64": {
+    "reconstruccion": {
+     "filas_validas": 9789656,
+     "filas_en_racha": 49022,
+     "estaciones_con_racha": 76,
+     "derivado_sinca": {
+      "raiz": "<datos>/../derived/modelado/SINCA/v1",
+      "archivos": 107,
+      "sha256_conjunto": "9e3bbb0aca0fab9bdbb1393e65fe6bd1f07322b7a46ee25215fd752ac68905f2"
+     },
+     "qc_del_panel_frente_a_la_reconstruccion": {
+      "filas_validas": {
+       "reconstruccion": 9789656,
+       "panel": 9789656
+      },
+      "filas_en_racha": {
+       "reconstruccion": 49022,
+       "panel": 49022
+      },
+      "estaciones_con_racha": {
+       "reconstruccion": 76,
+       "panel": 76
+      }
+     },
+     "qc_nota": "El QC descriptivo del panel (qc_descriptivo) cuenta sólo SINCA; la reconstrucción suma la red SNIFA en NO2 (como el panel y el vecindario de la v1). En PM2,5 deben coincidir; en NO2 la reconstrucción tiene además las filas SNIFA (el mapa v1 da 39.071 filas en racha con SNIFA).",
+     "filas": 9740634,
+     "mismas_filas_que_el_panel": true,
+     "float32_igual_al_panel": true,
+     "filas_no_representables_en_float32": 1370835,
+     "segundos": 6.2,
+     "insumos_extra": [
+      "catalogo_sinca",
+      "grilla_celdas",
+      "grilla_estaciones_enlaces",
+      "grilla_estaciones_enlaces_adicional",
+      "snifa"
+     ]
+    },
+    "obs_vec": {
+     "filas": 9740634,
+     "nan_iguales": true,
+     "nan": 129645,
+     "bit_a_bit": 9610989,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "peso_vec": {
+     "filas": 9740634,
+     "nan_iguales": true,
+     "nan": 0,
+     "bit_a_bit": 9740634,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "dist_est_km": {
+     "filas": 9740634,
+     "nan_iguales": true,
+     "nan": 0,
+     "bit_a_bit": 9740634,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "diferencias": [],
+    "cota_redondeo_V": {
+     "razon_max": 0.9868790684918424,
+     "filas": 9610989,
+     "filas_obs_vec_cero": 0,
+     "dif_max_en_ceros": 0.0,
+     "a1_diferentes_que_a2_reproduce": 181443,
+     "lectura": "razón ≤ 1 en todas las filas: cada diferencia de a1 es el redondeo de V a float32"
+    }
+   },
+   "b_muestra_vs_ingenuo": [
+    {
+     "protocolo": "LOSO-D",
+     "k": 0,
+     "grupo": "117",
+     "n_excluidas": 1,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 9651773,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 88861,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 10,
+       "en_muestra": 10
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2404,
+       "en_muestra": 2404
+      }
+     },
+     "filas_muestra": 82403,
+     "obs_vec": {
+      "filas": 82403,
+      "nan_iguales": true,
+      "dif_rel_max": 1.0912809720501917e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 82403,
+      "nan_iguales": true,
+      "dif_rel_max": 1.720401534734976e-14,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.7
+    },
+    {
+     "protocolo": "LOSO-D",
+     "k": 9,
+     "grupo": "309+310+330+333",
+     "n_excluidas": 4,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 9435236,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 305398,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 146,
+       "en_muestra": 146
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2404,
+       "en_muestra": 2404
+      }
+     },
+     "filas_muestra": 82529,
+     "obs_vec": {
+      "filas": 82529,
+      "nan_iguales": true,
+      "dif_rel_max": 6.946596853005647e-14,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 82529,
+      "nan_iguales": true,
+      "dif_rel_max": 5.9646635093315874e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.65
+    },
+    {
+     "protocolo": "LOSO-D",
+     "k": 66,
+     "grupo": "B03+B04",
+     "n_excluidas": 2,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 9510182,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 230452,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 146202,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 16715,
+       "en_muestra": 16715
+      }
+     },
+     "filas_muestra": 126854,
+     "obs_vec": {
+      "filas": 126854,
+      "nan_iguales": true,
+      "dif_rel_max": 2.6569134916837534e-14,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 126854,
+      "nan_iguales": true,
+      "dif_rel_max": 3.4694937470244825e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.83
+    },
+    {
+     "protocolo": "LOSO-D",
+     "k": 13,
+     "grupo": "503+548",
+     "n_excluidas": 2,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 9504142,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 236492,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 0,
+       "en_muestra": 0
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2404,
+       "en_muestra": 2404
+      }
+     },
+     "filas_muestra": 82393,
+     "obs_vec": {
+      "filas": 82393,
+      "nan_iguales": true,
+      "dif_rel_max": 1.9365921184628653e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 82393,
+      "nan_iguales": true,
+      "dif_rel_max": 1.0003300912166813e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.62
+    },
+    {
+     "protocolo": "LBO-10",
+     "k": 36,
+     "grupo": "802+806+837",
+     "n_excluidas": 8,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 8969062,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 327740,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 1116,
+       "en_muestra": 1116
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2490,
+       "en_muestra": 2490
+      }
+     },
+     "filas_muestra": 83496,
+     "obs_vec": {
+      "filas": 83496,
+      "nan_iguales": true,
+      "dif_rel_max": 1.0370899736151477e-14,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 83496,
+      "nan_iguales": true,
+      "dif_rel_max": 1.7292955791649759e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.61
+    },
+    {
+     "protocolo": "BLQ-75",
+     "k": 3,
+     "grupo": "E001N078",
+     "n_excluidas": 15,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 8708089,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 1032545,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 0,
+       "en_muestra": 0
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2404,
+       "en_muestra": 2404
+      }
+     },
+     "filas_muestra": 82395,
+     "obs_vec": {
+      "filas": 82395,
+      "nan_iguales": true,
+      "dif_rel_max": 3.312337395691539e-14,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 82395,
+      "nan_iguales": true,
+      "dif_rel_max": 1.8140759246496862e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.6
+    },
+    {
+     "protocolo": "LRO",
+     "k": 9,
+     "grupo": "RVIII",
+     "n_excluidas": 28,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 7513069,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 2227565,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 4709,
+       "en_muestra": 4709
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2516,
+       "en_muestra": 2516
+      }
+     },
+     "filas_muestra": 87027,
+     "obs_vec": {
+      "filas": 87027,
+      "nan_iguales": true,
+      "dif_rel_max": 3.469129976340121e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 87027,
+      "nan_iguales": true,
+      "dif_rel_max": 2.764013730398359e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.58
+    },
+    {
+     "protocolo": "LRO",
+     "k": 1,
+     "grupo": "RII",
+     "n_excluidas": 10,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 8756132,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 984502,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 282722,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 6790,
+       "en_muestra": 6790
+      }
+     },
+     "filas_muestra": 124601,
+     "obs_vec": {
+      "filas": 124601,
+      "nan_iguales": true,
+      "dif_rel_max": 6.481461951628874e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 124601,
+      "nan_iguales": true,
+      "dif_rel_max": 2.656467779400852e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.83
+    },
+    {
+     "protocolo": "LRO",
+     "k": 11,
+     "grupo": "RXI",
+     "n_excluidas": 4,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 9397867,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 342767,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 440425,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 16761,
+       "en_muestra": 16761
+      }
+     },
+     "filas_muestra": 130027,
+     "obs_vec": {
+      "filas": 130027,
+      "nan_iguales": true,
+      "dif_rel_max": 1.743613005843719e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 130027,
+      "nan_iguales": true,
+      "dif_rel_max": 1.180988422148408e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.89
+    },
+    {
+     "protocolo": "LRO",
+     "k": 12,
+     "grupo": "RXII",
+     "n_excluidas": 1,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 9637485,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 103149,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 0,
+       "en_muestra": 0
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2404,
+       "en_muestra": 2404
+      }
+     },
+     "filas_muestra": 82385,
+     "obs_vec": {
+      "filas": 82385,
+      "nan_iguales": true,
+      "dif_rel_max": 1.6628370110575011e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 82385,
+      "nan_iguales": true,
+      "dif_rel_max": 1.0622329777611025e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.69
+    },
+    {
+     "protocolo": "LRO",
+     "k": 1000,
+     "grupo": "azar_3",
+     "n_excluidas": 3,
+     "nota": "conjunto al azar de 3 estaciones, semilla [42, 0]",
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 9531537,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 114477,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 0,
+       "en_muestra": 0
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2409,
+       "en_muestra": 2409
+      }
+     },
+     "filas_muestra": 82404,
+     "obs_vec": {
+      "filas": 82404,
+      "nan_iguales": true,
+      "dif_rel_max": 1.6297946331751002e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 82404,
+      "nan_iguales": true,
+      "dif_rel_max": 2.2291108860204057e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.62
+    },
+    {
+     "protocolo": "LRO",
+     "k": 1001,
+     "grupo": "azar_10",
+     "n_excluidas": 10,
+     "nota": "conjunto al azar de 10 estaciones, semilla [42, 0]",
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 8922292,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 454467,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 39052,
+       "en_muestra": 39052
+      },
+      "cerca_del_umbral": {
+       "disponibles": 35080,
+       "en_muestra": 35080
+      }
+     },
+     "filas_muestra": 123645,
+     "obs_vec": {
+      "filas": 123645,
+      "nan_iguales": true,
+      "dif_rel_max": 1.5979286076516776e-14,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 123645,
+      "nan_iguales": true,
+      "dif_rel_max": 1.7177265925609703e-14,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.74
+    },
+    {
+     "protocolo": "LRO",
+     "k": 1002,
+     "grupo": "azar_35",
+     "n_excluidas": 35,
+     "nota": "conjunto al azar de 35 estaciones, semilla [42, 0]",
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 6664267,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 1778641,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 49689,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 9575,
+       "en_muestra": 9575
+      }
+     },
+     "filas_muestra": 123435,
+     "obs_vec": {
+      "filas": 123435,
+      "nan_iguales": true,
+      "dif_rel_max": 4.782750807350249e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 123435,
+      "nan_iguales": true,
+      "dif_rel_max": 2.6716453303035424e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.66
+    }
+   ],
+   "b_base_vs_ingenuo": {
+    "filas": 160000,
+    "semilla": [
+     42,
+     999
+    ],
+    "obs_vec": {
+     "filas": 160000,
+     "nan_iguales": true,
+     "dif_rel_max": 1.710262885890341e-15,
+     "ceros_iguales": true,
+     "float32_distintas": 0
+    },
+    "peso_vec": {
+     "filas": 160000,
+     "nan_iguales": true,
+     "dif_rel_max": 1.1634292398015117e-15,
+     "ceros_iguales": true,
+     "float32_distintas": 0
+    },
+    "dist_est_km_iguales": true
+   },
+   "c_tiempos": {
+    "por_protocolo": {
+     "LOSO-D": {
+      "pliegues": 87,
+      "min_s": 0.274,
+      "mediana_s": 0.35,
+      "max_s": 0.391,
+      "total_s": 29.86,
+      "obs_vec_nan_prueba_fraccion": 0.01482,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
+       "230",
+       "C05"
+      ]
+     },
+     "LBO-10": {
+      "pliegues": 87,
+      "min_s": 0.289,
+      "mediana_s": 0.306,
+      "max_s": 0.382,
+      "total_s": 27.98,
+      "obs_vec_nan_prueba_fraccion": 0.01648,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
+       "230",
+       "C05"
+      ]
+     },
+     "BLQ-75": {
+      "pliegues": 34,
+      "min_s": 0.296,
+      "mediana_s": 0.345,
+      "max_s": 0.37,
+      "total_s": 11.35,
+      "obs_vec_nan_prueba_fraccion": 0.01668,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
+       "E004N054",
+       "E005N100"
+      ]
+     },
+     "LRO": {
+      "pliegues": 15,
+      "min_s": 0.288,
+      "mediana_s": 0.323,
+      "max_s": 0.433,
+      "total_s": 5.05,
+      "obs_vec_nan_prueba_fraccion": 0.0579,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
+       "RII",
+       "RM",
+       "RXI",
+       "RXII"
+      ]
+     },
+     "LPO": {
+      "pliegues": 7,
+      "min_s": 0.118,
+      "mediana_s": 0.122,
+      "max_s": 0.126,
+      "total_s": 0.85,
+      "obs_vec_nan_prueba_fraccion": 0.01331,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": []
+     }
+    },
+    "total_s": 75.1,
+    "construccion_s": 1.037,
+    "nota": "recálculo completo: las tres columnas en todas las filas (entrenamiento, prueba y entorno), en float32, con las huellas sha256; un tiempo no es un resultado (§10)"
+   },
+   "b_todos_vs_directo": {
+    "pliegues": 223,
+    "filas_por_pliegue": "todas las del panel",
+    "obs_vec_rel_max": 1.0025695061331946e-12,
+    "peso_vec_rel_max": 5.380998109065147e-13,
+    "nan_iguales_en_todos": true,
+    "ceros_iguales_en_todos": true,
+    "dist_iguales_en_todos": true,
+    "float32_distintas_total": 0,
+    "produccion_float32_igual_al_float64_redondeado": true,
+    "filas_suma_directa_total": 1708922,
+    "pasa": true
+   }
+  },
+  "no2": {
+   "vecindario": {
+    "huella": "ea86e75ed1c9b789491884a2620f0fc816da8d7e4a64c6a09939938711ce22a3",
+    "filas": 5711491,
+    "estaciones": 57,
+    "horas": 234071,
+    "origen": "panel v1 (obs float32, sha256 513394a296a5bc64)"
+   },
+   "construccion_s": 0.571,
+   "construccion_interna_s": 0.289,
+   "a1_fuente_panel_float32": {
+    "obs_vec": {
+     "filas": 5711491,
+     "nan_iguales": true,
+     "nan": 85816,
+     "bit_a_bit": 5157549,
+     "a_1_ulp": 468126,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 1.192092611290786e-07,
+     "dif_abs_max": 3.0517578125e-05
+    },
+    "peso_vec": {
+     "filas": 5711491,
+     "nan_iguales": true,
+     "nan": 0,
+     "bit_a_bit": 5711491,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "dist_est_km": {
+     "filas": 5711491,
+     "nan_iguales": true,
+     "nan": 0,
+     "bit_a_bit": 5711491,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "explicacion": "peso_vec y dist_est_km no dependen de los valores: bit a bit. obs_vec: el panel guarda obs en float32 y la v1 promedió los valores float64; |Δ| ≤ 2^-24·obs_vec (V ≥ 0), menos de 1 ULP antes de redondear y como mucho 1 ULP después.",
+    "produccion_float32_igual": true
+   },
+   "a2_fuente_v1_float64": {
+    "reconstruccion": {
+     "filas_validas": 5750562,
+     "filas_en_racha": 39071,
+     "estaciones_con_racha": 34,
+     "derivado_sinca": {
+      "raiz": "<datos>/../derived/modelado/SINCA/v1",
+      "archivos": 54,
+      "sha256_conjunto": "5be9f80cda6cada92716003af18cfc6ae9cc9d05ecb5be188f621f348afd5745"
+     },
+     "qc_del_panel_frente_a_la_reconstruccion": {
+      "filas_validas": {
+       "reconstruccion": 5750562,
+       "panel": 5594887
+      },
+      "filas_en_racha": {
+       "reconstruccion": 39071,
+       "panel": 37855
+      },
+      "estaciones_con_racha": {
+       "reconstruccion": 34,
+       "panel": 31
+      }
+     },
+     "qc_nota": "El QC descriptivo del panel (qc_descriptivo) cuenta sólo SINCA; la reconstrucción suma la red SNIFA en NO2 (como el panel y el vecindario de la v1). En PM2,5 deben coincidir; en NO2 la reconstrucción tiene además las filas SNIFA (el mapa v1 da 39.071 filas en racha con SNIFA).",
+     "filas": 5711491,
+     "mismas_filas_que_el_panel": true,
+     "float32_igual_al_panel": true,
+     "filas_no_representables_en_float32": 5031211,
+     "segundos": 3.8,
+     "insumos_extra": [
+      "catalogo_sinca",
+      "grilla_celdas",
+      "grilla_estaciones_enlaces",
+      "grilla_estaciones_enlaces_adicional",
+      "snifa"
+     ]
+    },
+    "obs_vec": {
+     "filas": 5711491,
+     "nan_iguales": true,
+     "nan": 85816,
+     "bit_a_bit": 5625675,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "peso_vec": {
+     "filas": 5711491,
+     "nan_iguales": true,
+     "nan": 0,
+     "bit_a_bit": 5711491,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "dist_est_km": {
+     "filas": 5711491,
+     "nan_iguales": true,
+     "nan": 0,
+     "bit_a_bit": 5711491,
+     "a_1_ulp": 0,
+     "a_mas_de_1_ulp": 0,
+     "dif_rel_max": 0.0,
+     "dif_abs_max": 0.0
+    },
+    "diferencias": [],
+    "cota_redondeo_V": {
+     "razon_max": 0.9964320457024192,
+     "filas": 5625566,
+     "filas_obs_vec_cero": 109,
+     "dif_max_en_ceros": 0.0,
+     "a1_diferentes_que_a2_reproduce": 468126,
+     "lectura": "razón ≤ 1 en todas las filas: cada diferencia de a1 es el redondeo de V a float32"
+    }
+   },
+   "b_muestra_vs_ingenuo": [
+    {
+     "protocolo": "LOSO-D",
+     "k": 1,
+     "grupo": "236",
+     "n_excluidas": 1,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 5602525,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 108966,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 89696,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 0,
+       "en_muestra": 0
+      }
+     },
+     "filas_muestra": 119701,
+     "obs_vec": {
+      "filas": 119701,
+      "nan_iguales": true,
+      "dif_rel_max": 1.166757784870405e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 119701,
+      "nan_iguales": true,
+      "dif_rel_max": 6.649292097570143e-16,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.47
+    },
+    {
+     "protocolo": "LOSO-D",
+     "k": 2,
+     "grupo": "309+310",
+     "n_excluidas": 2,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 5462901,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 248590,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 199357,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 0,
+       "en_muestra": 0
+      }
+     },
+     "filas_muestra": 114315,
+     "obs_vec": {
+      "filas": 114315,
+      "nan_iguales": true,
+      "dif_rel_max": 2.2954410388287964e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 114315,
+      "nan_iguales": true,
+      "dif_rel_max": 2.3188779859077626e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.46
+    },
+    {
+     "protocolo": "LOSO-D",
+     "k": 3,
+     "grupo": "503+548",
+     "n_excluidas": 2,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 5447876,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 263615,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 2,
+       "en_muestra": 2
+      },
+      "cerca_del_umbral": {
+       "disponibles": 0,
+       "en_muestra": 0
+      }
+     },
+     "filas_muestra": 80002,
+     "obs_vec": {
+      "filas": 80002,
+      "nan_iguales": true,
+      "dif_rel_max": 1.3915494882478263e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 80002,
+      "nan_iguales": true,
+      "dif_rel_max": 8.886710838881738e-16,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.36
+    },
+    {
+     "protocolo": "LBO-10",
+     "k": 3,
+     "grupo": "503+548",
+     "n_excluidas": 7,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 4810304,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 263615,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 31,
+       "en_muestra": 31
+      },
+      "cerca_del_umbral": {
+       "disponibles": 0,
+       "en_muestra": 0
+      }
+     },
+     "filas_muestra": 80030,
+     "obs_vec": {
+      "filas": 80030,
+      "nan_iguales": true,
+      "dif_rel_max": 4.135518886420589e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 80030,
+      "nan_iguales": true,
+      "dif_rel_max": 6.865758241804518e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.36
+    },
+    {
+     "protocolo": "BLQ-75",
+     "k": 1,
+     "grupo": "E001N078",
+     "n_excluidas": 11,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 4687776,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 1023715,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 34656,
+       "en_muestra": 34656
+      },
+      "cerca_del_umbral": {
+       "disponibles": 2033,
+       "en_muestra": 2033
+      }
+     },
+     "filas_muestra": 113777,
+     "obs_vec": {
+      "filas": 113777,
+      "nan_iguales": true,
+      "dif_rel_max": 5.47332447745531e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 113777,
+      "nan_iguales": true,
+      "dif_rel_max": 3.1750880856599605e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.41
+    },
+    {
+     "protocolo": "LRO",
+     "k": 8,
+     "grupo": "RVIII",
+     "n_excluidas": 19,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 4166255,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 1545236,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 127159,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 6898,
+       "en_muestra": 6898
+      }
+     },
+     "filas_muestra": 124101,
+     "obs_vec": {
+      "filas": 124101,
+      "nan_iguales": true,
+      "dif_rel_max": 5.422819419583568e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 124101,
+      "nan_iguales": true,
+      "dif_rel_max": 4.3780329766964677e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.41
+    },
+    {
+     "protocolo": "LRO",
+     "k": 0,
+     "grupo": "RII",
+     "n_excluidas": 3,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 5489825,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 221666,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 179395,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 0,
+       "en_muestra": 0
+      }
+     },
+     "filas_muestra": 112707,
+     "obs_vec": {
+      "filas": 112707,
+      "nan_iguales": true,
+      "dif_rel_max": 1.066186841220737e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 112707,
+      "nan_iguales": true,
+      "dif_rel_max": 6.777729588795678e-16,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.45
+    },
+    {
+     "protocolo": "LRO",
+     "k": 10,
+     "grupo": "RXI",
+     "n_excluidas": 1,
+     "nota": null,
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 5677429,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 34062,
+       "en_muestra": 34062
+      },
+      "dificiles": {
+       "disponibles": 0,
+       "en_muestra": 0
+      },
+      "cerca_del_umbral": {
+       "disponibles": 0,
+       "en_muestra": 0
+      }
+     },
+     "filas_muestra": 74062,
+     "obs_vec": {
+      "filas": 74062,
+      "nan_iguales": true,
+      "dif_rel_max": 1.257782993953031e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 74062,
+      "nan_iguales": true,
+      "dif_rel_max": 6.659229968406827e-16,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.38
+    },
+    {
+     "protocolo": "LRO",
+     "k": 1000,
+     "grupo": "azar_3",
+     "n_excluidas": 3,
+     "nota": "conjunto al azar de 3 estaciones, semilla [42, 0]",
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 5365124,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 123808,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 88910,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 0,
+       "en_muestra": 0
+      }
+     },
+     "filas_muestra": 119675,
+     "obs_vec": {
+      "filas": 119675,
+      "nan_iguales": true,
+      "dif_rel_max": 1.9897466289387451e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 119675,
+      "nan_iguales": true,
+      "dif_rel_max": 1.094613935326561e-14,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.45
+    },
+    {
+     "protocolo": "LRO",
+     "k": 1001,
+     "grupo": "azar_10",
+     "n_excluidas": 10,
+     "nota": "conjunto al azar de 10 estaciones, semilla [42, 0]",
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 4844140,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 492048,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 110428,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 0,
+       "en_muestra": 0
+      }
+     },
+     "filas_muestra": 119276,
+     "obs_vec": {
+      "filas": 119276,
+      "nan_iguales": true,
+      "dif_rel_max": 1.5656447215622343e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 119276,
+      "nan_iguales": true,
+      "dif_rel_max": 1.4066153432251839e-15,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.43
+    },
+    {
+     "protocolo": "LRO",
+     "k": 1002,
+     "grupo": "azar_19",
+     "n_excluidas": 19,
+     "nota": "conjunto al azar de 19 estaciones, semilla [42, 0]",
+     "muestra": {
+      "entrenamiento": {
+       "disponibles": 3712835,
+       "en_muestra": 40000
+      },
+      "prueba": {
+       "disponibles": 1197961,
+       "en_muestra": 40000
+      },
+      "dificiles": {
+       "disponibles": 225193,
+       "en_muestra": 40000
+      },
+      "cerca_del_umbral": {
+       "disponibles": 3,
+       "en_muestra": 3
+      }
+     },
+     "filas_muestra": 118786,
+     "obs_vec": {
+      "filas": 118786,
+      "nan_iguales": true,
+      "dif_rel_max": 1.7403332675872812e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "peso_vec": {
+      "filas": 118786,
+      "nan_iguales": true,
+      "dif_rel_max": 1.622696840704042e-13,
+      "ceros_iguales": true,
+      "float32_distintas": 0
+     },
+     "dist_est_km_iguales": true,
+     "pasa": true,
+     "segundos": 0.41
+    }
+   ],
+   "b_base_vs_ingenuo": {
+    "filas": 160000,
+    "semilla": [
+     42,
+     999
+    ],
+    "obs_vec": {
+     "filas": 160000,
+     "nan_iguales": true,
+     "dif_rel_max": 1.31731510878029e-15,
+     "ceros_iguales": true,
+     "float32_distintas": 0
+    },
+    "peso_vec": {
+     "filas": 160000,
+     "nan_iguales": true,
+     "dif_rel_max": 7.593253979447652e-16,
+     "ceros_iguales": true,
+     "float32_distintas": 0
+    },
+    "dist_est_km_iguales": true
+   },
+   "c_tiempos": {
+    "por_protocolo": {
+     "LOSO-D": {
+      "pliegues": 48,
+      "min_s": 0.163,
+      "mediana_s": 0.195,
+      "max_s": 0.216,
+      "total_s": 9.25,
+      "obs_vec_nan_prueba_fraccion": 0.01503,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
+       "222+251",
+       "236",
+       "901",
+       "B04"
+      ]
+     },
+     "LBO-10": {
+      "pliegues": 48,
+      "min_s": 0.163,
+      "mediana_s": 0.179,
+      "max_s": 0.213,
+      "total_s": 8.84,
+      "obs_vec_nan_prueba_fraccion": 0.02285,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
+       "222+251",
+       "236",
+       "901",
+       "B04"
+      ]
+     },
+     "BLQ-75": {
+      "pliegues": 18,
+      "min_s": 0.172,
+      "mediana_s": 0.196,
+      "max_s": 0.229,
+      "total_s": 3.51,
+      "obs_vec_nan_prueba_fraccion": 0.02327,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
+       "E003N065",
+       "E005N100",
+       "E006N100"
+      ]
+     },
+     "LRO": {
+      "pliegues": 12,
+      "min_s": 0.176,
+      "mediana_s": 0.208,
+      "max_s": 0.226,
+      "total_s": 2.43,
+      "obs_vec_nan_prueba_fraccion": 0.05468,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": [
+       "RII",
+       "RXI"
+      ]
+     },
+     "LPO": {
+      "pliegues": 7,
+      "min_s": 0.069,
+      "mediana_s": 0.071,
+      "max_s": 0.072,
+      "total_s": 0.5,
+      "obs_vec_nan_prueba_fraccion": 0.01503,
+      "pliegues_con_mas_de_10pct_de_prueba_sin_vecindario": []
+     }
+    },
+    "total_s": 24.53,
+    "construccion_s": 0.571,
+    "nota": "recálculo completo: las tres columnas en todas las filas (entrenamiento, prueba y entorno), en float32, con las huellas sha256; un tiempo no es un resultado (§10)"
+   },
+   "b_todos_vs_directo": {
+    "pliegues": 126,
+    "filas_por_pliegue": "todas las del panel",
+    "obs_vec_rel_max": 7.315247238828632e-13,
+    "peso_vec_rel_max": 4.826181162037789e-13,
+    "nan_iguales_en_todos": true,
+    "ceros_iguales_en_todos": true,
+    "dist_iguales_en_todos": true,
+    "float32_distintas_total": 0,
+    "produccion_float32_igual_al_float64_redondeado": true,
+    "filas_suma_directa_total": 2082914,
+    "pasa": true
+   }
+  }
+ },
+ "entorno": {
+  "hilos_blas": 8,
+  "cpu_count": 16,
+  "maquina": "arm64",
+  "carga_1_5_15_min_inicio": [
+   14.1513671875,
+   8.4169921875,
+   6.3203125
+  ],
+  "carga_1_5_15_min_fin": [
+   7.79345703125,
+   6.91015625,
+   6.18359375
+  ]
+ },
+ "veredicto": {
+  "pm25": {
+   "a1_peso_y_dist_bit_a_bit": true,
+   "a1_obs_vec_a_lo_mas_1_ulp": true,
+   "a2_bit_a_bit": true,
+   "a2_cota_redondeo_V_cumplida": true,
+   "b_muestra_pasa": true,
+   "b_base_pasa": true,
+   "b_todos_vs_directo_pasa": true
+  },
+  "no2": {
+   "a1_peso_y_dist_bit_a_bit": true,
+   "a1_obs_vec_a_lo_mas_1_ulp": true,
+   "a2_bit_a_bit": true,
+   "a2_cota_redondeo_V_cumplida": true,
+   "b_muestra_pasa": true,
+   "b_base_pasa": true,
+   "b_todos_vs_directo_pasa": true
+  }
+ },
+ "salidas": {
+  "tiempos_csv": {
+   "raiz": "repo",
+   "ruta": "output_files/modelo_1km_v2/vecindario_v2_tiempos.csv",
+   "sha256": "1613a4483bd1cc5fee33fb00aebf0c0cc1e2a3998440cd0171198ceb24f434e9"
+  },
+  "registros": {
+   "pm25": {
+    "raiz": "raiz_v2",
+    "ruta": "vecindario/registro_recalculos_pm25.json",
+    "sha256": "49be6fba6d60fe1a70336a788d72e17ce409cb27bf2c82c53afc57c7d6607e35"
+   },
+   "no2": {
+    "raiz": "raiz_v2",
+    "ruta": "vecindario/registro_recalculos_no2.json",
+    "sha256": "15381d8d5fdd1f0a22effc79bf33a5307f5e4b3055ca7dfa1ef2bca637de4a2b"
+   }
+  }
+ },
+ "traza": {
+  "creado_utc": "2026-10-12T23:01:28Z",
+  "programa": "validar_vecindario_v2.py",
+  "git": {
+   "commit": "51d125efcdf00fee788d73607f33e143e67ad477",
+   "v2_sin_commit": [
+    "scripts_modelo_1km/v2/_rutas_v2.py",
+    "scripts_modelo_1km/v2/_traza_v2.py",
+    "scripts_modelo_1km/v2/calidad_v2.py",
+    "scripts_modelo_1km/v2/config_v2.json",
+    "scripts_modelo_1km/v2/pliegues_v2.py",
+    "scripts_modelo_1km/v2/tests/test_calidad_artefacto_v2.py",
+    "scripts_modelo_1km/v2/tests/test_calidad_v2.py",
+    "scripts_modelo_1km/v2/tests/test_config_v2.py",
+    "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+    "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
+    "scripts_modelo_1km/v2/tests/test_rutas_v2.py",
+    "scripts_modelo_1km/v2/tests/test_traza_v2.py",
+    "scripts_modelo_1km/v2/tests/test_vecindario_v2.py",
+    "scripts_modelo_1km/v2/validar_vecindario_v2.py",
+    "scripts_modelo_1km/v2/vecindario_v2.py"
+   ],
+   "arbol_con_cambios_rastreados": false
+  },
+  "codigo": {
+   "hash": "b935900f9380e2847fadead5b7587e76eeb6c8b880be49216625c33e28831a87",
+   "archivos": {
+    "scripts_modelo_1km/v2/_rutas_v2.py": "9152d405c898ff97fd3cef1270efae807e0819b8d5791ca4934caf89f39ce5c4",
+    "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
+    "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
+    "scripts_modelo_1km/v2/pliegues_v2.py": "d95625c8dde4a57cadf684777468e38187ae310e3185eba5368569dee8282958",
+    "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
+    "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181"
+   }
+  },
+  "contrato": {
+   "raiz": "repo",
+   "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+   "sha256": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
+   "bytes": 9389
+  },
+  "config": {
+   "raiz": "repo",
+   "ruta": "scripts_modelo_1km/v2/config_v2.json",
+   "sha256": "1109e41202b2ed63bb5ad9ae92471c158b3666aca751e9b24289b10d5c7e0df5",
+   "bytes": 22062
+  },
+  "insumos": {
+   "catalogo_sinca": {
+    "raiz": "datos",
+    "ruta": "sinca/estaciones_georreferenciadas.csv",
+    "sha256": "51ff693e6ac9a75eb92afc4da4995950f2b39fa4e241fd0e1f57a183cc381995",
+    "bytes": 48504
+   },
+   "grilla_celdas": {
+    "raiz": "raiz_v1",
+    "ruta": "grilla_1km/celdas.parquet",
+    "sha256": "42b4b19613c7de343c856473af64e2c0a6353351f1884c8dba145361292108c3",
+    "bytes": 1424147
+   },
+   "grilla_estaciones_enlaces": {
+    "raiz": "raiz_v1",
+    "ruta": "grilla_1km/estaciones_enlaces.parquet",
+    "sha256": "372a6415ad5e88b1a2a820db0149baab04cd13f87e2cdd67e01e4b3ef99060d4",
+    "bytes": 22328
+   },
+   "grilla_estaciones_enlaces_adicional": {
+    "raiz": "raiz_v1",
+    "ruta": "grilla_1km/estaciones_enlaces_adicional.parquet",
+    "sha256": "4f4edef9611cb34e4588e8a1a210f2f345d56851b2d6e3eb20aa6cfb37d2b688",
+    "bytes": 14419
+   },
+   "manifiesto_pliegues": {
+    "raiz": "raiz_v2",
+    "ruta": "pliegues_v2.json",
+    "sha256": "42bb1a37cab89c24f9580f0466dbbbd53f411ace4ab8f47c9ecd7a1d7e0e8fef",
+    "bytes": 290791
+   },
+   "panel_no2": {
+    "raiz": "raiz_v1",
+    "ruta": "paneles/panel_no2.parquet",
+    "sha256": "513394a296a5bc64ce850e1f7b5b726d86001e738c66db1413ecd889214118a3",
+    "bytes": 425232563
+   },
+   "panel_no2_json": {
+    "raiz": "raiz_v1",
+    "ruta": "paneles/panel_no2.json",
+    "sha256": "ea7c058e21d42cf263f5782b95d49152f04cbdbe49d9c354be8af8ebb5d857e4",
+    "bytes": 9113
+   },
+   "panel_pm25": {
+    "raiz": "raiz_v1",
+    "ruta": "paneles/panel_pm25.parquet",
+    "sha256": "955ed14469dce75e2c6da6452fbd5749ff3f391345a910758b5550330a9f56cb",
+    "bytes": 778963905
+   },
+   "panel_pm25_json": {
+    "raiz": "raiz_v1",
+    "ruta": "paneles/panel_pm25.json",
+    "sha256": "2a6cda8e42a6938d0e41d015a4c0e13e439955e55d6265dc7e13673ba7ebc3a5",
+    "bytes": 9116
+   },
+   "snifa": {
+    "raiz": "datos",
+    "ruta": "snifa_adicional/processed/observaciones_horarias.parquet",
+    "sha256": "2aa177d9f0e3f8626d03c9e8381357a58eb81e43192b7aa802c5f03b4e055a55",
+    "bytes": 3943576
+   }
+  },
+  "bibliotecas": {
+   "python": "3.11.16",
+   "numpy": "2.2.6",
+   "pandas": "2.3.3",
+   "pyarrow": "25.0.0",
+   "scipy": "1.17.1",
+   "scikit-learn": "1.9.1",
+   "lightgbm": "4.7.0",
+   "xgboost": "3.4.2",
+   "statsmodels": "0.15.0",
+   "pyproj": "3.7.2",
+   "joblib": "1.6.0",
+   "threadpoolctl": "3.7.0"
+  },
+  "python": {
+   "entorno": "amb_v2",
+   "implementacion": "CPython",
+   "sistema": "macOS-26.6.2-arm64-arm-64bit",
+   "maquina": "arm64"
+  },
+  "hilos": {
+   "configurados": 8,
+   "cpu_count": 16,
+   "entorno": {
+    "OMP_NUM_THREADS": "8",
+    "OPENBLAS_NUM_THREADS": "8",
+    "MKL_NUM_THREADS": "8",
+    "VECLIB_MAXIMUM_THREADS": "8",
+    "NUMEXPR_NUM_THREADS": "8"
+   }
+  },
+  "semillas": {
+   "muestra": [
+    42,
+    "k"
+   ],
+   "azar": [
+    42,
+    0
+   ]
+  },
+  "parametros": {
+   "tolerancia_relativa": 1e-09,
+   "muestra": 40000
+  }
+ }
+}

@@ -1,0 +1,637 @@
+{
+ "schema": "airpollution.modelo-1km-v2.config.v1",
+ "descripcion": "Traducción a datos del contrato DISENO_AMBIENTAL_V2.md, fijado el 2026-10-12 antes de estimar ningún motor v2. No agrega decisiones: lo que el contrato no fija queda como «pendiente».",
+ "convenciones": {
+  "pendiente": "La cadena «pendiente» marca un valor que el contrato no fija. Cuando hace falta una nota, o cuando el código de alguna etapa necesitó un valor para funcionar, el campo es un objeto {\"estado\": \"pendiente\", \"nota\": ..., \"provisional\": ...}. El «provisional» no es contrato: se ratifica o se corrige por enmienda.",
+  "receta_v1": "«receta v1» remite a la receta de la v1 tal como la verificó el mapa Air-Pollution-Health-Chile/auditoria/20261012/mapa_modelo_ambiental_v1.json; qmd = docs/modelo_1km_horario.qmd.",
+  "fuente": "Cada bloque indica la sección del contrato que traduce (§)."
+ },
+ "contrato": {
+  "archivo": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+  "sha256": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
+  "fijado": "2026-10-12",
+  "commit": "51d125e",
+  "enmiendas": []
+ },
+ "relacion_v1": {
+  "fuente": "§0",
+  "v1_intacta": [
+   "modelos, paneles, OOF, superficies y exposición",
+   "docs/modelo_1km_horario.qmd: no se re-renderiza en su lugar (AM-01)",
+   "huellas registradas en la referencia del 2026-10-12"
+  ],
+  "codigo_v2": "scripts_modelo_1km/v2/",
+  "raiz_datos_v2": {
+   "variable": "AIR_POLLUTION_MODELO_1KM_ROOT",
+   "por_omision": "~/Asesorias_Data_local/AirPollution/modelado_1km_v2",
+   "candado_de_escritura": true
+  },
+  "tablas_pequenas": "output_files/modelo_1km_v2/",
+  "insumos_v1_solo_lectura": [
+   "paneles/panel_pm25.parquet",
+   "paneles/panel_no2.parquet"
+  ],
+  "recalculos": "van a la raíz v2",
+  "procedencia_por_artefacto": [
+   "commit",
+   "hash_del_codigo",
+   "sha256_de_cada_insumo",
+   "version_de_cada_biblioteca",
+   "hilos",
+   "semillas"
+  ]
+ },
+ "protocolos": {
+  "fuente": "§1",
+  "manifiesto": {
+   "archivo": "pliegues_v2.json",
+   "ubicacion": "raíz v2",
+   "contiene": ["grupos", "k", "semillas"],
+   "momento": "antes de ajustar ningún motor"
+  },
+  "orden": ["LOSO-D", "LBO-10", "BLQ-75", "LRO", "LPO"],
+  "LOSO-D": {
+   "grupo_prueba": "conglomerado de estaciones",
+   "umbral_km": 2.0,
+   "comparacion": "<=",
+   "metodo": "componentes conexas",
+   "une_celdas_compartidas": true,
+   "retira_juntos_ejemplos": [["309", "310", "330", "333"], ["B03", "B04"], ["503", "548"]],
+   "distancia": {
+    "formula": "haversine",
+    "radio_tierra_km": 6371.0,
+    "fuente": "instrucción de la etapa; es la misma distancia de la v1 (_features.py:330-334)"
+   },
+   "estaciones": "las del panel de cada contaminante, con las coordenadas de estaciones_con_celda() (qmd:1968-1970)",
+   "exclusion_adicional": "ninguna"
+  },
+  "LBO-10": {
+   "grupo_prueba": "el mismo conglomerado de LOSO-D",
+   "exclusion_adicional": {
+    "radio_km": 10.0,
+    "comparacion": "<=",
+    "medida_desde": "cualquier estación del conglomerado",
+    "universo": "estaciones con celda de las dos redes, como la v1 (qmd:2775-2786)"
+   }
+  },
+  "BLQ-75": {
+   "grupo_prueba": "bloque de una rejilla fija con al menos una estación",
+   "lado_m": 75000.0,
+   "crs": "EPSG:32719",
+   "origen_m": {
+    "estado": "pendiente",
+    "nota": "El contrato fija la rejilla pero no su origen. El manifiesto usa el origen falso de la proyección, (este, norte) = (0, 0), elegido sin mirar resultados, y lo registra junto con los límites de cada bloque.",
+    "provisional": [0.0, 0.0]
+   },
+   "asignacion": "cada estación va al bloque que contiene sus coordenadas proyectadas",
+   "exclusion_adicional": "ninguna"
+  },
+  "LRO": {
+   "grupo_prueba": "region_sinca",
+   "nuble": "RVIII, como la v1: SINCA rotula RVIII a las estaciones de Ñuble",
+   "equivalencias": {"RXVI": "RVIII"},
+   "exclusion_adicional": "ninguna"
+  },
+  "LPO": {
+   "grupo_prueba": "cuatrienio del año local",
+   "anio_local": "UTC−4 fijo (columna anio del panel v1)",
+   "ventanas": {
+    "anio_desde": 2000,
+    "anio_hasta": 2026,
+    "largo_anios": 4,
+    "fuente": "como la v1 (qmd:300-301 y 344-351): 2000–2003 … 2024–2026, la última parcial"
+   },
+   "exclusion_adicional": "ninguna",
+   "vecindario_prueba": "red concurrente; se declara así"
+  },
+  "semilla": {
+   "regla": [42, "k"],
+   "k": {
+    "estado": "pendiente",
+    "nota": "El contrato nombra k sin fijar el orden de los grupos.",
+    "provisional": "posición de la etiqueta del grupo en orden lexicográfico, por contaminante y protocolo, como la v1 (qmd:2635); LBO-10 comparte etiquetas y k con LOSO-D"
+   }
+  }
+ },
+ "regla_exclusion": {
+  "fuente": "§1",
+  "conjunto": "uno solo por pliegue",
+  "se_aplica_a": [
+   "filas de entrenamiento",
+   "vecindario de entrenamiento",
+   "vecindario de prueba",
+   "residuos de la retransformación"
+  ]
+ },
+ "vecindario": {
+  "fuente": "§2",
+  "variables": ["obs_vec", "peso_vec", "dist_est_km"],
+  "recalculo": {
+   "protocolos": ["LOSO-D", "LBO-10", "BLQ-75", "LRO"],
+   "filas": ["entrenamiento", "prueba"],
+   "sin": "ninguna estación excluida",
+   "atajo_para_conjuntos_de_una_estacion": false
+  },
+  "LPO": "sin recálculo: el vecindario de prueba usa la red concurrente (§1)",
+  "implementacion": {
+   "funcion_unica_para_todos_los_motores": true,
+   "registra_cada_recalculo": true,
+   "nucleo": "gaussiano, como la v1",
+   "ancho_km": 150.0,
+   "peso": "exp(-(d/150)^2), d haversine (_features.py:361)",
+   "umbral_suma_de_pesos": 1e-06,
+   "umbral_fuente": "como la v1 (_features.py:369)",
+   "dist_est_km": "distancia a la estación más cercana distinta de la propia, entre las que quedan (como la v1)"
+  },
+  "produccion": {
+   "celdas_con_monitor": "la estación entra al vecindario",
+   "evaluacion": "régimen no evaluado; se informa así"
+  }
+ },
+ "motores": {
+  "fuente": "§3",
+  "eje_A": {
+   "descripcion": "mismos predictores, blanco y retransformación",
+   "blanco": "log1p",
+   "perdida": "cuadrática sobre log1p (la referencia de §6)",
+   "retransformacion": "la primaria (§5)",
+   "predictores": {
+    "fuente": "los de la v1 (modelos/<pol>/metricas.json → predictores); en NO2 sin dist_costa_km",
+    "pm25": ["hora_local", "hora_sin", "hora_cos", "doy_sin", "doy_cos", "dow", "mes", "anio", "lat", "lon", "macrozona_cod", "elev_m", "pendiente_deg", "dist_costa_km", "vias_km_km2", "vias_princ_km_km2", "lulc_urbano", "lulc_cultivo", "lulc_bosque", "lulc_matorral_pastizal", "lulc_desnudo", "lulc_agua", "lulc_nieve_hielo", "pob_dens", "el_t2m", "el_d2m", "el_rh", "el_sp", "el_u10", "el_v10", "el_wind", "el_wdir_sin", "el_wdir_cos", "el_tp_1h_mm", "blh", "inv_blh", "m2_t2m", "m2_rh2m", "m2_u10m", "m2_v10m", "m2_pblh", "m2_aod", "m2_pm25", "m2_ps", "m2_aod_pblh", "cams_no2", "cams_pm25", "cams_o3", "cams_co", "gcf_no2", "gcf_pm25", "gcf_o3", "gcf_co", "gcf_pm25_blh", "aod_terra", "aod_aqua", "aod_dia", "aod_n", "aod_3d", "aod_7d", "no2_trop", "no2_trop_prec", "no2_trop_hora", "no2_trop_7d", "no2_trop_15d", "acag_pm25", "acag_clim", "obs_vec", "peso_vec", "dist_est_km"],
+    "no2": ["hora_local", "hora_sin", "hora_cos", "doy_sin", "doy_cos", "dow", "mes", "anio", "lat", "lon", "macrozona_cod", "elev_m", "pendiente_deg", "vias_km_km2", "vias_princ_km_km2", "lulc_urbano", "lulc_cultivo", "lulc_bosque", "lulc_matorral_pastizal", "lulc_desnudo", "lulc_agua", "lulc_nieve_hielo", "pob_dens", "el_t2m", "el_d2m", "el_rh", "el_sp", "el_u10", "el_v10", "el_wind", "el_wdir_sin", "el_wdir_cos", "el_tp_1h_mm", "blh", "inv_blh", "m2_t2m", "m2_rh2m", "m2_u10m", "m2_v10m", "m2_pblh", "m2_aod", "m2_pm25", "m2_ps", "m2_aod_pblh", "cams_no2", "cams_pm25", "cams_o3", "cams_co", "gcf_no2", "gcf_pm25", "gcf_o3", "gcf_co", "gcf_pm25_blh", "aod_terra", "aod_aqua", "aod_dia", "aod_n", "aod_3d", "aod_7d", "no2_trop", "no2_trop_prec", "no2_trop_hora", "no2_trop_7d", "no2_trop_15d", "acag_pm25", "acag_clim", "obs_vec", "peso_vec", "dist_est_km"]
+   },
+   "lightgbm": {
+    "receta": "v1 (qmd:2187-2197)",
+    "api": "lightgbm.train",
+    "objective": "regression",
+    "num_boost_round": 800,
+    "learning_rate": 0.03,
+    "num_leaves": 127,
+    "min_data_in_leaf": 50,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 1,
+    "feature_fraction": 0.8,
+    "lambda_l2": 1.0,
+    "deterministic": true,
+    "force_col_wise": true,
+    "num_threads": 12,
+    "seed": 42,
+    "seed_fuente": "receta v1 (qmd:311); las semillas de ruido van en «ruido»",
+    "parada_temprana": false,
+    "resto": "por omisión de LightGBM, como la v1 (max_bin 255, max_depth −1, lambda_l1 0)"
+   },
+   "xgboost": {
+    "receta": "equivalente a la de LightGBM",
+    "tree_method": "hist",
+    "max_leaves": 127,
+    "grow_policy": "lossguide",
+    "eta": 0.03,
+    "num_boost_round": 800,
+    "subsample": 0.8,
+    "colsample": {
+     "valor": 0.8,
+     "variante": {
+      "estado": "pendiente",
+      "nota": "El contrato dice «colsample 0,8» sin decir cuál. El equivalente de feature_fraction de LightGBM, que muestrea por árbol, es colsample_bytree.",
+      "provisional": "colsample_bytree"
+     }
+    },
+    "lambda": 1.0,
+    "min_child_weight": {
+     "estado": "pendiente",
+     "nota": "El contrato pide un valor «equivalente» a min_data_in_leaf = 50 sin fijarlo. Con pérdida cuadrática la hessiana por fila vale 1 y el equivalente sería 50; con Huber o pinball no hay equivalencia exacta. La v2 usa hessiana 1 en todas las pérdidas (Huber y pinball como LightGBM: perdidas_v2.py), así que 50 es el equivalente.",
+     "provisional": 50
+    },
+    "max_depth": {
+     "estado": "pendiente",
+     "nota": "LightGBM usa max_depth −1 (sin límite); con grow_policy lossguide el equivalente de XGBoost es 0.",
+     "provisional": 0
+    },
+    "max_bin": {
+     "estado": "pendiente",
+     "nota": "LightGBM usa max_bin 255 por omisión (XGBoost, 256).",
+     "provisional": 255
+    },
+    "nthread": {
+     "estado": "pendiente",
+     "nota": "Los mismos hilos de LightGBM (12, operacion.hilos_maximos); correr_v2 puede bajarlos con --hilos y lo registra en la firma.",
+     "provisional": 12
+    },
+    "seed": {
+     "estado": "pendiente",
+     "nota": "La semilla de LightGBM; en las réplicas de ruido, la de la receta + 1000·r (ruido.valores).",
+     "provisional": 42
+    },
+    "determinismo": {
+     "estado": "pendiente",
+     "nota": "XGBoost no tiene un parámetro deterministic en CPU.",
+     "provisional": "tree_method hist en CPU, QuantileDMatrix, nthread y seed fijos; se verifica con dos corridas idénticas bit a bit (tests/test_correr_v2.py)"
+    }
+   },
+   "random_forest": {
+    "receta": "v1 (qmd:3146 y 3218-3221)",
+    "implementacion": "sklearn.ensemble.RandomForestRegressor",
+    "n_estimators": 300,
+    "max_features": "sqrt",
+    "min_samples_leaf": 20,
+    "resto": "por omisión de scikit-learn, como la v1 (criterion squared_error, bootstrap, sin max_depth)",
+    "random_state": "42 + k (receta v1)",
+    "faltantes": "NaN nativos (scikit-learn ≥ 1.4), como la v1",
+    "n_jobs": {
+     "estado": "pendiente",
+     "nota": "Los hilos de la corrida; con random_state fijo el bosque de scikit-learn no depende de n_jobs.",
+     "provisional": 12
+    }
+   },
+   "mlp": {
+    "receta": "v1 (qmd:3155-3157 y 3225-3242)",
+    "implementacion": "Pipeline(SimpleImputer(mediana), StandardScaler, sklearn.neural_network.MLPRegressor), ajustado dentro del pliegue",
+    "hidden_layer_sizes": [128, 64],
+    "activation": "relu",
+    "solver": "adam",
+    "alpha": 0.1,
+    "batch_size": 256,
+    "learning_rate_init": 0.001,
+    "max_iter": 300,
+    "n_iter_no_change": 10,
+    "recorte_salida_log": [0.005, 0.99],
+    "acotar_entradas_al_rango_del_entrenamiento": true,
+    "columnas_vacias_en_el_entrenamiento": "NaN en la prueba (receta v1)",
+    "random_state": "42 + k (receta v1)",
+    "parada_temprana": {
+     "validacion": "agrupada por estación, no al azar",
+     "fraccion": {
+      "estado": "pendiente",
+      "nota": "La v1 usaba validation_fraction = 0,1 de filas al azar. La v2 aparta esa fracción de las estaciones del entrenamiento del pliegue (al menos una y nunca todas), sorteadas con default_rng(random_state de la MLP).",
+      "provisional": 0.1
+     },
+     "criterio": {
+      "estado": "pendiente",
+      "nota": "El contrato fija la validación agrupada, no el criterio de detención.",
+      "provisional": "R² en log1p de las filas de las estaciones de validación (como MLPRegressor.score), tol 1e-4; se detiene tras más de n_iter_no_change = 10 épocas sin mejora y se restaura la mejor época, como scikit-learn. Imputación y escala con todo el entrenamiento del pliegue; la red se entrena época a época (partial_fit) sólo con las estaciones que no validan."
+     }
+    }
+   },
+   "promedio_simple": {
+    "motores": ["lightgbm", "xgboost", "random_forest", "mlp"],
+    "pesos": "iguales, sin ajustar",
+    "escala": {
+     "estado": "pendiente",
+     "nota": "El eje A comparte blanco y retransformación: se promedian las ẑ en log y el promedio pasa por la misma retransformación primaria, con sus propios residuos fuera de pliegue.",
+     "provisional": "log"
+    }
+   }
+  },
+  "eje_B": {
+   "descripcion": "líneas base de diseño restringido, cada una en su diseño",
+   "motores": ["gp", "lme", "gwr", "rk", "idw"],
+   "preprocesamiento_dentro_del_pliegue": ["medianas", "indicadoras", "escala", "selección por cobertura"],
+   "recetas_v1_de_referencia": {
+    "gp": "Constant(1; 1e-3–1e3) × Matérn(ν = 1,5; ℓ 0,1–100) + White(0,5; 1e-4–10); normalize_y; alpha 1e-6; sin reinicios; 17 predictores en PM2,5 y 16 en NO2; 3.000 filas estratificadas por estación × franja (qmd:3243-3254)",
+    "lme": "MixedLM con REML (lbfgs, maxiter 200); intercepto y pendiente aleatorios por hora local sobre m2_pm25 (PM2,5) o cams_no2 (NO2); concentraciones en log1p; predicción acotada al rango del entrenamiento; 300.000 filas (qmd:3255-3275)",
+    "gwr": "mínimos cuadrados ponderados con núcleo exp(−(d/h)²), h = distancia a la 12.ª estación de entrenamiento, cresta 1e-6; escala original truncada en 0 (qmd:2914-2916 y 2925-2979)",
+    "rk": "tendencia por mínimos cuadrados (cresta 1e-6) más kriging ordinario del residuo medio por estación; variograma exponencial por pliegue con 15 clases; escala original truncada en 0 (qmd:2981-3001)",
+    "idw": "obs_vec (núcleo gaussiano de 150 km); sin vecinas, la media del entrenamiento del pliegue (qmd:3089-3124)"
+   },
+   "topes_de_filas": {
+    "estado": "pendiente",
+    "nota": "El contrato dice «cada uno en su diseño» y fija el N común sólo para el eje A. En la v1: GP 3.000 filas estratificadas y LME 300.000; GWR, RK e IDW, todas las filas. En la v2 los topes son prefijos de la permutación común (§4), así que el GP deja de estratificar por estación × franja y su muestra queda anidada en la del LME y la del eje A.",
+    "provisional": {"gp": 3000, "lme": 300000, "gwr": "todas", "rk": "todas", "idw": "todas"}
+   }
+  },
+  "alertas": {
+   "cuantil": 0.8,
+   "evaluacion": "se juzga aparte",
+   "receta": {
+    "estado": "pendiente",
+    "nota": "v1: LightGBM objective quantile α 0,80, 900 rondas, tasa 0,025, 127 hojas, mínimo 30 filas por hoja, feature_fraction 0,8, sin bagging (qmd:3214-3217). La v2 la conserva con deterministic, force_col_wise e hilos fijos, y entrena con las filas del N común del eje A (la v1 usaba 1,5 M filas de otra submuestra).",
+    "provisional": {"num_boost_round": 900, "learning_rate": 0.025, "num_leaves": 127, "min_data_in_leaf": 30, "feature_fraction": 0.8, "bagging": false, "seed": 42, "blanco": "log1p", "vuelta": "máx(expm1(ẑ), 0), sin corrección (un cuantil conmuta con la transformación monótona)", "filas": "N común del eje A (prefijo de la permutación común)"}
+   }
+  },
+  "hiperparametros": {
+   "busqueda": false,
+   "recetas": "fijas, las declaradas aquí, para todos los motores",
+   "si_se_busca_despues": "por enmienda: pliegues internos agrupados, con la misma regla de exclusión y el mismo presupuesto para todos"
+  },
+  "apilado_anidado": {
+   "protocolos": ["LRO", "BLQ-75"],
+   "nivel_2": "predicciones de pliegues internos agrupados dentro de cada pliegue externo",
+   "pesos": {"no_negativos": true, "suman_1": true},
+   "compite_fuera_de_esos_protocolos": false,
+   "bases": {
+    "estado": "pendiente",
+    "nota": "El contrato no nombra las bases.",
+    "provisional": ["lightgbm", "xgboost", "random_forest", "mlp"]
+   },
+   "pliegues_internos": {
+    "estado": "pendiente",
+    "nota": "El contrato pide pliegues internos agrupados sin fijar cuántos ni cómo.",
+    "provisional": {"n": 5, "agrupacion": "grupos del protocolo externo presentes en el entrenamiento (regiones en LRO, bloques en BLQ-75)", "asignacion": "permutación default_rng([42, k, 1000]) de las etiquetas ordenadas, repartidas en turnos; con menos grupos que pliegues, un grupo por pliegue", "filas": "las filas con tope del pliegue externo (réplica 0)", "exclusion": "conjunto excluido externo ∪ estaciones del pliegue interno, en filas y vecindario"}
+   },
+   "escala": {
+    "estado": "pendiente",
+    "nota": "Como el promedio simple: en log, y la combinación pasa por la retransformación primaria con sus propios residuos.",
+    "provisional": "log"
+   }
+  }
+ },
+ "filas_entrenamiento": {
+  "fuente": "§4",
+  "permutacion": {
+   "una_por_pliegue": true,
+   "semilla": [42, "k"],
+   "compartida_por_todos_los_motores": true,
+   "topes": "prefijos de la permutación, de modo que quedan anidados",
+   "generador": {
+    "estado": "pendiente",
+    "nota": "La v1 usaba numpy.random.default_rng([42, k]).choice sin reemplazo (qmd:2650). Falta fijar el algoritmo de la permutación y el orden canónico de los índices disponibles.",
+    "provisional": "numpy.random.default_rng(semilla).permutation(n) sobre los índices disponibles en orden ascendente del panel; filas del tope N = sort(disponibles[perm[:N]]); las variantes de calidad filtran esa misma permutación antes de cortar"
+   }
+  },
+  "N_comun_eje_A": 750000,
+  "N_comun_protocolos": "todos",
+  "curvas_de_aprendizaje": {
+   "protocolos": ["LRO", "BLQ-75"],
+   "lightgbm": [300000, 750000, 1500000, "todas"],
+   "xgboost": [300000, 750000, 1500000, "todas"],
+   "random_forest": [300000, 750000, 1500000]
+  },
+  "pares_de_evaluacion": "intersección de las predicciones finitas de todos los motores, impuesta en el código antes de agregar",
+  "validado_igual_desplegado": "el modelo que se proponga para producción se valida con el mismo N con que se despliega",
+  "disponibles_menos_que_el_tope": {
+   "estado": "pendiente",
+   "nota": "Con menos filas disponibles que el tope.",
+   "provisional": "se usan todas las disponibles y se registra el N efectivo"
+  }
+ },
+ "retransformacion": {
+  "fuente": "§5",
+  "primaria": {
+   "metodo": "Duan por macrozona × franja",
+   "forma": "adj = 0,5 × varianza poblacional (ddof = 0) del residuo log; ŷ = exp(ẑ + adj) − 1",
+   "forma_fuente": "«Duan» en el sentido de la v1 (duan_oof: qmd:2688; produccion.py:153), que es la forma que la v1 publica como duan_oof_macrozona; el smearing no paramétrico (smearing_oof) no es la primaria",
+   "clave": "macrozona|franja",
+   "macrozona": "macrozona_cod del panel, como la v1",
+   "franja_diurna_horas_locales": [8, 18],
+   "franja_inclusiva": true,
+   "residuos": "log, fuera de pliegue, de los demás grupos, con la misma exclusión del protocolo",
+   "minimo_filas": 100,
+   "respaldo": ["franja de los demás grupos", "global de los demás grupos"],
+   "prohibido": "un total que incluya al propio grupo",
+   "global_de_los_demas_con_menos_de_100_filas": {
+    "estado": "pendiente",
+    "nota": "El contrato no dice qué hacer si incluso el global de los demás grupos tiene menos de 100 filas (con los paneles vigentes no ocurre).",
+    "provisional": "sin corrección (adj = 0), registrado como nivel sin_correccion"
+   }
+  },
+  "sensibilidad": {
+   "protocolos": ["LRO", "BLQ-75"],
+   "metodo": "Duan con OOF interno dentro de cada pliegue externo",
+   "pliegues_internos": {
+    "estado": "pendiente",
+    "nota": "El contrato no fija los pliegues internos de la sensibilidad.",
+    "provisional": "los del apilado anidado (motores.apilado_anidado.pliegues_internos), sobre las filas con tope del pliegue externo; mismo respaldo: franja y luego global del entrenamiento del pliegue externo"
+   }
+  },
+  "metricas_en_log": true
+ },
+ "perdidas": {
+  "fuente": "§6 (etapa 8)",
+  "motores": ["lightgbm", "xgboost"],
+  "N": "el mismo del eje A (§4)",
+  "pliegues": "los mismos",
+  "variantes": [
+   {"id": "l2_log_duan", "perdida": "cuadrática en log + Duan", "blanco": "log1p", "uso": "referencia (v1)"},
+   {"id": "l2_original", "perdida": "cuadrática en escala original", "blanco": "y", "uso": "media condicional directa"},
+   {
+    "id": "huber",
+    "perdida": "Huber",
+    "blanco": "y",
+    "uso": "robustez a picos",
+    "delta": {
+     "factor": 1.345,
+     "escala": "MAD de los residuos de un ajuste cuadrático del entrenamiento del pliegue",
+     "mad": {
+      "estado": "pendiente",
+      "nota": "No se dice si es el MAD crudo, mediana(|r − mediana(r)|), o el normalizado (× 1,4826). 1,345 es la constante de Huber relativa a σ, que el MAD normalizado estima.",
+      "provisional": "normalizado: 1,4826 × mediana(|r − mediana(r)|)"
+     },
+     "ajuste_cuadratico": {
+      "estado": "pendiente",
+      "nota": "No se dice con qué motor ni si los residuos son del propio entrenamiento (in-sample).",
+      "provisional": "el mismo motor con la variante l2_original y las mismas filas del pliegue; residuos y − ŷ en esas filas (in-sample)"
+     }
+    },
+    "implementacion_xgboost": {
+     "estado": "pendiente",
+     "nota": "XGBoost ofrece reg:pseudohubererror (huber_slope), que no es la Huber exacta de LightGBM (objective huber, alpha = δ).",
+     "provisional": "objetivo propio con el gradiente y la hessiana del Huber de LightGBM (recorte(ŷ − y, ±δ) y 1 en todas las filas) y base_score = media del blanco, el inicio de LightGBM"
+    }
+   },
+   {"id": "pinball", "perdida": "cuantílica (pinball)", "taus": [0.05, 0.5, 0.95], "blanco": "y", "uso": "mediana e intervalos de predicción del 90 %"}
+  ],
+  "hiperparametros_por_perdida": {
+   "estado": "pendiente",
+   "nota": "El contrato fija las pérdidas, no si cambia la receta.",
+   "provisional": "la receta del eje A sin cambios; sólo cambian el objetivo y el blanco; base_score de XGBoost: media (l2 y Huber) o cuantil τ (pinball) del entrenamiento; las predicciones en escala original se recortan en 0"
+  },
+  "metricas_comunes_escala_original": ["R2", "RMSE", "MAE", "NMB"],
+  "metricas_cuantiles": {
+   "cobertura_del_intervalo": 0.9,
+   "puntaje_de_intervalo": true,
+   "calibracion_por": ["decil de predicción", "macrozona", "franja"]
+  }
+ },
+ "calidad_blanco": {
+  "fuente": "§7 (etapa 9, sin descargas nuevas)",
+  "bandera": {
+   "variable": "qc_observacion",
+   "origen": "derivado SINCA, en sólo lectura",
+   "union": "estación × hora",
+   "destino": "panel v2"
+  },
+  "variantes_entrenamiento": [
+   {"id": "todo", "descripcion": "todo, como la v1"},
+   {"id": "validado_y_preliminar", "descripcion": "validado y preliminar"},
+   {"id": "solo_validado", "descripcion": "sólo validado"}
+  ],
+  "codigos_qc": {
+   "estado": "pendiente",
+   "nota": "Los códigos de la bandera son los de calidad_v2.py (QC_SINCA y QC_SNIFA); falta decir cuáles entran en cada variante y cuáles cuentan como validados al evaluar.",
+   "provisional": {"todo": ["validado", "preliminar", "no_validado", "usable_native", "solo_numeric_usable"], "validado_y_preliminar": ["validado", "preliminar", "usable_native"], "solo_validado": ["validado", "usable_native"], "evaluacion_validadas": ["validado", "usable_native"]}
+  },
+  "snifa": {
+   "variantes": ["numeric_usable", "usable_native"],
+   "cruce_con_variantes_sinca": {
+    "estado": "pendiente",
+    "nota": "El contrato compara numeric_usable con usable_native sin decir cómo entra SNIFA en las variantes SINCA.",
+    "provisional": "SNIFA entra con numeric_usable en «todo» (como la v1) y con usable_native en «validado_y_preliminar» y «solo_validado»"
+   }
+  },
+  "evaluacion": ["filas validadas (siempre)", "todas las filas"],
+  "comparacion_de_variantes": {
+   "motor": "lightgbm",
+   "eje": "A",
+   "protocolos": ["LOSO-D", "LRO"]
+  }
+ },
+ "metricas": {
+  "fuente": "§8 (las métricas comunes, de §6)",
+  "comunes_escala_original": ["R2", "RMSE", "MAE", "NMB"],
+  "niveles": {
+   "horario": {},
+   "diario": {
+    "dias": ["civil America/Santiago", "UTC−4"],
+    "minimo_horas": 18
+   },
+   "mensual": {
+    "minimo_dias": {"estado": "pendiente", "nota": "v1: 20 días válidos (qmd:3618-3656). La v2 cuenta días civiles (America/Santiago) válidos.", "provisional": 20}
+   },
+   "anual": {
+    "minimo_meses": {"estado": "pendiente", "nota": "v1: 9 meses válidos (qmd:3618-3656).", "provisional": 9}
+   }
+  },
+  "desagregaciones": {
+   "macrozona": true,
+   "estacion": true,
+   "regimen_de_predictores": {
+    "definicion": "con o sin GEOS-CF y TROPOMI",
+    "criterio": {"estado": "pendiente", "nota": "v1: período 2019–2024 (REGIMEN_SAT, qmd:355), por año local de cada par.", "provisional": [2019, 2024]}
+   },
+   "estrato_de_soporte": {
+    "variables": ["peso_vec", "dist_est_km"],
+    "cortes": "cuartiles",
+    "distribucion_de_referencia": {
+     "estado": "pendiente",
+     "nota": "El contrato no dice sobre qué filas se calculan los cuartiles.",
+     "provisional": "cuartiles de las filas horarias de evaluación (pares comunes) de cada contaminante y protocolo, con los valores recalculados en el pliegue; en los niveles agregados, la media de sus horas"
+    }
+   },
+   "ponderado_por_poblacion": {
+    "poblacion": {
+     "estado": "pendiente",
+     "nota": "El contrato no dice qué población.",
+     "provisional": "pob_dens de la celda de la estación en cada fila del panel (hab./km², ≈ habitantes de la celda de 1 km²); en los niveles agregados, su media; se pondera el total, la macrozona y el régimen"
+    }
+   }
+  },
+  "metricas_en_log": "también se informan (§5)"
+ },
+ "ruido": {
+  "fuente": "§8",
+  "semillas": 3,
+  "que_varia": ["submuestra", "motor"],
+  "protocolos_con_3_semillas": ["LRO", "BLQ-75"],
+  "motores": "los del eje A",
+  "semillas_en_los_demas_protocolos": 1,
+  "valores": {
+   "estado": "pendiente",
+   "nota": "La réplica principal usa la permutación [42, k] (§4); las otras dos semillas, de submuestra y de motor, no están fijadas.",
+   "provisional": {"replicas": [0, 1, 2], "permutacion": "[42, k] en la réplica 0 y [42, k, r] en las réplicas 1 y 2", "semilla_motor": "la de la receta + 1000·r"}
+  }
+ },
+ "inferencia_diferencias": {
+  "fuente": "§8",
+  "estadisticos": ["delta_R2", "delta_RMSE", "delta_NMB"],
+  "pareadas": true,
+  "bootstrap": {
+   "tipo": "por bloques",
+   "replicas": 2000,
+   "unidad": {
+    "LOSO-D": "conglomerado",
+    "LBO-10": "conglomerado",
+    "BLQ-75": "bloque",
+    "LRO": "region",
+    "LPO": "cuatrienio"
+   },
+   "metodo_del_intervalo": {
+    "estado": "pendiente",
+    "nota": "El contrato fija el bootstrap por bloques y el 95 %, no el método del intervalo.",
+    "provisional": "percentil (2,5 % y 97,5 %)"
+   },
+   "semilla": {
+    "estado": "pendiente",
+    "nota": "Los mismos sorteos para todas las comparaciones de un protocolo y nivel (pareado).",
+    "provisional": "[42, 2000, p], con p la posición del protocolo en protocolos.orden"
+   },
+   "nivel_de_agregacion": {
+    "estado": "pendiente",
+    "nota": "El contrato no dice a qué nivel se remuestrea.",
+    "provisional": "todos los niveles de §8 sobre los pares comunes, sin ponderar y ponderado por población; el bloque de un par es el grupo de su pliegue externo (en los niveles agregados, el más frecuente entre sus horas)"
+   }
+  },
+  "regla_de_superioridad": {
+   "nivel_del_intervalo": 0.95,
+   "el_intervalo_excluye_0": true,
+   "la_diferencia_supera_el_ruido_de_semillas": true,
+   "medida_del_ruido": {
+    "estado": "pendiente",
+    "nota": "El contrato no dice cómo se mide el ruido de semillas.",
+    "provisional": "rango (máximo − mínimo) de la métrica entre las 3 semillas del motor; se exige |Δ| mayor que el rango del más ruidoso de los dos; sin semillas medidas, la condición queda no evaluada"
+   }
+  }
+ },
+ "decision": {
+  "fuente": "§9",
+  "criterio": "R² diario (día civil) ponderado por población",
+  "protocolos": ["LRO", "BLQ-75"],
+  "combinacion_de_protocolos": "pendiente",
+  "por_omision": "lightgbm: se mantiene si ningún motor lo supera según §8",
+  "no2": {
+   "mascara_de_soporte": {
+    "variables": ["peso_vec", "dist_est_km"],
+    "criterio": "fuera del rango del entrenamiento"
+   },
+   "incertidumbre_por_celda": "a partir de los modelos cuantílicos"
+  },
+  "produccion": "paso posterior y aparte (etapa 10), con su agregado diario civil",
+  "resultados_que_no_ganan": "se guardan todos"
+ },
+ "presupuesto": {
+  "fuente": "§10",
+  "piloto": {
+   "pliegues_por_protocolo_y_motor": 2,
+   "nota": "un tiempo no es un resultado",
+   "eleccion_de_los_pliegues": {
+    "estado": "pendiente",
+    "nota": "El contrato fija 2 pliegues por protocolo y motor, no cuáles. La instrucción de la etapa del piloto (2026-10-12) pide los de más y menos filas de entrenamiento; el provisional anterior ordenaba por filas de prueba. Los dos criterios eligen el mismo par salvo en LBO-10, donde la exclusión de 10 km rompe la complementariedad entre entrenamiento y prueba (pm25: k 73 en vez de 74; no2: k 36 en vez de 17).",
+    "provisional": "por contaminante y protocolo, el pliegue con más filas de entrenamiento disponibles y el de menos (desempate: menor k), con los cuatro motores del eje A y el N común; curvas de aprendizaje (LightGBM y XGBoost: los puntos que no son el N común; RF: el más alto, 1,5 M) en el pliegue de LRO con más filas de entrenamiento; el piloto no guarda predicciones ni calcula métricas (piloto_v2.py)"
+   }
+  },
+  "umbral_horas_maquina": 120,
+  "umbral_aproximado": true,
+  "orden_de_recortes": [
+   {"orden": 1, "recorte": "semillas sólo en LRO"},
+   {"orden": 2, "recorte": "curvas de aprendizaje sólo en LRO"},
+   {"orden": 3, "recorte": "MLP sólo en LRO y BLQ-75"}
+  ],
+  "registro_de_recortes": "bitácora del manifiesto (pliegues_v2.json → bitacora)",
+  "paralelizacion": "por pliegue, con puntos de control atómicos y reanudables"
+ },
+ "fuera_del_contrato": {
+  "fuente": "§11",
+  "estado": "pendiente de autorización del autor; cada una entra como enmienda, con su propia variante etiquetada y la misma comparación",
+  "descargas_nuevas": [
+   "NASADEM o Copernicus GLO-30",
+   "extender GEOS-CF, TROPOMI NO2, MERRA-2 y BLH",
+   "GOES ABI"
+  ],
+  "predictores_dmc": "cuando termine su descarga y pase su control de calidad"
+ },
+ "operacion": {
+  "nota": "Reglas de operación de esta etapa; no son parte del contrato.",
+  "hilos_maximos": 12,
+  "entorno": "amb_v2",
+  "versiones_de_referencia": {
+   "lightgbm": "4.7.0",
+   "xgboost": "3.4.2",
+   "scikit-learn": "1.9.1",
+   "numpy": "2.2.6"
+  },
+  "escritura_permitida": [
+   "scripts_modelo_1km/v2/",
+   "output_files/modelo_1km_v2/",
+   "raíz v2 (AIR_POLLUTION_MODELO_1KM_ROOT)"
+  ]
+ }
+}
