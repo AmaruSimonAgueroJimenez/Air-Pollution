@@ -1,7 +1,7 @@
 {
   "esquema": "componentes-compartidos/v1",
   "descripcion": "Componentes ambientales compartidos entre Air-Pollution (canónico, público) y Air-Pollution-Health-Chile (espejo, privado). Todo cambio se hace primero en el canónico y se copia al espejo; las diferencias permitidas se declaran en «adaptado», con motivo y plan. Lo comprueba others_scripts/verificar_componentes_compartidos.py; el procedimiento está en others_scripts/README.md. Rutas relativas a la raíz de cada repositorio.",
-  "generado": "2026-10-13T11:39:16-03:00",
+  "generado": "2026-10-13T21:23:48-03:00",
   "generador": {
     "script": "others_scripts/verificar_componentes_compartidos.py",
     "sha256": "abf59f70943661ae8afbf4589b6f369f42bca3f84867ae82bda51216efce6d01"
@@ -9,7 +9,7 @@
   "canonico": {
     "repo": "Air-Pollution",
     "alias": "AP",
-    "commit_ancla": "c7c47e85d35889269ac30ae3582d96fbe697b6f8",
+    "commit_ancla": "68dcbeb544b7f6f25047eb90f9a74a33010ba07a",
     "rama": "main",
     "rutas_sin_confirmar": {
       "sin_rastrear": [
@@ -21,6 +21,7 @@
         "config/meteorologia/arranque_dmc_20261012_reanudacion1.json",
         "config/meteorologia/arranque_dmc_20261012_reanudacion2.json",
         "config/meteorologia/arranque_dmc_20261013_reanudacion3.json",
+        "config/meteorologia/arranque_dmc_20261013_reanudacion4.json",
         "config/meteorologia/recuperacion_automatica_dmc_20261009.json",
         "scripts_pipeline/_meteo_guard.py",
         "scripts_pipeline/descargar_meteo_chile_horaria.py",
@@ -269,6 +270,7 @@
         "config/meteorologia/arranque_dmc_20261012_reanudacion1.json": "9158674251ec3315594dae140d419886f40a476b1b9bf1b4622d07763164c68a",
         "config/meteorologia/arranque_dmc_20261012_reanudacion2.json": "8dbb99cf60a44c9a6533e10b45ec8db7331eaba2d75f09ea257c084096639dc9",
         "config/meteorologia/arranque_dmc_20261013_reanudacion3.json": "7f38451e524ceac38508897f46c8a662c31f3c3106aee57072616890f8974f29",
+        "config/meteorologia/arranque_dmc_20261013_reanudacion4.json": "b636d07dd12ce5a96bff2cc8f27a88bfe40ca642191b23dc4e9ca70178b20054",
         "config/meteorologia/recuperacion_automatica_dmc_20261009.json": "5854a30bb8dd191a824716ae470f197166fe310f2a9d0394901798dd8a90c820",
         "config/sinca/README.md": "e7b4f1fda51031e2b58131499da0fa3932d1f3bb7d220f81ba7519e08a4579b4",
         "config/sinca/config_sinca_estaciones.json": "851e8696a3aae3804bad7da60d2658fb458082f17df90574763e5477fcf2f50b",
