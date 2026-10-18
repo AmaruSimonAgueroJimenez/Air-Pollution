@@ -87,6 +87,27 @@
     });
   }
 
+  const catalog = document.querySelector("#catalogo-programas tbody");
+  const filter = document.getElementById("filtro-programas");
+  const search = document.getElementById("buscar-programa");
+  const status = document.getElementById("conteo-programas");
+  if (catalog && filter && search && status) {
+    const normalize = (value) => value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("es");
+    const rows = [...catalog.rows].map((row) => ({row, text: normalize(row.textContent)}));
+    const update = () => {
+      const terms = normalize(search.value.trim()).split(/\s+/).filter(Boolean);
+      let visible = 0;
+      for (const entry of rows) {
+        entry.row.hidden = !terms.every((term) => entry.text.includes(term));
+        if (!entry.row.hidden) visible += 1;
+      }
+      status.textContent = `${visible} de ${rows.length} programas${visible ? "" : ". No hay coincidencias"}.`;
+    };
+    search.addEventListener("input", update);
+    filter.hidden = false;
+    update();
+  }
+
   const measure = () => {
     document.documentElement.style.setProperty("--ap-nav-height", `${Math.ceil(nav.getBoundingClientRect().height)}px`);
   };

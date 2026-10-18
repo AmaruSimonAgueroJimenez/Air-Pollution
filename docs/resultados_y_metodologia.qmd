@@ -301,6 +301,40 @@ Los umbrales y categorías de la referencia conservan sus definiciones
 históricas. Su aplicación a medias del día local no reproduce por sí
 misma una evaluación regulatoria con promedios móviles.
 
+### Programas Python y organización del código {#programas-python}
+
+Los programas no constituyen una única orden de ejecución. Forman capas con
+responsabilidades distintas: **fuentes → preparación y QC → predictores y paneles
+→ ajuste y validación → superficies → exposición e informes**. Las utilidades
+de publicación y de presentaciones consumen resultados existentes y no sustituyen
+ninguna de esas etapas científicas.
+
+| Capa | Responsabilidad y contrato | Qué no demuestra por sí sola |
+| --- | --- | --- |
+| `scripts_pipeline/` | Adquirir fuentes en resolución nativa, registrar procedencia y preparar derivados con sus reglas de seguridad y calidad | Una descarga correcta no certifica continuidad, unidades ni un modelo validado |
+| `scripts_estacion/` y `scripts_superficie/` | Extraer predictores por estación y construir los modelos multicontaminante históricos | Los resultados por estación no equivalen automáticamente a una superficie nacional |
+| `scripts_modelo_1km/` | Definir la grilla, lectores, panel, estimadores, particiones de validación, predicciones y exposición | La resolución nominal de salida no aumenta la resolución de la información fuente |
+| Subcarpetas `v2/`, `v3/` y `o3_next/` | Separar contratos, pilotos y candidatos nuevos de la referencia conservada | Código implementado o una prueba simulada no acreditan una nueva estimación real aprobada |
+| Carpetas `tests/` | Comprobar contratos, regresiones y casos límite definidos por el código | Pruebas de software aprobadas no sustituyen validación ambiental fuera de muestra |
+| `others_scripts/` y `presentaciones/` | Navegar, publicar y comunicar artefactos existentes | Publicar o regenerar una figura no vuelve a ajustar los modelos |
+
+La tabla siguiente explica cada archivo Python encontrado en el árbol local
+del proyecto, incluidos pruebas, constructores de presentaciones y versiones
+históricas. Identifica cuáles tienen fuente pública y cuáles sólo están
+documentados localmente: **describir un programa no publica automáticamente su
+código ni autoriza ejecutarlo**. La lectura fue estática, sin importar módulos,
+leer datos de pacientes, ejecutar modelos o activar descargas.
+
+Las funciones y opciones enumeradas son puntos de entrada para orientarse en
+el código, no una receta para correr toda la colección. Antes de reproducir una
+etapa deben respetarse su configuración, dependencias, entradas, límites y
+separación entre resultados de referencia y experimentos. La
+[fuente QMD de la tabla](_catalogo_python.qmd) acompaña a la de esta guía.
+Puede buscarse por nombre, carpeta, función o tipo; sin JavaScript se muestran
+las 195 filas completas.
+
+{{< include _catalogo_python.qmd >}}
+
 ## Análisis descriptivo {#analisis-descriptivo}
 
 El análisis descriptivo se presenta **después de la metodología** para
@@ -427,38 +461,6 @@ operador espacial fijado, paneles y pliegues trazables y una evaluación
 ambiental explícita. Terminar la descarga no autoriza automáticamente
 un ajuste ni convierte los meses parciales en observaciones completas.
 
-## Cómo se relacionan los programas Python {#programas-python}
-
-Los programas no constituyen una única orden de ejecución. Forman capas con
-responsabilidades distintas: **fuentes → preparación y QC → predictores y paneles
-→ ajuste y validación → superficies → exposición e informes**. Las utilidades
-de publicación y de presentaciones consumen resultados existentes y no sustituyen
-ninguna de esas etapas científicas.
-
-| Capa | Responsabilidad y contrato | Qué no demuestra por sí sola |
-| --- | --- | --- |
-| `scripts_pipeline/` | Adquirir fuentes en resolución nativa, registrar procedencia y preparar derivados con sus reglas de seguridad y calidad | Una descarga correcta no certifica continuidad, unidades ni un modelo validado |
-| `scripts_estacion/` y `scripts_superficie/` | Extraer predictores por estación y construir los modelos multicontaminante históricos | Los resultados por estación no equivalen automáticamente a una superficie nacional |
-| `scripts_modelo_1km/` | Definir la grilla, lectores, panel, estimadores, particiones de validación, predicciones y exposición | La resolución nominal de salida no aumenta la resolución de la información fuente |
-| Subcarpetas `v2/`, `v3/` y `o3_next/` | Separar contratos, pilotos y candidatos nuevos de la referencia conservada | Código implementado o una prueba simulada no acreditan una nueva estimación real aprobada |
-| Carpetas `tests/` | Comprobar contratos, regresiones y casos límite definidos por el código | Pruebas de software aprobadas no sustituyen validación ambiental fuera de muestra |
-| `others_scripts/` y `presentaciones/` | Navegar, publicar y comunicar artefactos existentes | Publicar o regenerar una figura no vuelve a ajustar los modelos |
-
-El catálogo siguiente explica cada archivo Python encontrado en el árbol local
-del proyecto, incluidos pruebas, constructores de presentaciones y versiones
-históricas. Identifica cuáles tienen fuente pública y cuáles sólo están
-documentados localmente: **describir un programa no publica automáticamente su
-código ni autoriza ejecutarlo**. La lectura fue estática, sin importar módulos,
-leer datos de pacientes, ejecutar modelos o activar descargas.
-
-Las funciones y opciones enumeradas son puntos de entrada para orientarse en
-el código, no una receta para correr toda la colección. Antes de reproducir una
-etapa deben respetarse su configuración, dependencias, entradas, límites y
-separación entre resultados de referencia y experimentos. La
-[fuente QMD del catálogo](_catalogo_python.qmd) acompaña a la de esta guía.
-
-{{< include _catalogo_python.qmd >}}
-
 ## Reproducción y actualización de la web
 
 Los QMD completos siguen disponibles como fuentes de los informes y
@@ -467,14 +469,19 @@ ejecutan al visitar o publicar el sitio. Las dependencias web se incluyen
 de manera explícita; el índice no ofrece archivos ignorados o presentes
 sólo en una máquina.
 
-La publicación estática valida los enlaces locales y mantiene intactos
-los archivos científicos de origen. Añade navegación sólo a las copias del
+El preparador estático valida los enlaces locales y no modifica
+sus archivos de entrada. Añade navegación sólo a las copias del
 sitio; los QMD actuales incluyen los mismos componentes reutilizables para
 sus futuros renders. El informe histórico de sólo lectura recibe el menú
 en su copia publicada, sin modificar su fuente protegida.
 Un enlace que funciona prueba accesibilidad;
 un hash coincidente prueba integridad; ninguno, por sí solo, demuestra
 calidad científica o cobertura completa.
+
+El [informe completo](modelo_1km_horario.html) incluye su bibliografía
+enlazada mediante [BibTeX](references/references.bib). La reorganización
+editorial conserva los resultados y las firmas de la ejecución documentada;
+no constituye un nuevo ajuste.
 
 La navegación se define en [cabecera](_site_nav_head.html),
 [menú](_site_nav_body.html), [estilos](_site_nav.css) y

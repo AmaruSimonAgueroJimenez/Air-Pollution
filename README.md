@@ -17,8 +17,13 @@ de los productos de referencia. La [guía metodológica ampliada](docs/resultado
 explica el diseño, la validación, las incertidumbres y cómo leer cada resultado sin confundir
 un ensayo sintético con una estimación nacional nueva.
 
-La guía incluye un catálogo de los programas Python, con su finalidad, entradas,
-salidas y puntos de entrada, distinguiendo fuentes públicas de desarrollos sólo locales.
+El catálogo de 195 programas Python se presenta en una tabla con buscador dentro
+de metodología, tanto en el informe completo como en la guía. Conserva finalidad,
+entradas, salidas y puntos de entrada, distinguiendo fuentes públicas de desarrollos sólo locales.
+El informe completo sigue Introducción → Pregunta y objetivos → Metodología →
+Resultados (descriptivos, evaluaciones y superficies), y enlaza las citas mediante
+[`references.bib`](docs/references/references.bib) y el estilo APA. La edición conserva
+las cifras, tablas, figuras y firmas de la ejecución anterior; no es una nueva corrida.
 El orden de lectura es introducción con pregunta y objetivos, metodología con todos
 los modelos utilizados, análisis descriptivo y resultados. Las presentaciones **AFG**,
 incluida [AFG2 en PowerPoint](presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx),
@@ -28,8 +33,8 @@ La publicación usa `.github/workflows/pages.yml` y los HTML existentes: no ejec
 modelos ni descargadores en GitHub. El preparador `others_scripts/preparar_github_pages.py`
 genera el índice público desde archivos versionados y la lista exacta `config/github_pages.json`,
 comprueba enlaces y añade una barra de navegación sólo a las copias publicadas de los
-informes conservados. Al retirar esos bloques se recupera exactamente el HTML de origen;
-los archivos científicos originales y el índice local no se sobrescriben.
+informes conservados. Al retirar esos bloques se recupera exactamente el HTML de entrada;
+el preparador no sobrescribe sus fuentes ni el índice local.
 En **Settings → Pages → Source** el origen es **GitHub Actions**, no Jekyll. Para comprobar
 el sitio localmente, el destino debe ser nuevo:
 

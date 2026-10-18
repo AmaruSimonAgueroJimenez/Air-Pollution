@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import contextlib
+import hashlib
 from html.parser import HTMLParser
 import io
 import json
@@ -12,6 +13,7 @@ import sys
 import tempfile
 import unittest
 from urllib.parse import unquote, urljoin, urlsplit
+from xml.etree import ElementTree
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import preparar_github_pages as pages  # noqa: E402
@@ -63,6 +65,272 @@ class ProsaVisible(HTMLParser):
     def handle_data(self, data):
         if not self.omitir:
             self.textos.append(data)
+
+
+class TablaCatalogoHTML(HTMLParser):
+    """Lee la tabla renderizada sin ejecutar JavaScript ni importar programas."""
+    def __init__(self):
+        super().__init__()
+        self.dentro = False
+        self.profundidad = 0
+        self.secciones = []
+        self.ancestros = None
+        self.filas = []
+        self.fila = None
+        self.celda = None
+        self.ids = []
+        self.enlaces = []
+        self.subsecciones_python = []
+
+    def handle_starttag(self, tag, attrs):
+        atributos = dict(attrs)
+        if tag == "section":
+            self.secciones.append(atributos.get("id"))
+        if tag == "h4" and atributos.get("data-anchor-id", "").endswith(".py"):
+            self.subsecciones_python.append(atributos["data-anchor-id"])
+        if atributos.get("id") == "catalogo-programas":
+            self.dentro = True
+            self.profundidad = 1
+            self.ancestros = list(self.secciones)
+        elif self.dentro and tag == "div":
+            self.profundidad += 1
+        if not self.dentro:
+            return
+        if atributos.get("id"):
+            self.ids.append(atributos["id"])
+        if tag == "tr":
+            self.fila = []
+        if tag in ("td", "th"):
+            self.celda = []
+        if tag == "a" and atributos.get("href"):
+            self.enlaces.append(atributos["href"])
+
+    def handle_endtag(self, tag):
+        if self.dentro:
+            if tag in ("td", "th") and self.celda is not None:
+                self.fila.append(" ".join("".join(self.celda).split()))
+                self.celda = None
+            if tag == "tr" and self.fila is not None:
+                self.filas.append(self.fila)
+                self.fila = None
+            if tag == "div":
+                self.profundidad -= 1
+                self.dentro = self.profundidad > 0
+        if tag == "section" and self.secciones:
+            self.secciones.pop()
+
+    def handle_data(self, data):
+        if self.celda is not None:
+            self.celda.append(data)
+
+
+class CatalogoPythonTests(unittest.TestCase):
+    """Regresión documental del corte publicado: sólo lectura de QMD/HTML."""
+    encabezado = ["Archivo Python", "Tipo y fuente", "Función, entradas y salidas", "API y opciones"]
+    # Obtenidas del catálogo anterior a la conversión en tabla, no de la tabla nueva.
+    huella_textos = "bdd788ac1806136d2bcaabb3a1e3b3c7a0f5e15600ed010ffbe37c0f173727be"
+    huella_anclas = "83c12bb3d0ba7cb00fb18f0bf63b08731dbcf91033d18c420e22af7457bb01ee"
+
+    @classmethod
+    def setUpClass(cls):
+        raiz = Path(__file__).resolve().parents[2]
+        cls.fuente = (raiz / "docs/_catalogo_python.qmd").read_text(encoding="utf-8")
+        cls.guia = (raiz / "docs/resultados_y_metodologia.qmd").read_text(encoding="utf-8")
+        cls.render = TablaCatalogoHTML()
+        cls.render.feed((raiz / "docs/resultados_y_metodologia.html").read_text(encoding="utf-8"))
+        cls.celdas = [[celda.strip().replace(r"\|", "|")
+                       for celda in re.split(r"(?<!\\)\|", linea)[1:-1]]
+                      for linea in cls.fuente.splitlines() if linea.startswith('| <span id="')]
+
+    @staticmethod
+    def huella(valor):
+        serializado = json.dumps(valor, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+        return hashlib.sha256(serializado).hexdigest()
+
+    def test_tabla_unica_cuatro_columnas_sin_subsecciones_por_archivo(self):
+        self.assertEqual(self.fuente.count("| " + " | ".join(self.encabezado) + " |"), 1)
+        self.assertEqual(len(self.celdas), 195)
+        self.assertEqual({len(fila) for fila in self.celdas}, {4})
+        self.assertIsNone(re.search(r"^#### ", self.fuente, re.M))
+        self.assertEqual(sum("[Referencia pública](https://" in fila[1] for fila in self.celdas), 114)
+        self.assertEqual(sum("Sólo local en este corte; sin enlace de código público." in fila[1]
+                             for fila in self.celdas), 81)
+
+    def test_conserva_los_195_nombres_y_todos_los_textos_del_corte(self):
+        contenido = []
+        for fila in self.celdas:
+            coincidencia = re.fullmatch(r'<span id="[^"]+"></span> `([^`]+\.py)`', fila[0])
+            self.assertIsNotNone(coincidencia, fila[0])
+            contenido.append((coincidencia[1], " ".join(" ".join(fila[1:]).split())))
+        self.assertEqual(len({ruta for ruta, _ in contenido}), 195)
+        self.assertEqual(self.huella(contenido), self.huella_textos)
+
+    def test_conserva_las_195_anclas_anteriores_sin_duplicados(self):
+        anclas = []
+        for fila in self.celdas:
+            coincidencia = re.fullmatch(r'<span id="([^"]+)"></span> `([^`]+\.py)`', fila[0])
+            self.assertIsNotNone(coincidencia, fila[0])
+            anclas.append((coincidencia[2], coincidencia[1]))
+        self.assertEqual(len({ancla for _, ancla in anclas}), 195)
+        self.assertEqual(self.huella(anclas), self.huella_anclas)
+
+    def test_catalogo_pertenece_a_metodologia_antes_de_descriptivos(self):
+        metodo = self.guia.index("## Metodología {#metodologia}")
+        descriptivos = self.guia.index("## Análisis descriptivo {#analisis-descriptivo}")
+        seccion = self.guia.index("### Programas Python y organización del código {#programas-python}")
+        inclusion = self.guia.index("{{< include _catalogo_python.qmd >}}")
+        self.assertLess(metodo, seccion)
+        self.assertLess(seccion, inclusion)
+        self.assertLess(inclusion, descriptivos)
+        self.assertEqual(self.guia.count("{{< include _catalogo_python.qmd >}}"), 1)
+        self.assertEqual(self.render.ancestros, ["metodologia", "programas-python"])
+
+    def test_html_muestra_las_195_filas_completas_y_los_114_enlaces(self):
+        self.assertEqual(self.render.filas[0], self.encabezado)
+        self.assertEqual(len(self.render.filas), 196)
+        self.assertEqual({len(fila) for fila in self.render.filas}, {4})
+        rutas = [re.search(r"`([^`]+\.py)`", fila[0])[1] for fila in self.celdas]
+        self.assertEqual([fila[0] for fila in self.render.filas[1:]], rutas)
+        enlaces = [url for fila in self.celdas
+                   for url in re.findall(r"\[Referencia pública\]\((https://[^)]+)\)", fila[1])]
+        self.assertEqual(len(enlaces), 114)
+        self.assertEqual(self.render.enlaces, enlaces)
+        anclas = [re.search(r'<span id="([^"]+)"', fila[0])[1] for fila in self.celdas]
+        self.assertTrue(set(anclas).issubset(self.render.ids))
+        self.assertEqual(len(self.render.ids), len(set(self.render.ids)))
+        self.assertEqual(self.render.subsecciones_python, [])
+
+
+class InformePrincipalHTML(HTMLParser):
+    """Inspecciona estructura y citas del informe sin evaluar su contenido."""
+    def __init__(self):
+        super().__init__()
+        self.secciones = []
+        self.principales = []
+        self.resultados = []
+        self.catalogo_ancestros = None
+        self.ids_referencias = []
+        self.citas = []
+        self.contenedores_refs = 0
+
+    def handle_starttag(self, tag, attrs):
+        atributos = dict(attrs)
+        identificador = atributos.get("id")
+        clases = atributos.get("class", "").split()
+        if tag == "section":
+            if "level2" in clases:
+                self.principales.append(identificador)
+            if ("level3" in clases and self.secciones
+                    and self.secciones[-1] == "sec-resultados-generales"):
+                self.resultados.append(identificador)
+            self.secciones.append(identificador)
+        if identificador == "catalogo-programas":
+            self.catalogo_ancestros = list(self.secciones)
+        if identificador == "refs":
+            self.contenedores_refs += 1
+        if "csl-entry" in clases and identificador:
+            self.ids_referencias.append(identificador)
+        if "data-cites" in atributos:
+            self.citas.extend(atributos["data-cites"].split())
+
+    def handle_endtag(self, tag):
+        if tag == "section" and self.secciones:
+            self.secciones.pop()
+
+
+class InformePrincipalTests(unittest.TestCase):
+    """Regresiones editoriales; jamás importar ni ejecutar los chunks científicos."""
+    patron_chunks = re.compile(r"^```\{python\}[^\n]*\n(.*?)^```\s*$", re.M | re.S)
+    # Huella del multiconjunto de 212 chunks en el QMD previo a la reorganización.
+    huella_chunks_originales = "433510d4cf6d167901bbaee40cb76284709d556576a309fe363cf3f35e62924c"
+    secciones_principales = [
+        "sec-introduccion", "sec-pregunta-objetivos", "sec-metodologia",
+        "sec-resultados-generales", "sec-limitaciones", "sec-reproducibilidad", "sec-referencias",
+    ]
+    secciones_resultados = [
+        "sec-descriptivo", "sec-desc-fuentes", "sec-sin-validacion", "sec-resultados",
+        "sec-optimismo", "sec-superficies", "sec-exposicion", "sec-anexo-rm",
+    ]
+
+    @classmethod
+    def setUpClass(cls):
+        cls.raiz = Path(__file__).resolve().parents[2]
+        cls.qmd = (cls.raiz / "docs/modelo_1km_horario.qmd").read_text(encoding="utf-8")
+        cls.chunks = cls.patron_chunks.findall(cls.qmd)
+        cls.prosa = cls.patron_chunks.sub("", cls.qmd)
+        cls.html = (cls.raiz / "docs/modelo_1km_horario.html").read_text(encoding="utf-8")
+        cls.render = InformePrincipalHTML()
+        cls.render.feed(cls.html)
+
+    def test_siete_secciones_principales_en_orden(self):
+        self.assertEqual(self.render.principales, self.secciones_principales)
+        ids_qmd = re.findall(r"^## [^\n]*\{[^}\n]*#([^}\s]+)[^}\n]*\}\s*$", self.prosa, re.M)
+        self.assertEqual(ids_qmd, self.secciones_principales)
+
+    def test_ocho_resultados_son_hijos_de_la_seccion_resultados(self):
+        self.assertEqual(self.render.resultados, self.secciones_resultados)
+        inicio = self.prosa.index("## Resultados {#sec-resultados-generales}")
+        fin = self.prosa.index("## Limitaciones {#sec-limitaciones}")
+        ids = re.findall(r"^### [^\n]*\{#([^}\s]+)\}\s*$", self.prosa[inicio:fin], re.M)
+        self.assertEqual(ids, self.secciones_resultados)
+
+    def test_tabla_de_195_programas_se_incluye_en_metodologia(self):
+        self.assertEqual(self.render.catalogo_ancestros, ["sec-metodologia", "programas-python"])
+        inicio = self.prosa.index("## Metodología {#sec-metodologia}")
+        fin = self.prosa.index("## Resultados {#sec-resultados-generales}")
+        self.assertIn("### Catálogo de programas Python {#programas-python}", self.prosa[inicio:fin])
+        self.assertEqual(self.prosa[inicio:fin].count("{{< include _catalogo_python.qmd >}}"), 1)
+        tabla = TablaCatalogoHTML()
+        tabla.feed(self.html)
+        self.assertEqual(len(tabla.filas), 196)
+        self.assertEqual({len(fila) for fila in tabla.filas}, {4})
+
+    def test_bibtex_csl_y_19_referencias_resuelven_todas_las_citas(self):
+        rutas = {}
+        for campo in ("bibliography", "csl"):
+            coincidencia = re.search(r"^" + campo + r":\s*([^\n]+)\s*$", self.qmd, re.M)
+            self.assertIsNotNone(coincidencia, campo)
+            rutas[campo] = self.raiz / "docs" / coincidencia[1].strip()
+            self.assertTrue(rutas[campo].is_file(), rutas[campo])
+        bib = rutas["bibliography"].read_text(encoding="utf-8")
+        claves = re.findall(r"@[A-Za-z]+\s*\{\s*([^,\s]+)\s*,", bib)
+        self.assertEqual(len(claves), len(set(claves)))
+        self.assertTrue(ElementTree.fromstring(rutas["csl"].read_text(encoding="utf-8")).tag.endswith("style"))
+        citas = {clave for clave in re.findall(r"(?<![\w])@([A-Za-z][A-Za-z0-9_:-]*)", self.prosa)
+                 if not clave.startswith(("sec-", "fig-", "tbl-", "eq-", "lst-"))}
+        self.assertEqual(len(citas), 19)
+        self.assertTrue(citas.issubset(claves), sorted(citas - set(claves)))
+        self.assertEqual(self.render.contenedores_refs, 1)
+        self.assertEqual(len(self.render.ids_referencias), 19)
+        self.assertEqual(set(self.render.ids_referencias), {"ref-" + clave for clave in citas})
+        self.assertEqual(set(self.render.citas), citas)
+
+    def test_212_chunks_conservados_salvo_cinco_strings_de_encabezados(self):
+        self.assertEqual(len(self.chunks), 212)
+        cambios = {
+            'out += [f"##### {NOMBRE_POL_TXT[pol]}", ""]':
+                ('out += [f"#### {NOMBRE_POL_TXT[pol]}", ""]', 1),
+            'out += [f"##### {NOMBRE_POL_TXT[pol]}", "", "::: {.panel-tabset}", ""]':
+                ('out += [f"#### {NOMBRE_POL_TXT[pol]}", "", "::: {.panel-tabset}", ""]', 2),
+            'out += [f"###### {NOMBRE_MOTOR[m]}", ""]':
+                ('out += [f"##### {NOMBRE_MOTOR[m]}", ""]', 1),
+            'out += [f"###### {amb[\'nombre\']}", ""]':
+                ('out += [f"##### {amb[\'nombre\']}", ""]', 1),
+        }
+        restaurados = list(self.chunks)
+        for nuevo, (anterior, cantidad) in cambios.items():
+            self.assertEqual(sum(chunk.count(nuevo) for chunk in restaurados), cantidad, nuevo)
+            restaurados = [chunk.replace(nuevo, anterior) for chunk in restaurados]
+        self.assertEqual(sum(cantidad for _, cantidad in cambios.values()), 5)
+        self.assertEqual(CatalogoPythonTests.huella(sorted(restaurados)), self.huella_chunks_originales)
+
+    def test_publicacion_del_informe_sigue_siendo_estatica(self):
+        flujo = (self.raiz / ".github/workflows/pages.yml").read_text(encoding="utf-8")
+        comandos = re.findall(r"^\s+run:\s*(.+)$", flujo, re.M)
+        self.assertEqual(len(comandos), 2)
+        self.assertTrue(comandos[0].startswith("python3 -B -m unittest discover "))
+        self.assertTrue(comandos[1].startswith("python3 -B others_scripts/preparar_github_pages.py "))
+        self.assertNotRegex("\n".join(comandos), r"(?i)quarto|jupyter|descargar_|scripts_modelo_1km|correr_pipeline")
 
 
 class GitHubPagesTests(unittest.TestCase):

@@ -7,6 +7,9 @@ subtitle: >
 author: "Proyecto de estimación multi-contaminante de la calidad del aire en Chile"
 date: today
 lang: es
+bibliography: references/references.bib
+csl: references/apa.csl
+link-citations: true
 format:
   html:
     toc: true
@@ -30,19 +33,91 @@ execute:
 jupyter: python3
 ---
 
-## Resumen y alcance {#sec-resumen}
+## Introducción {#sec-introduccion}
+
+La estimación de la contaminación atmosférica en Chile enfrenta un problema
+de soporte: los monitores describen lugares y horas observados, mientras que
+la caracterización territorial requiere información también fuera de esa
+red. Los satélites aportan observaciones de pasadas concretas y los
+reanálisis aportan campos continuos a resoluciones propias; ninguna de esas
+fuentes, por separado, equivale a medir cada hora la concentración
+superficial de cada celda del territorio.
+
+Este proyecto integra esas fuentes con observaciones de superficie y
+covariables geográficas para reconstruir concentraciones ambientales. La
+evaluación distingue el ajuste a datos conocidos de la generalización a
+estaciones, regiones y períodos retenidos. También separa la escala nominal
+de la salida de la resolución efectiva de la información que la sostiene,
+y una media de exposición de un cuantil orientado a episodios.
+
+Este informe desarrolla la estimación horaria de PM₂.₅ y NO₂ en una grilla
+angular de 0,01° para Chile. PM₂.₅ es material particulado, no un gas; NO₂ es
+dióxido de nitrógeno. Ambos productos estiman concentraciones de superficie,
+no emisiones ni efectos causales sobre salud. La metodología se presenta
+antes de los resultados; estos reúnen la caracterización de observaciones
+y fuentes, las evaluaciones del modelo y las superficies de exposición,
+con sus límites de cobertura e interpretación.
+
+::: {.callout-note}
+La revisión editorial del **18 de octubre de 2026** reorganiza el informe y añade referencias y la tabla
+de programas. Conserva las cifras, figuras, tablas y firmas de la ejecución
+previamente documentada: **no se ha realizado un nuevo ajuste ni una nueva
+producción de superficies**. La huella del QMD editado no debe confundirse
+con la huella archivada de aquella ejecución.
+:::
+
+## Pregunta de investigación y objetivos {#sec-pregunta-objetivos}
+
+### Pregunta de investigación
+
+¿En qué medida la integración de monitores de superficie, satélites,
+reanálisis y covariables geográficas permite estimar las concentraciones
+horarias de PM₂.₅ y NO₂ en Chile sobre una grilla de aproximadamente 1 km,
+y con qué desempeño y limitaciones al evaluar lugares y períodos no usados
+en el ajuste?
+
+### Objetivo general
+
+Desarrollar y evaluar un sistema reproducible de estimación de las
+concentraciones superficiales horarias de PM₂.₅ y NO₂ para Chile,
+integrando múltiples fuentes y cuantificando su desempeño fuera de muestra,
+su cobertura y las limitaciones de interpretación de los productos
+resultantes.
+
+### Objetivos específicos
+
+1. Caracterizar la distribución espacial y temporal de las observaciones
+   de superficie, su calidad, disponibilidad y representatividad.
+2. Integrar satélites, reanálisis y covariables geográficas conservando su
+   resolución nativa, unidades, procedencia y semántica temporal.
+3. Construir paneles de calibración y predictores para la grilla con un
+   contrato común, evitando incorporar información de las unidades retenidas
+   en la validación.
+4. Ajustar y contrastar los modelos utilizados, diferenciando sus
+   supuestos, transformaciones, presupuestos de entrenamiento y cantidades
+   estimadas.
+5. Evaluar la generalización espacial y temporal y el acuerdo horario,
+   diario, mensual y anual sobre pares comparables, junto con su cobertura.
+6. Producir y documentar superficies y métricas de exposición reproducibles,
+   con trazabilidad y límites explícitos, sin presentarlas como
+   observaciones directas, pronósticos operativos ni efectos causales sobre
+   salud.
+
+## Metodología {#sec-metodologia}
+
+### Alcance y decisiones del diseño {#sec-resumen}
 
 Este documento contiene, de principio a fin, el **modelo de estimación
-horaria de PM₂.₅ y NO₂ en superficie a 1 km** para todo Chile. Parte por lo
-observado, la distribución geoespacial de las mediciones SINCA en ventanas
-de cuatro años y sus series temporales por macrozona (@sec-descriptivo), y
-la descriptiva geoespacial y temporal de todas las fuentes de datos a su
-resolución nativa en años muestreados cada cuatro (@sec-desc-fuentes); y
-sigue con la definición de la grilla, la operacionalización de cada
+horaria de PM₂.₅ y NO₂ en superficie a 1 km** para todo Chile. La metodología
+presenta primero la configuración, la preparación compartida de los datos,
+la definición de la grilla, la operacionalización de cada
 predictor, el ensamblaje del panel de calibración con **toda la
 temporalidad SINCA (2000–2026)**, el motor estadístico, los protocolos de
 validación y la evaluación de qué tan bien se estiman la serie temporal y
-el patrón espacial. Los resultados van en **dos secciones paralelas y
+el patrón espacial. En Resultados se reúnen la distribución geoespacial de
+las mediciones SINCA en ventanas de cuatro años y sus series temporales
+por macrozona (@sec-descriptivo), y la descriptiva de las fuentes a
+resolución nativa (@sec-desc-fuentes). La evaluación va en **dos secciones paralelas y
 autocontenidas**, con las mismas tablas y las mismas figuras para cada
 motor: primero el ajuste con todas las estaciones, que mide el desempeño
 aparente (@sec-sin-validacion), y después la validación cruzada, que mide lo
@@ -433,43 +508,9 @@ def _comunas_borde():
     return gpd.read_file(DATA / "comunas.shp").to_crs("EPSG:4326").boundary
 ```
 
-## Análisis descriptivo de las observaciones de superficie {#sec-descriptivo}
+### Preparación compartida de observaciones y fuentes {#sec-preparacion-descriptiva}
 
-Antes de modelar, esta sección describe lo que la red SINCA, más la red
-adicional SNIFA en NO₂ (@sec-red-adicional), **observó**: cuántas
-estaciones midieron cada contaminante y dónde, cómo se distribuyen
-geográficamente las concentraciones medias en ventanas de cuatro años y cómo
-evolucionan las series mensuales por macrozona. Todo lo que aparece aquí son
-mediciones, no estimaciones; el descriptivo usa siempre el registro completo
-del derivado `modelado/SINCA/v1` (2000 en adelante), con el mismo filtro que
-alimenta el modelo: filas `seleccionada`, valor dentro del rango físico
-admitido, reloj UTC−4 fijo con etiqueta al fin del intervalo y el control de
-rachas descrito abajo.
-
-Tres convenciones gobiernan todas las figuras y tablas de la sección:
-
-* **Mes válido**: una estación aporta un mes si tiene al menos el 75 % de sus
-  horas con dato.
-* **Media de ventana sin sesgo estacional**: la media de una estación en un
-  cuatrienio es el promedio de su climatología mensual dentro de la ventana
-  (media de cada mes calendario y luego promedio de los doce), y sólo se
-  reporta si al menos 9 de los 12 meses calendario están representados. Así
-  una estación que sólo midió inviernos no aparece como más contaminada que
-  una que midió el año completo. La media anual por estación sigue la misma
-  regla (al menos 9 meses válidos).
-* **Agregación por macrozona con igual peso por estación**: la serie de una
-  macrozona es el promedio de las medias mensuales de sus estaciones, y la
-  banda es el rango intercuartil entre estaciones. La composición de la red
-  cambia en el tiempo (en 2000–2007 casi todo el PM₂.₅ se mide en la Región
-  Metropolitana), de modo que cada panel muestra también cuántas estaciones
-  aportan en cada mes: una tendencia de macrozona mezcla cambio ambiental y
-  cambio de red.
-
-**Control de rachas.** Una racha de `QC_RACHA` (24) o más registros
-consecutivos con un valor idéntico en una estación se considera un sensor
-pegado o un relleno y se excluye del descriptivo y del panel de calibración
-(`MODELO_1KM_QC_RACHA=0` lo desactiva). La tabla siguiente cuantifica el
-filtro.
+#### Observaciones de superficie, calidad y ventanas temporales
 
 ```{python}
 #| code-fold: true
@@ -544,39 +585,7 @@ DESC = {pol: tablas_descriptivas(pol) for pol in CONTAMINANTES}
 VENT = {pol: medias_por_ventana(DESC[pol]["mensual"]) for pol in CONTAMINANTES}
 ```
 
-### Red de monitoreo, cobertura y control de calidad {#sec-desc-red}
-
-```{python}
-#| code-fold: true
-#| code-summary: "Tabla de la red por contaminante y macrozona, y efecto del control de rachas"
-#| label: tbl-desc-red
-#| tbl-cap: "Red usada por contaminante y macrozona (SINCA y, en NO₂, la red adicional SNIFA de @sec-red-adicional): estaciones con algún mes válido, horas con dato, primer y último mes, y media, mediana y percentil 95 de las medias mensuales por estación."
-def tabla_red(pol: str) -> pd.DataFrame:
-    m = DESC[pol]["mensual"].merge(ESTACIONES[["estacion", "macrozona"]], on="estacion")
-    filas = []
-    for mz in ["Chile", *ORDEN_MACROZONAS]:
-        s = m if mz == "Chile" else m[m["macrozona"] == mz]
-        v = s[s["cob"] >= 0.75]
-        if s.empty:
-            continue
-        filas.append({"contaminante": NOMBRE_POL_TXT[pol], "macrozona": NOMBRE_MZ.get(mz, mz),
-                      "estaciones": s["estacion"].nunique(), "estaciones con mes válido": v["estacion"].nunique(),
-                      "horas con dato": f"{int(s['n'].sum()):,}".replace(",", "."),
-                      "desde": f"{s['mes'].min():%Y-%m}", "hasta": f"{s['mes'].max():%Y-%m}",
-                      "media": round(v["obs"].mean(), 1), "mediana": round(v["obs"].median(), 1),
-                      "p95": round(v["obs"].quantile(0.95), 1)})
-    return pd.DataFrame(filas)
-
-_qc = pd.concat([DESC[p]["qc"] for p in CONTAMINANTES])
-_qc["contaminante"] = _qc["contaminante"].map(NOMBRE_POL_TXT)
-_qc["% en racha"] = (100 * _qc["filas_en_racha"] / _qc["filas_validas"]).round(2)
-Markdown(pd.concat([tabla_red(p) for p in CONTAMINANTES]).pipe(a_markdown)
-         + f"\n\nControl de rachas (≥ {QC_RACHA} registros idénticos consecutivos; unidades: "
-         + ", ".join(f"{NOMBRE_POL_TXT[p]} en {UNIDADES[p]}" for p in CONTAMINANTES) + "):\n\n"
-         + _qc.rename(columns={"filas_validas": "horas válidas", "filas_en_racha": "horas en racha (excluidas)",
-                               "estaciones_con_racha": "estaciones afectadas",
-                               "racha_en_cero_pct": "% de las rachas con valor 0"}).pipe(a_markdown))
-```
+#### Funciones compartidas para mapas y series temporales
 
 ```{python}
 #| code-fold: true
@@ -817,214 +826,7 @@ def lectura_descriptiva(pol: str) -> str:
     return " ".join(frases)
 ```
 
-La cobertura por estación y año muestra cuándo entra cada estación a la red y
-dónde hay interrupciones; las estaciones están ordenadas de norte a sur y la
-franja de color de la izquierda indica su macrozona.
-
-::: {.panel-tabset}
-
-#### PM₂.₅
-
-```{python}
-#| echo: false
-#| label: fig-desc-cobertura-pm25
-#| fig-cap: "PM₂.₅: fracción de horas con dato por estación y año, estaciones ordenadas de norte a sur."
-Image(str(fig_desc_cobertura("pm25")))
-```
-
-#### NO₂
-
-```{python}
-#| echo: false
-#| label: fig-desc-cobertura-no2
-#| fig-cap: "NO₂: fracción de horas con dato por estación y año, estaciones ordenadas de norte a sur."
-Image(str(fig_desc_cobertura("no2")))
-```
-
-:::
-
-### Distribución geoespacial observada por cuatrienio {#sec-desc-mapas}
-
-Cada panel es un cuatrienio y cada punto una estación con media válida en esa
-ventana; la escala de color es común a todos los paneles del contaminante y
-las marcas en la barra señalan los valores de referencia anuales. Como la red
-se concentra en la zona central y en las ciudades del centro-sur, al mapa
-nacional lo acompañan dos acercamientos.
-
-::: {.panel-tabset}
-
-#### PM₂.₅
-
-```{python}
-#| echo: false
-Markdown(lectura_descriptiva("pm25"))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-mapa-nacional-pm25
-#| fig-cap: "PM₂.₅ observado por SINCA: media por estación en ventanas de cuatro años, Chile continental."
-Image(str(fig_desc_mapa("pm25", "nacional")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-mapa-centro-pm25
-#| fig-cap: "PM₂.₅ observado: acercamiento a la zona central."
-Image(str(fig_desc_mapa("pm25", "centro")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-mapa-sur-pm25
-#| fig-cap: "PM₂.₅ observado: acercamiento al centro-sur y Aysén."
-Image(str(fig_desc_mapa("pm25", "sur")))
-```
-
-```{python}
-#| echo: false
-#| label: tbl-desc-ventanas-pm25
-#| tbl-cap: "PM₂.₅ (µg/m³): estaciones con media válida, media y rango entre estaciones por cuatrienio y macrozona."
-Markdown(tabla_ventanas("pm25").pipe(a_markdown))
-```
-
-#### NO₂
-
-```{python}
-#| echo: false
-Markdown(lectura_descriptiva("no2"))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-mapa-nacional-no2
-#| fig-cap: "NO₂ observado por SINCA: media por estación en ventanas de cuatro años, Chile continental."
-Image(str(fig_desc_mapa("no2", "nacional")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-mapa-centro-no2
-#| fig-cap: "NO₂ observado: acercamiento a la zona central."
-Image(str(fig_desc_mapa("no2", "centro")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-mapa-sur-no2
-#| fig-cap: "NO₂ observado: acercamiento al centro-sur y Aysén."
-Image(str(fig_desc_mapa("no2", "sur")))
-```
-
-```{python}
-#| echo: false
-#| label: tbl-desc-ventanas-no2
-#| tbl-cap: "NO₂ (ppb): estaciones con media válida, media y rango entre estaciones por cuatrienio y macrozona."
-Markdown(tabla_ventanas("no2").pipe(a_markdown))
-```
-
-:::
-
-### Series temporales por macrozona {#sec-desc-series}
-
-Las series mensuales usan el mes local (UTC−4). La línea de color es la media
-entre estaciones, la banda el rango intercuartil entre estaciones, la línea
-negra la media móvil centrada de 12 meses y el área gris (eje derecho) el
-número de estaciones que aportan ese mes. La segunda figura resume la media
-anual por macrozona frente a los valores de referencia, y la tercera el ciclo
-diurno por temporada, que es la estructura horaria que el modelo debe
-reproducir.
-
-::: {.panel-tabset}
-
-#### PM₂.₅
-
-```{python}
-#| echo: false
-#| label: fig-desc-series-pm25
-#| fig-cap: "PM₂.₅ observado por SINCA: series mensuales de Chile y de cada macrozona."
-Image(str(fig_desc_series("pm25")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-anual-pm25
-#| fig-cap: "PM₂.₅: media anual por macrozona y valores de referencia anuales."
-Image(str(fig_desc_anual("pm25")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-ciclos-pm25
-#| fig-cap: "PM₂.₅: ciclo diurno observado por temporada y macrozona."
-Image(str(fig_desc_ciclos("pm25")))
-```
-
-#### NO₂
-
-```{python}
-#| echo: false
-#| label: fig-desc-series-no2
-#| fig-cap: "NO₂ observado por SINCA: series mensuales de Chile y de cada macrozona."
-Image(str(fig_desc_series("no2")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-anual-no2
-#| fig-cap: "NO₂: media anual por macrozona y valores de referencia anuales."
-Image(str(fig_desc_anual("no2")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-desc-ciclos-no2
-#| fig-cap: "NO₂: ciclo diurno observado por temporada y macrozona."
-Image(str(fig_desc_ciclos("no2")))
-```
-
-:::
-
-## Descriptivo de las fuentes de datos a resolución nativa {#sec-desc-fuentes}
-
-Esta sección describe **todos los datos que alimentan el modelo**, cada uno a
-su resolución nativa, en una muestra de años tomada cada cuatro (2000, 2004,
-2008, 2012, 2016, 2020 y 2024). Cada figura tiene dos filas sobre esos mismos
-años: arriba, la **descriptiva geoespacial**, el promedio anual por píxel
-nativo (el total anual, para la precipitación), con una escala de color común
-a todos los años; abajo, la **descriptiva temporal**, la serie del año para
-Chile y para cada macrozona.
-
-Cómo leer los mapas: no se interpola nada. Cada celda de 0,01° se pinta con
-el valor del píxel nativo al que está enlazada (@sec-grilla), de modo que el
-tamaño de los bloques que se ven **es** la resolución con que esa fuente
-entra al modelo: bloques de ~55 × 70 km en MERRA-2, de ~80 km en CAMS, de
-~11 km en ERA5-Land y textura de 1 km en MAIAC y ACAG. TROPOMI es un
-producto de nivel 2 sin grilla fija; sus píxeles (~3,5 × 5,5 km) se acumulan
-en una malla de 0,05°, del orden de su huella, sólo para poder promediar
-órbitas distintas. El uso de suelo (ESA CCI, 300 m) y la población
-(proyecciones censales comunales) no se conservan a su resolución de origen:
-el modelo usa fracciones y densidades por celda de 0,01°, y eso es lo que se
-muestra.
-
-Cómo leer las series: son promedios **ponderados por área de territorio**
-(cada píxel nativo pesa según el área de las celdas chilenas de la zona que
-cubre, no según cuántos píxeles hay; una celda de 0,01° mide cos(latitud)
-veces la ecuatorial, de modo que contar celdas sobrepesaría la zona austral),
-por día local UTC−4 y con media móvil centrada de 7
-días; ACAG es mensual y el uso de suelo y la población, anuales. Un panel
-«sin datos en disco» significa que la fuente no existe para ese año en el
-disco de datos (CAMS EAC4 parte en 2003; GEOS-CF y TROPOMI sólo están para
-2019–2024), no que falte por calcular.
-
-Dos advertencias de lectura. Los productos globales de superficie (MERRA-2,
-CAMS, GEOS-CF) y ACAG son **estimaciones de modelo o de satélite, no
-mediciones**: se muestran tal como llegan, sin calibrar, y su comparación
-cuantitativa con SINCA está en @sec-referencia. Y ACAG presenta medias
-anuales muy altas sobre la cordillera patagónica y los campos de hielo, sin
-fuentes de emisión que las expliquen; lo más probable es que sea un artefacto
-del producto sobre nieve y hielo y no una señal real, y allí no hay
-estaciones que permitan comprobarlo.
+#### Inventario descriptivo de las fuentes a resolución nativa
 
 ```{python}
 #| code-fold: true
@@ -1283,284 +1085,6 @@ def tabla_medias_chile() -> pd.DataFrame:
     return pd.DataFrame(filas)
 ```
 
-```{python}
-#| code-fold: true
-#| code-summary: "Fuentes, resolución nativa y años muestreados con datos"
-#| label: tbl-fuentes
-#| tbl-cap: "Fuentes descritas: resolución nativa, variables, años de la muestra con datos en disco y paso temporal de la serie."
-Markdown(tabla_fuentes().pipe(a_markdown))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "Media anual de Chile por variable y año muestreado"
-#| label: tbl-fuentes-medias
-#| tbl-cap: "Descriptiva temporal resumida: media anual de Chile continental (ponderada por territorio) de cada variable en cada año muestreado; la precipitación es el total anual."
-Markdown(tabla_medias_chile().pipe(a_markdown))
-```
-
-::: {.panel-tabset}
-
-#### SINCA
-
-Las observaciones de la red en los mismos años muestreados: cada punto es la
-media anual de una estación con al menos 9 meses válidos, y la serie es el
-promedio diario entre estaciones de cada macrozona (día con al menos 18 horas
-válidas). En las figuras de las demás fuentes, un año marcado con asterisco
-tiene menos del 90 % de sus días (MAIAC parte el 24 de febrero de 2000) y su
-promedio anual no es comparable con el de un año completo. Las ventanas de cuatro años de @sec-desc-mapas son más robustas
-cuando la red es rala; aquí se usa el año exacto para poder comparar con el
-resto de las fuentes.
-
-```{python}
-#| echo: false
-#| label: fig-fuente-sinca-pm25
-#| fig-cap: "SINCA, PM₂.₅ observado: media anual por estación y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente_sinca("pm25")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-sinca-no2
-#| fig-cap: "SINCA, NO₂ observado: media anual por estación y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente_sinca("no2")))
-```
-
-#### ERA5-Land
-
-```{python}
-#| echo: false
-#| label: fig-fuente-era5land-t2m
-#| fig-cap: "ERA5-Land (0,1°, horario): temperatura a 2 m (°C); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("era5land", "t2m")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-era5land-rh
-#| fig-cap: "ERA5-Land (0,1°, horario): humedad relativa a 2 m (%); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("era5land", "rh")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-era5land-wind
-#| fig-cap: "ERA5-Land (0,1°, horario): rapidez del viento a 10 m (m/s); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("era5land", "wind")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-era5land-sp
-#| fig-cap: "ERA5-Land (0,1°, horario): presión en superficie (hPa); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("era5land", "sp")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-era5land-tp
-#| fig-cap: "ERA5-Land (0,1°, horario): precipitación (mm); total anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("era5land", "tp")))
-```
-
-#### ERA5 BLH
-
-```{python}
-#| echo: false
-#| label: fig-fuente-era5blh-blh
-#| fig-cap: "ERA5 BLH (0,25°, horario): altura de la capa límite (m); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("era5blh", "blh")))
-```
-
-#### MERRA-2
-
-```{python}
-#| echo: false
-#| label: fig-fuente-merra2-t2m
-#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): temperatura a 2 m (°C); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("merra2", "t2m")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-merra2-rh
-#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): humedad relativa a 2 m (%); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("merra2", "rh")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-merra2-wind
-#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): rapidez del viento a 10 m (m/s); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("merra2", "wind")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-merra2-pblh
-#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): altura de la capa límite (m); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("merra2", "pblh")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-merra2-aod
-#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): AOD 550 nm (adimensional); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("merra2", "aod")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-merra2-pm25
-#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): PM₂.₅ en superficie (µg/m³); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("merra2", "pm25")))
-```
-
-#### CAMS EAC4
-
-```{python}
-#| echo: false
-#| label: fig-fuente-cams-no2
-#| fig-cap: "CAMS EAC4 (0,75°, cada 3 h): NO₂ en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("cams", "no2")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-cams-pm25
-#| fig-cap: "CAMS EAC4 (0,75°, cada 3 h): PM₂.₅ en superficie (µg/m³); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("cams", "pm25")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-cams-o3
-#| fig-cap: "CAMS EAC4 (0,75°, cada 3 h): O₃ en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("cams", "o3")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-cams-co
-#| fig-cap: "CAMS EAC4 (0,75°, cada 3 h): CO en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("cams", "co")))
-```
-
-#### GEOS-CF
-
-```{python}
-#| echo: false
-#| label: fig-fuente-geoscf-no2
-#| fig-cap: "GEOS-CF (0,25°, horario): NO₂ en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("geoscf", "no2")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-geoscf-pm25
-#| fig-cap: "GEOS-CF (0,25°, horario): PM₂.₅ en superficie (µg/m³); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("geoscf", "pm25")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-geoscf-o3
-#| fig-cap: "GEOS-CF (0,25°, horario): O₃ en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("geoscf", "o3")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-geoscf-co
-#| fig-cap: "GEOS-CF (0,25°, horario): CO en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("geoscf", "co")))
-```
-
-#### MAIAC
-
-```{python}
-#| echo: false
-#| label: fig-fuente-maiac-aod
-#| fig-cap: "MAIAC MCD19A2 (1 km, por pasada): AOD 550 nm (QA estricta) (adimensional); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("maiac", "aod")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-maiac-cobertura
-#| fig-cap: "MAIAC MCD19A2 (1 km, por pasada): días con observación válida (% de los días); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("maiac", "cobertura")))
-```
-
-#### TROPOMI NO₂
-
-```{python}
-#| echo: false
-#| label: fig-fuente-tropomi-no2-trop
-#| fig-cap: "TROPOMI NO₂ nivel 2 (~3,5 × 5,5 km, por órbita; acumulado en 0,05°): columna troposférica de NO₂ (qa ≥ 0,75) (10¹⁵ moléc/cm²); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
-Image(str(fig_fuente("tropomi", "no2_trop")))
-```
-
-#### ACAG
-
-```{python}
-#| echo: false
-#| label: fig-fuente-acag-pm25
-#| fig-cap: "ACAG V6GL03 (0,01°, mensual): PM₂.₅ en superficie (µg/m³); media anual por píxel nativo y serie mensual por macrozona en los años muestreados."
-Image(str(fig_fuente("acag", "pm25")))
-```
-
-#### Uso de suelo y población
-
-```{python}
-#| echo: false
-#| label: fig-fuente-lulc-lulc-urbano
-#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): fracción urbana (fracción de la celda); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
-Image(str(fig_fuente("lulc", "lulc_urbano")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-lulc-lulc-cultivo
-#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): fracción de cultivo (fracción de la celda); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
-Image(str(fig_fuente("lulc", "lulc_cultivo")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-lulc-lulc-bosque
-#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): fracción de bosque (fracción de la celda); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
-Image(str(fig_fuente("lulc", "lulc_bosque")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-lulc-lulc-desnudo
-#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): fracción de suelo desnudo (fracción de la celda); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
-Image(str(fig_fuente("lulc", "lulc_desnudo")))
-```
-
-```{python}
-#| echo: false
-#| label: fig-fuente-lulc-pob-dens
-#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): densidad de población (hab/km²); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
-Image(str(fig_fuente("lulc", "pob_dens")))
-```
-
-#### Estáticas
-
-```{python}
-#| echo: false
-#| label: fig-fuente-estaticas
-#| fig-cap: "Covariables sin dimensión temporal por celda de 0,01°: elevación, pendiente, distancia a la costa y densidad vial."
-_p = fig_fuente_estaticas()
-Image(str(_p)) if _p is not None else Markdown("_(las covariables estáticas aún no se han calculado en este entorno)_")
-```
-
-:::
-
-## Metodología {#sec-metodologia}
-
 ### Diseño del estudio y dominio {#sec-diseno}
 
 Estudio de calibración y validación de un modelo de exposición. La
@@ -1744,6 +1268,17 @@ Markdown(tabla_red_adicional())
 ```
 
 ### Operacionalización de variables {#sec-variables}
+
+Las referencias de los productos documentan sus fundamentos y no sustituyen
+la comprobación de la versión, el período y los archivos efectivamente
+utilizados en este informe. Los reanálisis meteorológicos corresponden a
+ERA5 [@hersbach2020era5], ERA5-Land [@munozsabater2021era5land] y MERRA-2
+[@gelaro2017merra2]; los productos satelitales se apoyan en las familias
+MAIAC [@lyapustin2018maiac] y TROPOMI NO₂ [@vangeffen2022tropomi]. CAMS EAC4
+[@inness2019cams] y GEOS-CF [@keller2021geoscf] aportan campos de composición
+atmosférica, y las estimaciones de PM₂.₅ de ACAG se sitúan en el marco de
+integración satelital y modelación descrito por @hammer2020acag. El soporte
+nativo y el uso concreto de cada predictor se detallan a continuación.
 
 **Observación.** SINCA horario de PM₂.₅ (µg/m³) y NO₂ (ppb) del derivado
 `modelado/SINCA/v1` (una versión por estación, la de ventana más amplia
@@ -2134,13 +1669,16 @@ Markdown(pd.DataFrame([cobertura_panel(p) for p in CONTAMINANTES]).set_index("co
 
 ### Motor de estimación {#sec-motor}
 
+El motor LightGBM se documenta metodológicamente en @ke2017lightgbm; su
+configuración y evaluación específicas se describen en este informe.
+
 Para cada contaminante se ajusta un **gradient boosting (LightGBM)** sobre
 la transformación $z = \log(1 + y)$ de la concentración, con hasta 800
 árboles, tasa de aprendizaje 0,03, 127 hojas, mínimo de 50 observaciones por
 hoja, submuestreo de filas y columnas de 0,8 y regularización $L_2$ = 1
 (en la prueba corta se usa una versión chica). La retransformación a la
-escala original usa la corrección de Duan en su forma paramétrica por
-franja horaria $f$ (diurna 08–18 h local, nocturna el resto):
+escala original usa una corrección paramétrica basada en la varianza
+residual por franja horaria $f$ (diurna 08–18 h local, nocturna el resto):
 
 $$
 \hat y = \exp\!\left(\hat z + \tfrac{1}{2}\,\hat\sigma^2_f\right) - 1,
@@ -2183,6 +1721,12 @@ se dejan como `NaN` (LightGBM los enruta en cada partición), y sólo entran
 al motor los predictores que alcanzan la cobertura mínima en el panel y que
 no están excluidos por diseño (@sec-predictores-fuera). LightGBM se usa
 por su API nativa, sin scikit-learn.
+
+La forma paramétrica mostrada corresponde a una aproximación lognormal;
+se distingue del estimador de *smearing* no paramétrico de
+@duan1983smearing. La opción `smearing_oof` calcula esa alternativa
+no paramétrica, mientras que los nombres técnicos que contienen `duan`
+se conservan para identificar la configuración ejecutada.
 
 ```{python}
 #| code-fold: true
@@ -2282,6 +1826,10 @@ Markdown(pd.concat([predictores_fuera(p) for p in CONTAMINANTES], ignore_index=T
 
 ### Motores de contraste: GWR, regression-kriging e interpolación {#sec-motores-contraste}
 
+Los fundamentos de GWR y regression-kriging se describen, respectivamente,
+en @brunsdon1996gwr y @hengl2007regression; las decisiones de implementación
+y los contrastes específicos de este informe se explicitan a continuación.
+
 Para saber cuánto del desempeño es mérito del boosting y cuánto lo daría un
 modelo espacial clásico, se evalúan además, con **los mismos protocolos, los
 mismos pares y las mismas métricas**, los dos motores lineales de
@@ -2370,6 +1918,14 @@ monitor más cercano», que es lo que un modelo debe superar para justificarse.
 
 ### Motores usados antes en el proyecto {#sec-motores-previos}
 
+Como referencias metodológicas de las familias comparadas se utilizan
+Random Forest [@breiman2001random], redes neuronales [@hastie2009elements],
+procesos gaussianos [@rasmussen2006gaussian], modelos mixtos
+[@laird1982random], regresión de cuantiles [@koenker1978regression] y
+apilado de predictores [@wolpert1992stacked]. Estas referencias no implican
+que los hiperparámetros o los resultados de este proyecto provengan de
+esos trabajos; la configuración ejecutada se declara a continuación.
+
 El modelo horario de PM₂.₅ del proyecto hermano
 (`Neurodegen-Epidemiology-Chile/others_scripts/pm25_exposure_modeling.qmd`)
 comparó LightGBM con otros seis motores, con validación agrupada por estación
@@ -2455,6 +2011,12 @@ estación se descartó allá mismo. Las menciones a XGBoost, redes en
 PyTorch/Keras y `mgwr` de esos scripts nunca llegaron a ejecutarse.
 
 ### Protocolos de validación y métricas {#sec-protocolos}
+
+La separación espacial y temporal de las unidades retenidas responde al
+problema de evaluar datos estructurados y dependientes, para el cual una
+partición aleatoria de filas puede no representar la generalización que
+interesa [@roberts2017crossvalidation]. Aquí se distinguen los protocolos
+y sus unidades de exclusión explícitas.
 
 Tres preguntas, tres protocolos de validación cruzada, más el control del
 producto:
@@ -4409,7 +3971,7 @@ def bloque_figuras_region(base: str, region: str) -> str:
     contaminante. Mismo código y mismas escalas que en las secciones nacionales."""
     out = ["::: {.panel-tabset}", ""]
     for pol in CONTAMINANTES:
-        out += [f"#### {NOMBRE_POL_TXT[pol]}", ""]
+        out += [f"##### {NOMBRE_POL_TXT[pol]}", ""]
         for f, pie in FIGURAS_POR_MOTOR:
             ruta = f(pol, base, "lgbm", region=region)
             out += [f"![{NOMBRE_POL_TXT[pol]} en {nombre_region(region)} ({ETIQUETA_BASE[base]}): {pie}."
@@ -4441,9 +4003,9 @@ def bloque_figuras_por_motor(base: str) -> str:
     por motor. Se generan a ``DPI_POR_MOTOR`` para que el informe siga siendo compartible."""
     out = ["::: {.panel-tabset}", ""]
     for pol in CONTAMINANTES:
-        out += [f"#### {NOMBRE_POL_TXT[pol]}", "", "::: {.panel-tabset}", ""]
+        out += [f"##### {NOMBRE_POL_TXT[pol]}", "", "::: {.panel-tabset}", ""]
         for m in [x for x in motores_evaluables(pol, base) if x != "lgbm"]:
-            out += [f"##### {NOMBRE_MOTOR[m]}", ""]
+            out += [f"###### {NOMBRE_MOTOR[m]}", ""]
             EV(pol, base, m)    # calienta la caché: ``evaluar`` borra las figuras de la variante al recalcular
             for f, pie in FIGURAS_POR_MOTOR:
                 ruta = f(pol, base, m, dpi=DPI_POR_MOTOR)
@@ -4880,7 +4442,573 @@ def tabla_categorias(E: dict) -> str:
             if len(_t) else "_(sin pares diarios suficientes)_")
 ```
 
-## Resultados sin validación cruzada {#sec-sin-validacion}
+### Catálogo de programas Python {#programas-python}
+
+{{< include _catalogo_python.qmd >}}
+
+## Resultados {#sec-resultados-generales}
+
+### Análisis descriptivo de las observaciones de superficie {#sec-descriptivo}
+
+Antes de modelar, esta sección describe lo que la red SINCA, más la red
+adicional SNIFA en NO₂ (@sec-red-adicional), **observó**: cuántas
+estaciones midieron cada contaminante y dónde, cómo se distribuyen
+geográficamente las concentraciones medias en ventanas de cuatro años y cómo
+evolucionan las series mensuales por macrozona. Todo lo que aparece aquí son
+mediciones, no estimaciones; el descriptivo usa siempre el registro completo
+del derivado `modelado/SINCA/v1` (2000 en adelante), con el mismo filtro que
+alimenta el modelo: filas `seleccionada`, valor dentro del rango físico
+admitido, reloj UTC−4 fijo con etiqueta al fin del intervalo y el control de
+rachas descrito abajo.
+
+Tres convenciones gobiernan todas las figuras y tablas de la sección:
+
+* **Mes válido**: una estación aporta un mes si tiene al menos el 75 % de sus
+  horas con dato.
+* **Media de ventana sin sesgo estacional**: la media de una estación en un
+  cuatrienio es el promedio de su climatología mensual dentro de la ventana
+  (media de cada mes calendario y luego promedio de los doce), y sólo se
+  reporta si al menos 9 de los 12 meses calendario están representados. Así
+  una estación que sólo midió inviernos no aparece como más contaminada que
+  una que midió el año completo. La media anual por estación sigue la misma
+  regla (al menos 9 meses válidos).
+* **Agregación por macrozona con igual peso por estación**: la serie de una
+  macrozona es el promedio de las medias mensuales de sus estaciones, y la
+  banda es el rango intercuartil entre estaciones. La composición de la red
+  cambia en el tiempo (en 2000–2007 casi todo el PM₂.₅ se mide en la Región
+  Metropolitana), de modo que cada panel muestra también cuántas estaciones
+  aportan en cada mes: una tendencia de macrozona mezcla cambio ambiental y
+  cambio de red.
+
+**Control de rachas.** Una racha de `QC_RACHA` (24) o más registros
+consecutivos con un valor idéntico en una estación se considera un sensor
+pegado o un relleno y se excluye del descriptivo y del panel de calibración
+(`MODELO_1KM_QC_RACHA=0` lo desactiva). La tabla siguiente cuantifica el
+filtro.
+
+
+#### Red de monitoreo, cobertura y control de calidad {#sec-desc-red}
+
+```{python}
+#| code-fold: true
+#| code-summary: "Tabla de la red por contaminante y macrozona, y efecto del control de rachas"
+#| label: tbl-desc-red
+#| tbl-cap: "Red usada por contaminante y macrozona (SINCA y, en NO₂, la red adicional SNIFA de @sec-red-adicional): estaciones con algún mes válido, horas con dato, primer y último mes, y media, mediana y percentil 95 de las medias mensuales por estación."
+def tabla_red(pol: str) -> pd.DataFrame:
+    m = DESC[pol]["mensual"].merge(ESTACIONES[["estacion", "macrozona"]], on="estacion")
+    filas = []
+    for mz in ["Chile", *ORDEN_MACROZONAS]:
+        s = m if mz == "Chile" else m[m["macrozona"] == mz]
+        v = s[s["cob"] >= 0.75]
+        if s.empty:
+            continue
+        filas.append({"contaminante": NOMBRE_POL_TXT[pol], "macrozona": NOMBRE_MZ.get(mz, mz),
+                      "estaciones": s["estacion"].nunique(), "estaciones con mes válido": v["estacion"].nunique(),
+                      "horas con dato": f"{int(s['n'].sum()):,}".replace(",", "."),
+                      "desde": f"{s['mes'].min():%Y-%m}", "hasta": f"{s['mes'].max():%Y-%m}",
+                      "media": round(v["obs"].mean(), 1), "mediana": round(v["obs"].median(), 1),
+                      "p95": round(v["obs"].quantile(0.95), 1)})
+    return pd.DataFrame(filas)
+
+_qc = pd.concat([DESC[p]["qc"] for p in CONTAMINANTES])
+_qc["contaminante"] = _qc["contaminante"].map(NOMBRE_POL_TXT)
+_qc["% en racha"] = (100 * _qc["filas_en_racha"] / _qc["filas_validas"]).round(2)
+Markdown(pd.concat([tabla_red(p) for p in CONTAMINANTES]).pipe(a_markdown)
+         + f"\n\nControl de rachas (≥ {QC_RACHA} registros idénticos consecutivos; unidades: "
+         + ", ".join(f"{NOMBRE_POL_TXT[p]} en {UNIDADES[p]}" for p in CONTAMINANTES) + "):\n\n"
+         + _qc.rename(columns={"filas_validas": "horas válidas", "filas_en_racha": "horas en racha (excluidas)",
+                               "estaciones_con_racha": "estaciones afectadas",
+                               "racha_en_cero_pct": "% de las rachas con valor 0"}).pipe(a_markdown))
+```
+
+
+La cobertura por estación y año muestra cuándo entra cada estación a la red y
+dónde hay interrupciones; las estaciones están ordenadas de norte a sur y la
+franja de color de la izquierda indica su macrozona.
+
+::: {.panel-tabset}
+
+##### PM₂.₅
+
+```{python}
+#| echo: false
+#| label: fig-desc-cobertura-pm25
+#| fig-cap: "PM₂.₅: fracción de horas con dato por estación y año, estaciones ordenadas de norte a sur."
+Image(str(fig_desc_cobertura("pm25")))
+```
+
+##### NO₂
+
+```{python}
+#| echo: false
+#| label: fig-desc-cobertura-no2
+#| fig-cap: "NO₂: fracción de horas con dato por estación y año, estaciones ordenadas de norte a sur."
+Image(str(fig_desc_cobertura("no2")))
+```
+
+:::
+
+#### Distribución geoespacial observada por cuatrienio {#sec-desc-mapas}
+
+Cada panel es un cuatrienio y cada punto una estación con media válida en esa
+ventana; la escala de color es común a todos los paneles del contaminante y
+las marcas en la barra señalan los valores de referencia anuales. Como la red
+se concentra en la zona central y en las ciudades del centro-sur, al mapa
+nacional lo acompañan dos acercamientos.
+
+::: {.panel-tabset}
+
+##### PM₂.₅
+
+```{python}
+#| echo: false
+Markdown(lectura_descriptiva("pm25"))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-mapa-nacional-pm25
+#| fig-cap: "PM₂.₅ observado por SINCA: media por estación en ventanas de cuatro años, Chile continental."
+Image(str(fig_desc_mapa("pm25", "nacional")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-mapa-centro-pm25
+#| fig-cap: "PM₂.₅ observado: acercamiento a la zona central."
+Image(str(fig_desc_mapa("pm25", "centro")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-mapa-sur-pm25
+#| fig-cap: "PM₂.₅ observado: acercamiento al centro-sur y Aysén."
+Image(str(fig_desc_mapa("pm25", "sur")))
+```
+
+```{python}
+#| echo: false
+#| label: tbl-desc-ventanas-pm25
+#| tbl-cap: "PM₂.₅ (µg/m³): estaciones con media válida, media y rango entre estaciones por cuatrienio y macrozona."
+Markdown(tabla_ventanas("pm25").pipe(a_markdown))
+```
+
+##### NO₂
+
+```{python}
+#| echo: false
+Markdown(lectura_descriptiva("no2"))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-mapa-nacional-no2
+#| fig-cap: "NO₂ observado por SINCA: media por estación en ventanas de cuatro años, Chile continental."
+Image(str(fig_desc_mapa("no2", "nacional")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-mapa-centro-no2
+#| fig-cap: "NO₂ observado: acercamiento a la zona central."
+Image(str(fig_desc_mapa("no2", "centro")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-mapa-sur-no2
+#| fig-cap: "NO₂ observado: acercamiento al centro-sur y Aysén."
+Image(str(fig_desc_mapa("no2", "sur")))
+```
+
+```{python}
+#| echo: false
+#| label: tbl-desc-ventanas-no2
+#| tbl-cap: "NO₂ (ppb): estaciones con media válida, media y rango entre estaciones por cuatrienio y macrozona."
+Markdown(tabla_ventanas("no2").pipe(a_markdown))
+```
+
+:::
+
+#### Series temporales por macrozona {#sec-desc-series}
+
+Las series mensuales usan el mes local (UTC−4). La línea de color es la media
+entre estaciones, la banda el rango intercuartil entre estaciones, la línea
+negra la media móvil centrada de 12 meses y el área gris (eje derecho) el
+número de estaciones que aportan ese mes. La segunda figura resume la media
+anual por macrozona frente a los valores de referencia, y la tercera el ciclo
+diurno por temporada, que es la estructura horaria que el modelo debe
+reproducir.
+
+::: {.panel-tabset}
+
+##### PM₂.₅
+
+```{python}
+#| echo: false
+#| label: fig-desc-series-pm25
+#| fig-cap: "PM₂.₅ observado por SINCA: series mensuales de Chile y de cada macrozona."
+Image(str(fig_desc_series("pm25")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-anual-pm25
+#| fig-cap: "PM₂.₅: media anual por macrozona y valores de referencia anuales."
+Image(str(fig_desc_anual("pm25")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-ciclos-pm25
+#| fig-cap: "PM₂.₅: ciclo diurno observado por temporada y macrozona."
+Image(str(fig_desc_ciclos("pm25")))
+```
+
+##### NO₂
+
+```{python}
+#| echo: false
+#| label: fig-desc-series-no2
+#| fig-cap: "NO₂ observado por SINCA: series mensuales de Chile y de cada macrozona."
+Image(str(fig_desc_series("no2")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-anual-no2
+#| fig-cap: "NO₂: media anual por macrozona y valores de referencia anuales."
+Image(str(fig_desc_anual("no2")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-desc-ciclos-no2
+#| fig-cap: "NO₂: ciclo diurno observado por temporada y macrozona."
+Image(str(fig_desc_ciclos("no2")))
+```
+
+:::
+
+### Descriptivo de las fuentes de datos a resolución nativa {#sec-desc-fuentes}
+
+Esta sección describe **todos los datos que alimentan el modelo**, cada uno a
+su resolución nativa, en una muestra de años tomada cada cuatro (2000, 2004,
+2008, 2012, 2016, 2020 y 2024). Cada figura tiene dos filas sobre esos mismos
+años: arriba, la **descriptiva geoespacial**, el promedio anual por píxel
+nativo (el total anual, para la precipitación), con una escala de color común
+a todos los años; abajo, la **descriptiva temporal**, la serie del año para
+Chile y para cada macrozona.
+
+Cómo leer los mapas: no se interpola nada. Cada celda de 0,01° se pinta con
+el valor del píxel nativo al que está enlazada (@sec-grilla), de modo que el
+tamaño de los bloques que se ven **es** la resolución con que esa fuente
+entra al modelo: bloques de ~55 × 70 km en MERRA-2, de ~80 km en CAMS, de
+~11 km en ERA5-Land y textura de 1 km en MAIAC y ACAG. TROPOMI es un
+producto de nivel 2 sin grilla fija; sus píxeles (~3,5 × 5,5 km) se acumulan
+en una malla de 0,05°, del orden de su huella, sólo para poder promediar
+órbitas distintas. El uso de suelo (ESA CCI, 300 m) y la población
+(proyecciones censales comunales) no se conservan a su resolución de origen:
+el modelo usa fracciones y densidades por celda de 0,01°, y eso es lo que se
+muestra.
+
+Cómo leer las series: son promedios **ponderados por área de territorio**
+(cada píxel nativo pesa según el área de las celdas chilenas de la zona que
+cubre, no según cuántos píxeles hay; una celda de 0,01° mide cos(latitud)
+veces la ecuatorial, de modo que contar celdas sobrepesaría la zona austral),
+por día local UTC−4 y con media móvil centrada de 7
+días; ACAG es mensual y el uso de suelo y la población, anuales. Un panel
+«sin datos en disco» significa que la fuente no existe para ese año en el
+disco de datos (CAMS EAC4 parte en 2003; GEOS-CF y TROPOMI sólo están para
+2019–2024), no que falte por calcular.
+
+Dos advertencias de lectura. Los productos globales de superficie (MERRA-2,
+CAMS, GEOS-CF) y ACAG son **estimaciones de modelo o de satélite, no
+mediciones**: se muestran tal como llegan, sin calibrar, y su comparación
+cuantitativa con SINCA está en @sec-referencia. Y ACAG presenta medias
+anuales muy altas sobre la cordillera patagónica y los campos de hielo, sin
+fuentes de emisión que las expliquen; lo más probable es que sea un artefacto
+del producto sobre nieve y hielo y no una señal real, y allí no hay
+estaciones que permitan comprobarlo.
+
+
+```{python}
+#| code-fold: true
+#| code-summary: "Fuentes, resolución nativa y años muestreados con datos"
+#| label: tbl-fuentes
+#| tbl-cap: "Fuentes descritas: resolución nativa, variables, años de la muestra con datos en disco y paso temporal de la serie."
+Markdown(tabla_fuentes().pipe(a_markdown))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Media anual de Chile por variable y año muestreado"
+#| label: tbl-fuentes-medias
+#| tbl-cap: "Descriptiva temporal resumida: media anual de Chile continental (ponderada por territorio) de cada variable en cada año muestreado; la precipitación es el total anual."
+Markdown(tabla_medias_chile().pipe(a_markdown))
+```
+
+::: {.panel-tabset}
+
+##### SINCA
+
+Las observaciones de la red en los mismos años muestreados: cada punto es la
+media anual de una estación con al menos 9 meses válidos, y la serie es el
+promedio diario entre estaciones de cada macrozona (día con al menos 18 horas
+válidas). En las figuras de las demás fuentes, un año marcado con asterisco
+tiene menos del 90 % de sus días (MAIAC parte el 24 de febrero de 2000) y su
+promedio anual no es comparable con el de un año completo. Las ventanas de cuatro años de @sec-desc-mapas son más robustas
+cuando la red es rala; aquí se usa el año exacto para poder comparar con el
+resto de las fuentes.
+
+```{python}
+#| echo: false
+#| label: fig-fuente-sinca-pm25
+#| fig-cap: "SINCA, PM₂.₅ observado: media anual por estación y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente_sinca("pm25")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-sinca-no2
+#| fig-cap: "SINCA, NO₂ observado: media anual por estación y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente_sinca("no2")))
+```
+
+##### ERA5-Land
+
+```{python}
+#| echo: false
+#| label: fig-fuente-era5land-t2m
+#| fig-cap: "ERA5-Land (0,1°, horario): temperatura a 2 m (°C); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("era5land", "t2m")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-era5land-rh
+#| fig-cap: "ERA5-Land (0,1°, horario): humedad relativa a 2 m (%); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("era5land", "rh")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-era5land-wind
+#| fig-cap: "ERA5-Land (0,1°, horario): rapidez del viento a 10 m (m/s); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("era5land", "wind")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-era5land-sp
+#| fig-cap: "ERA5-Land (0,1°, horario): presión en superficie (hPa); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("era5land", "sp")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-era5land-tp
+#| fig-cap: "ERA5-Land (0,1°, horario): precipitación (mm); total anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("era5land", "tp")))
+```
+
+##### ERA5 BLH
+
+```{python}
+#| echo: false
+#| label: fig-fuente-era5blh-blh
+#| fig-cap: "ERA5 BLH (0,25°, horario): altura de la capa límite (m); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("era5blh", "blh")))
+```
+
+##### MERRA-2
+
+```{python}
+#| echo: false
+#| label: fig-fuente-merra2-t2m
+#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): temperatura a 2 m (°C); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("merra2", "t2m")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-merra2-rh
+#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): humedad relativa a 2 m (%); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("merra2", "rh")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-merra2-wind
+#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): rapidez del viento a 10 m (m/s); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("merra2", "wind")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-merra2-pblh
+#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): altura de la capa límite (m); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("merra2", "pblh")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-merra2-aod
+#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): AOD 550 nm (adimensional); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("merra2", "aod")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-merra2-pm25
+#| fig-cap: "MERRA-2 (0,5° × 0,625°, horario): PM₂.₅ en superficie (µg/m³); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("merra2", "pm25")))
+```
+
+##### CAMS EAC4
+
+```{python}
+#| echo: false
+#| label: fig-fuente-cams-no2
+#| fig-cap: "CAMS EAC4 (0,75°, cada 3 h): NO₂ en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("cams", "no2")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-cams-pm25
+#| fig-cap: "CAMS EAC4 (0,75°, cada 3 h): PM₂.₅ en superficie (µg/m³); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("cams", "pm25")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-cams-o3
+#| fig-cap: "CAMS EAC4 (0,75°, cada 3 h): O₃ en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("cams", "o3")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-cams-co
+#| fig-cap: "CAMS EAC4 (0,75°, cada 3 h): CO en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("cams", "co")))
+```
+
+##### GEOS-CF
+
+```{python}
+#| echo: false
+#| label: fig-fuente-geoscf-no2
+#| fig-cap: "GEOS-CF (0,25°, horario): NO₂ en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("geoscf", "no2")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-geoscf-pm25
+#| fig-cap: "GEOS-CF (0,25°, horario): PM₂.₅ en superficie (µg/m³); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("geoscf", "pm25")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-geoscf-o3
+#| fig-cap: "GEOS-CF (0,25°, horario): O₃ en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("geoscf", "o3")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-geoscf-co
+#| fig-cap: "GEOS-CF (0,25°, horario): CO en superficie (ppb); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("geoscf", "co")))
+```
+
+##### MAIAC
+
+```{python}
+#| echo: false
+#| label: fig-fuente-maiac-aod
+#| fig-cap: "MAIAC MCD19A2 (1 km, por pasada): AOD 550 nm (QA estricta) (adimensional); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("maiac", "aod")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-maiac-cobertura
+#| fig-cap: "MAIAC MCD19A2 (1 km, por pasada): días con observación válida (% de los días); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("maiac", "cobertura")))
+```
+
+##### TROPOMI NO₂
+
+```{python}
+#| echo: false
+#| label: fig-fuente-tropomi-no2-trop
+#| fig-cap: "TROPOMI NO₂ nivel 2 (~3,5 × 5,5 km, por órbita; acumulado en 0,05°): columna troposférica de NO₂ (qa ≥ 0,75) (10¹⁵ moléc/cm²); media anual por píxel nativo y serie diaria por macrozona en los años muestreados."
+Image(str(fig_fuente("tropomi", "no2_trop")))
+```
+
+##### ACAG
+
+```{python}
+#| echo: false
+#| label: fig-fuente-acag-pm25
+#| fig-cap: "ACAG V6GL03 (0,01°, mensual): PM₂.₅ en superficie (µg/m³); media anual por píxel nativo y serie mensual por macrozona en los años muestreados."
+Image(str(fig_fuente("acag", "pm25")))
+```
+
+##### Uso de suelo y población
+
+```{python}
+#| echo: false
+#| label: fig-fuente-lulc-lulc-urbano
+#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): fracción urbana (fracción de la celda); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
+Image(str(fig_fuente("lulc", "lulc_urbano")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-lulc-lulc-cultivo
+#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): fracción de cultivo (fracción de la celda); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
+Image(str(fig_fuente("lulc", "lulc_cultivo")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-lulc-lulc-bosque
+#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): fracción de bosque (fracción de la celda); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
+Image(str(fig_fuente("lulc", "lulc_bosque")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-lulc-lulc-desnudo
+#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): fracción de suelo desnudo (fracción de la celda); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
+Image(str(fig_fuente("lulc", "lulc_desnudo")))
+```
+
+```{python}
+#| echo: false
+#| label: fig-fuente-lulc-pob-dens
+#| fig-cap: "ESA CCI 300 m y proyecciones censales (agregados a 0,01°, anual): densidad de población (hab/km²); media anual por píxel nativo y serie anual por macrozona en los años muestreados."
+Image(str(fig_fuente("lulc", "pob_dens")))
+```
+
+##### Estáticas
+
+```{python}
+#| echo: false
+#| label: fig-fuente-estaticas
+#| fig-cap: "Covariables sin dimensión temporal por celda de 0,01°: elevación, pendiente, distancia a la costa y densidad vial."
+_p = fig_fuente_estaticas()
+Image(str(_p)) if _p is not None else Markdown("_(las covariables estáticas aún no se han calculado en este entorno)_")
+```
+
+:::
+
+### Resultados sin validación cruzada {#sec-sin-validacion}
 
 Esta sección responde una sola pregunta: **qué tan bien reproduce cada motor
 las estaciones con las que aprendió**. Cada motor se ajusta con todas las
@@ -4918,7 +5046,7 @@ Es el desempeño *aparente*. Cuatro precisiones antes de leer las cifras:
   evaluada. La interpolación de vecinas no ajusta nada y su vecindario nunca
   incluye a la estación propia: es la referencia de un método sin memoria.
 
-### Métricas por nivel de agregación {#sec-sv-niveles}
+#### Métricas por nivel de agregación {#sec-sv-niveles}
 
 ```{python}
 #| echo: false
@@ -4933,7 +5061,7 @@ Markdown("\n\n".join(lectura_global(p, EVAL_AJUSTE, "ajuste") for p in CONTAMINA
 Markdown(tabla_niveles(EVAL_AJUSTE))
 ```
 
-### Lectura espacial y lectura temporal {#sec-sv-lecturas}
+#### Lectura espacial y lectura temporal {#sec-sv-lecturas}
 
 La primera tabla compara, **entre estaciones**, la media observada con la
 media estimada en cada cuatrienio: es la pregunta de un mapa (¿qué lugares
@@ -4957,7 +5085,7 @@ Markdown(tabla_espacial(EVAL_AJUSTE))
 Markdown(tabla_temporal(EVAL_AJUSTE))
 ```
 
-### Por macrozona, cuatrienio, régimen de predictores y temporada {#sec-sv-estratos}
+#### Por macrozona, cuatrienio, régimen de predictores y temporada {#sec-sv-estratos}
 
 ```{python}
 #| code-fold: true
@@ -4967,7 +5095,7 @@ Markdown(tabla_temporal(EVAL_AJUSTE))
 Markdown(tablas_estratos(EVAL_AJUSTE, "ajuste"))
 ```
 
-### Acuerdo por categorías y excedencias {#sec-sv-categorias}
+#### Acuerdo por categorías y excedencias {#sec-sv-categorias}
 
 ```{python}
 #| code-fold: true
@@ -4977,7 +5105,7 @@ Markdown(tablas_estratos(EVAL_AJUSTE, "ajuste"))
 Markdown(tabla_categorias(EVAL_AJUSTE))
 ```
 
-### Comparación de motores {#sec-sv-comparacion-motores}
+#### Comparación de motores {#sec-sv-comparacion-motores}
 
 Los diez motores (@sec-motores-contraste y @sec-motores-previos) con las
 mismas métricas, los mismos pares y los mismos niveles de agregación, todos
@@ -5030,7 +5158,7 @@ Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_motores_excedencia(p, '
 
 ::: {.panel-tabset}
 
-#### PM₂.₅
+##### PM₂.₅
 
 ```{python}
 #| echo: false
@@ -5046,7 +5174,7 @@ Image(str(fig_motores_niveles("pm25", ("ajuste",))))
 Image(str(fig_motores_macrozona("pm25", "ajuste")))
 ```
 
-#### NO₂
+##### NO₂
 
 ```{python}
 #| echo: false
@@ -5064,7 +5192,7 @@ Image(str(fig_motores_macrozona("no2", "ajuste")))
 
 :::
 
-### Figuras del motor del producto {#sec-sv-figuras}
+#### Figuras del motor del producto {#sec-sv-figuras}
 
 El mismo juego de figuras de la sección validada, aquí con el modelo
 ajustado con todas las estaciones: dispersión a cuatro niveles de
@@ -5076,7 +5204,7 @@ importancia de predictores del modelo final; y series de estaciones.
 
 ::: {.panel-tabset}
 
-#### PM₂.₅
+##### PM₂.₅
 
 ```{python}
 #| echo: false
@@ -5183,7 +5311,7 @@ Image(str(fig_series_estaciones("pm25", "ajuste")))
 Image(str(fig_serie_ejemplo("pm25", "ajuste")))
 ```
 
-#### NO₂
+##### NO₂
 
 ```{python}
 #| echo: false
@@ -5292,7 +5420,7 @@ Image(str(fig_serie_ejemplo("no2", "ajuste")))
 
 :::
 
-### Figuras por motor {#sec-sv-figuras-motor}
+#### Figuras por motor {#sec-sv-figuras-motor}
 
 El mismo juego de seis figuras para cada motor de contraste, con el mismo
 código y las mismas escalas: acuerdo global, serie temporal, patrón
@@ -5304,7 +5432,7 @@ espacial, desempeño por sitio, ciclo horario y categorías.
 print(bloque_figuras_por_motor("ajuste"))
 ```
 
-## Resultados con validación cruzada {#sec-resultados}
+### Resultados con validación cruzada {#sec-resultados}
 
 Esta sección responde la pregunta que importa para usar el producto: **qué
 tan bien estima cada motor un lugar que no vio**. Todo lo que sigue se
@@ -5320,7 +5448,7 @@ globales sin calibrar (@sec-referencia) y el protocolo del producto
 (@sec-producto), cuyo ajuste in-sample se reporta como control y pertenece,
 por definición, al régimen de @sec-sin-validacion.
 
-### Métricas por nivel de agregación {#sec-loso}
+#### Métricas por nivel de agregación {#sec-loso}
 
 ```{python}
 #| echo: false
@@ -5335,7 +5463,7 @@ Markdown("\n\n".join(lectura_global(p) for p in CONTAMINANTES))
 Markdown(tabla_niveles(EVAL))
 ```
 
-### Lectura espacial y lectura temporal {#sec-espacial-temporal}
+#### Lectura espacial y lectura temporal {#sec-espacial-temporal}
 
 La primera tabla compara, **entre estaciones**, la media observada con la
 media estimada fuera de estación en cada cuatrienio: es la pregunta de un
@@ -5360,7 +5488,7 @@ Markdown(tabla_espacial(EVAL))
 Markdown(tabla_temporal(EVAL))
 ```
 
-### Por macrozona, cuatrienio, régimen de predictores y temporada {#sec-estratos}
+#### Por macrozona, cuatrienio, régimen de predictores y temporada {#sec-estratos}
 
 GEOS-CF y TROPOMI sólo existen en disco para 2019–2024: fuera de esos años
 el motor recibe esos predictores como faltantes y descansa en CAMS, MERRA-2,
@@ -5376,7 +5504,7 @@ cambia el desempeño con la densidad de la red.
 Markdown(tablas_estratos(EVAL, "loso"))
 ```
 
-### Acuerdo por categorías y excedencias {#sec-categorias}
+#### Acuerdo por categorías y excedencias {#sec-categorias}
 
 ```{python}
 #| code-fold: true
@@ -5386,7 +5514,7 @@ Markdown(tablas_estratos(EVAL, "loso"))
 Markdown(tabla_categorias(EVAL))
 ```
 
-### Referencia: productos globales sin calibrar {#sec-referencia}
+#### Referencia: productos globales sin calibrar {#sec-referencia}
 
 ```{python}
 #| code-fold: true
@@ -5398,7 +5526,7 @@ Markdown(tabla_md(_t, ["n", "r2", "r", "ccc", "rmse", "nmb", "pendiente"],
                   ["contaminante", "producto", "período", "nivel", "serie"]) if len(_t) else "_(sin productos con pares)_")
 ```
 
-### Comparación de motores {#sec-comparacion-motores}
+#### Comparación de motores {#sec-comparacion-motores}
 
 Los diez motores (@sec-motores-contraste y @sec-motores-previos) evaluados
 con los mismos protocolos, pares, niveles de agregación y métricas. El primer
@@ -5456,7 +5584,7 @@ Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_motores_excedencia(p)}"
 
 ::: {.panel-tabset}
 
-#### PM₂.₅
+##### PM₂.₅
 
 ```{python}
 #| echo: false
@@ -5472,7 +5600,7 @@ Image(str(fig_motores_niveles("pm25")))
 Image(str(fig_motores_macrozona("pm25")))
 ```
 
-#### NO₂
+##### NO₂
 
 ```{python}
 #| echo: false
@@ -5490,7 +5618,7 @@ Image(str(fig_motores_macrozona("no2")))
 
 :::
 
-### Figuras del motor del producto {#sec-figuras}
+#### Figuras del motor del producto {#sec-figuras}
 
 Una advertencia de lectura: en las series agregadas por macrozona o región
 el acuerdo es alto casi por construcción, porque la estimación fuera de
@@ -5512,7 +5640,7 @@ nunca vistas.
 
 ::: {.panel-tabset}
 
-#### PM₂.₅
+##### PM₂.₅
 
 ```{python}
 #| echo: false
@@ -5619,7 +5747,7 @@ Image(str(fig_series_estaciones("pm25")))
 Image(str(fig_serie_ejemplo("pm25")))
 ```
 
-#### NO₂
+##### NO₂
 
 ```{python}
 #| echo: false
@@ -5728,7 +5856,7 @@ Image(str(fig_serie_ejemplo("no2")))
 
 :::
 
-### Figuras por motor {#sec-figuras-motor}
+#### Figuras por motor {#sec-figuras-motor}
 
 El mismo juego de seis figuras para cada motor de contraste, con el mismo
 código y las mismas escalas: acuerdo global, serie temporal, patrón
@@ -5740,7 +5868,7 @@ espacial, desempeño por sitio, ciclo horario y categorías.
 print(bloque_figuras_por_motor("loso"))
 ```
 
-### Protocolo del producto {#sec-producto}
+#### Protocolo del producto {#sec-producto}
 
 ```{python}
 #| code-fold: true
@@ -5851,7 +5979,7 @@ def texto_retransformacion() -> str:
 Markdown(texto_retransformacion())
 ```
 
-### La distancia a la costa fuera del NO₂ {#sec-costa-no2}
+#### La distancia a la costa fuera del NO₂ {#sec-costa-no2}
 
 La primera versión del modelo de NO₂ usaba la distancia a la costa como
 predictor. Su mapa de la media del período mostraba un escalón tierra adentro
@@ -6046,7 +6174,7 @@ def texto_costa_no2(k: dict | None) -> str:
 Markdown(texto_costa_no2(COSTA_NO2))
 ```
 
-## Comparación entre ambas secciones: el optimismo {#sec-optimismo}
+### Comparación entre ambas secciones: el optimismo {#sec-optimismo}
 
 La distancia entre las dos secciones anteriores es el **optimismo**: la
 parte del desempeño que cada motor debe a haber visto las estaciones que se
@@ -6074,7 +6202,7 @@ Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_optimismo(p)}" for p in
 
 ::: {.panel-tabset}
 
-#### PM₂.₅
+##### PM₂.₅
 
 ```{python}
 #| echo: false
@@ -6083,7 +6211,7 @@ Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_optimismo(p)}" for p in
 Image(str(fig_optimismo("pm25")))
 ```
 
-#### NO₂
+##### NO₂
 
 ```{python}
 #| echo: false
@@ -6094,7 +6222,7 @@ Image(str(fig_optimismo("no2")))
 
 :::
 
-## Superficies horarias de 1 km {#sec-superficies}
+### Superficies horarias de 1 km {#sec-superficies}
 
 Con el modelo final, cada día local se predice para todas las celdas y las
 24 horas: los predictores satelitales del día, las estáticas del año, ACAG
@@ -6198,7 +6326,7 @@ Image(str(fig_superficie("pm25", DIAS_DEMO[0])))
 Image(str(fig_superficie("no2", DIAS_DEMO[0])))
 ```
 
-## Exposición estimada por celda: mapas cada dos años {#sec-exposicion}
+### Exposición estimada por celda: mapas cada dos años {#sec-exposicion}
 
 Las superficies horarias de @sec-superficies son el insumo, no el producto que
 se lee. Esta sección las agrega a **métricas de exposición por celda y por
@@ -6510,11 +6638,11 @@ def bloque_mapas_exposicion() -> str:
                 "de producir las superficies (@sec-superficies).*\n")
     out = ["::: {.panel-tabset}", ""]
     for pol in [p for p in CONTAMINANTES if any(EXPO_DISPONIBLE[(p, a)] for a in AMBITOS_GRILLA)]:
-        out += [f"#### {NOMBRE_POL_TXT[pol]}", "", "::: {.panel-tabset}", ""]
+        out += [f"##### {NOMBRE_POL_TXT[pol]}", "", "::: {.panel-tabset}", ""]
         for ambito, amb in AMBITOS_GRILLA.items():
             if not EXPO_DISPONIBLE[(pol, ambito)]:
                 continue
-            out += [f"##### {amb['nombre']}", ""]
+            out += [f"###### {amb['nombre']}", ""]
             t = tabla_exposicion(pol, ambito)
             out += [a_markdown(t), "",
                     f": {NOMBRE_POL_TXT[pol]} en {amb['nombre']} por bienio: promedio sobre las celdas "
@@ -6539,6 +6667,199 @@ def bloque_mapas_exposicion() -> str:
 Markdown(bloque_mapas_exposicion())
 ```
 
+
+### Anexo: la Región Metropolitana {#sec-anexo-rm}
+
+Las mismas tablas y las mismas figuras del informe, calculadas **sólo con
+las estaciones de la Región Metropolitana**. El modelo no cambia: es el
+mismo ajuste nacional y las mismas predicciones; lo único que cambia es el
+subconjunto de pares sobre el que se calculan las métricas. Se repite la
+separación del cuerpo del informe: primero sin validación cruzada, después
+con ella.
+
+Tres advertencias propias de mirar una sola región:
+
+- **LOSO en la RM es un caso favorable.** Al dejar fuera una estación
+  metropolitana, el modelo conserva las otras de la misma cuenca como
+  vecindario, a pocos kilómetros. Eso no se parece a estimar una comuna sin
+  monitores en una región con red rala. El caso exigente está en la tercera
+  columna de @tbl-rm-motores: el protocolo LRO deja fuera **toda** la
+  región, así que la RM se estima sin ninguna de sus estaciones.
+- **Es la zona mejor observada del país**, con la red más densa y el
+  episodio invernal más marcado, de modo que estas cifras no se pueden
+  extrapolar al resto de Chile: para eso está el cuerpo del informe.
+- Los cortes de categoría y los umbrales de excedencia son los mismos del
+  informe (@sec-protocolos), no los de la gestión de episodios de la RM, que
+  usa promedios móviles de 24 h y el ICAP.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Ámbito del anexo y sus tablas de evaluación (cacheadas, mismo código que el informe)"
+REGION_ANEXO = os.environ.get("MODELO_1KM_REGION_ANEXO", "RM")
+EVAL_REGION = {pol: EV(pol, "loso", "lgbm", REGION_ANEXO) for pol in CONTAMINANTES}
+EVAL_REGION_AJUSTE = {pol: EV(pol, "ajuste", "lgbm", REGION_ANEXO) for pol in CONTAMINANTES}
+
+Markdown(pd.DataFrame([{
+    "contaminante": NOMBRE_POL_TXT[pol],
+    "estaciones": int(_oof_variante(pol, "loso", "lgbm", REGION_ANEXO)["estacion"].nunique()),
+    "pares horarios": f"{len(_oof_variante(pol, 'loso', 'lgbm', REGION_ANEXO)):,}".replace(",", "."),
+    "% del panel nacional": f"{100 * len(_oof_variante(pol, 'loso', 'lgbm', REGION_ANEXO)) / len(OOF[pol]):.0f}",
+    "período": f"{int(_oof_variante(pol, 'loso', 'lgbm', REGION_ANEXO)['anio'].min())}–"
+               f"{int(_oof_variante(pol, 'loso', 'lgbm', REGION_ANEXO)['anio'].max())}",
+} for pol in CONTAMINANTES]).pipe(a_markdown))
+```
+
+#### Sin validación cruzada en la RM {#sec-rm-sv}
+
+```{python}
+#| echo: false
+Markdown("\n\n".join(lectura_global(p, EVAL_REGION_AJUSTE, "ajuste") for p in CONTAMINANTES))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "RM sin validación: métricas por nivel de agregación"
+#| label: tbl-rm-sv-niveles
+#| tbl-cap: "Región Metropolitana, sin validación cruzada: métricas por nivel de agregación del modelo final ajustado con todas las estaciones del país."
+Markdown(tabla_niveles(EVAL_REGION_AJUSTE))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "RM sin validación: lectura espacial, lectura temporal y categorías"
+#| label: tbl-rm-sv-lecturas
+#| tbl-cap: "Región Metropolitana, sin validación cruzada: lectura espacial por cuatrienio, lectura temporal (anomalías dentro de estación) y acuerdo por categorías de la media diaria."
+Markdown(tabla_espacial(EVAL_REGION_AJUSTE) + "\n\n" + tabla_temporal(EVAL_REGION_AJUSTE)
+         + "\n\n" + tabla_categorias(EVAL_REGION_AJUSTE))
+```
+
+```{python}
+#| output: asis
+#| echo: false
+print(bloque_figuras_region("ajuste", REGION_ANEXO))
+```
+
+#### Con validación cruzada en la RM {#sec-rm-loso}
+
+```{python}
+#| echo: false
+Markdown("\n\n".join(lectura_global(p, EVAL_REGION, "loso") for p in CONTAMINANTES))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "RM con validación: métricas por protocolo y nivel de agregación"
+#| label: tbl-rm-loso-niveles
+#| tbl-cap: "Región Metropolitana, validación cruzada: métricas por protocolo y nivel de agregación. LOSO deja fuera la estación evaluada pero conserva las demás de la región; LRO deja fuera la región completa."
+Markdown(tabla_niveles(EVAL_REGION))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "RM con validación: lectura espacial, lectura temporal y categorías"
+#| label: tbl-rm-loso-lecturas
+#| tbl-cap: "Región Metropolitana, LOSO: lectura espacial por cuatrienio, lectura temporal (anomalías dentro de estación) y acuerdo por categorías de la media diaria."
+Markdown(tabla_espacial(EVAL_REGION) + "\n\n" + tabla_temporal(EVAL_REGION)
+         + "\n\n" + tabla_categorias(EVAL_REGION))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "RM con validación: desempeño por macrozona, cuatrienio, régimen y temporada"
+#| label: tbl-rm-loso-estratos
+#| tbl-cap: "Región Metropolitana, LOSO: pares diarios por cuatrienio, régimen de predictores y temporada (la fila de macrozona es Centro, porque toda la región lo es)."
+Markdown(tablas_estratos(EVAL_REGION, "loso"))
+```
+
+```{python}
+#| output: asis
+#| echo: false
+print(bloque_figuras_region("loso", REGION_ANEXO))
+```
+
+#### Estación por estación {#sec-rm-estaciones}
+
+```{python}
+#| code-fold: true
+#| code-summary: "Desempeño diario de cada estación de la RM en los dos regímenes"
+#| label: tbl-rm-estaciones
+#| tbl-cap: "Cada estación de la Región Metropolitana: desempeño de la media diaria con el modelo que la vio (sin validación) y con el que no la vio (LOSO), y la diferencia entre ambos. Un optimismo grande señala una estación cuyo nivel el modelo aprende de memoria y no reconstruye desde los predictores."
+Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_estaciones_region(p, REGION_ANEXO)}"
+                      for p in CONTAMINANTES))
+```
+
+#### Comparación de motores en la RM {#sec-rm-motores}
+
+Los diez motores sobre los pares de la Región Metropolitana, en los dos
+regímenes y además con la región completa fuera del entrenamiento (LRO), que
+es la pregunta que de verdad importa para una comuna sin monitor.
+
+```{python}
+#| echo: false
+Markdown("\n\n".join(lectura_motores(p, ("loso",), REGION_ANEXO) for p in CONTAMINANTES))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "RM: R² por motor, régimen y nivel de agregación"
+#| label: tbl-rm-motores
+#| tbl-cap: "Región Metropolitana: R² por motor (filas) y régimen × nivel de agregación (columnas). «Sin validación» es el motor ajustado con todas las estaciones; LOSO deja fuera la estación evaluada y conserva las vecinas de la región; LRO deja fuera toda la región."
+Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_motores(p, ('ajuste', 'loso', 'lro'), REGION_ANEXO)}"
+                      for p in CONTAMINANTES))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "RM: métricas completas y detección de excedencias por motor (LOSO)"
+#| label: tbl-rm-motores-diario
+#| tbl-cap: "Región Metropolitana, LOSO, pares diarios: batería completa de métricas por motor y detección de días sobre cada umbral."
+Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_motores_diario(p, 'loso', REGION_ANEXO)}"
+                      f"\n\n{tabla_motores_excedencia(p, 'loso', REGION_ANEXO)}" for p in CONTAMINANTES))
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "RM: optimismo por motor"
+#| label: tbl-rm-optimismo
+#| tbl-cap: "Región Metropolitana: R² sin validación, R² LOSO y su diferencia por motor, en tres lecturas."
+Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_optimismo(p, REGION_ANEXO)}" for p in CONTAMINANTES))
+```
+
+::: {.panel-tabset}
+
+##### PM₂.₅
+
+```{python}
+#| echo: false
+#| label: fig-rm-motores-pm25
+#| fig-cap: "PM₂.₅ en la Región Metropolitana: R² por motor (filas), régimen (paneles) y nivel de agregación (columnas)."
+Image(str(fig_motores_niveles("pm25", ("ajuste", "loso", "lro"), REGION_ANEXO)))
+```
+
+```{python}
+#| echo: false
+#| label: fig-rm-optimismo-pm25
+#| fig-cap: "PM₂.₅ en la Región Metropolitana: desempeño aparente por motor (izquierda) y optimismo respecto de LOSO (derecha)."
+Image(str(fig_optimismo("pm25", REGION_ANEXO)))
+```
+
+##### NO₂
+
+```{python}
+#| echo: false
+#| label: fig-rm-motores-no2
+#| fig-cap: "NO₂ en la Región Metropolitana: R² por motor (filas), régimen (paneles) y nivel de agregación (columnas)."
+Image(str(fig_motores_niveles("no2", ("ajuste", "loso", "lro"), REGION_ANEXO)))
+```
+
+```{python}
+#| echo: false
+#| label: fig-rm-optimismo-no2
+#| fig-cap: "NO₂ en la Región Metropolitana: desempeño aparente por motor (izquierda) y optimismo respecto de LOSO (derecha)."
+Image(str(fig_optimismo("no2", REGION_ANEXO)))
+```
+
+:::
 
 ## Limitaciones {#sec-limitaciones}
 
@@ -6831,195 +7152,10 @@ Markdown("\n".join([
 ]))
 ```
 
-## Anexo: la Región Metropolitana {#sec-anexo-rm}
 
-Las mismas tablas y las mismas figuras del informe, calculadas **sólo con
-las estaciones de la Región Metropolitana**. El modelo no cambia: es el
-mismo ajuste nacional y las mismas predicciones; lo único que cambia es el
-subconjunto de pares sobre el que se calculan las métricas. Se repite la
-separación del cuerpo del informe: primero sin validación cruzada, después
-con ella.
+## Referencias {.unnumbered #sec-referencias}
 
-Tres advertencias propias de mirar una sola región:
-
-- **LOSO en la RM es un caso favorable.** Al dejar fuera una estación
-  metropolitana, el modelo conserva las otras de la misma cuenca como
-  vecindario, a pocos kilómetros. Eso no se parece a estimar una comuna sin
-  monitores en una región con red rala. El caso exigente está en la tercera
-  columna de @tbl-rm-motores: el protocolo LRO deja fuera **toda** la
-  región, así que la RM se estima sin ninguna de sus estaciones.
-- **Es la zona mejor observada del país**, con la red más densa y el
-  episodio invernal más marcado, de modo que estas cifras no se pueden
-  extrapolar al resto de Chile: para eso está el cuerpo del informe.
-- Los cortes de categoría y los umbrales de excedencia son los mismos del
-  informe (@sec-protocolos), no los de la gestión de episodios de la RM, que
-  usa promedios móviles de 24 h y el ICAP.
-
-```{python}
-#| code-fold: true
-#| code-summary: "Ámbito del anexo y sus tablas de evaluación (cacheadas, mismo código que el informe)"
-REGION_ANEXO = os.environ.get("MODELO_1KM_REGION_ANEXO", "RM")
-EVAL_REGION = {pol: EV(pol, "loso", "lgbm", REGION_ANEXO) for pol in CONTAMINANTES}
-EVAL_REGION_AJUSTE = {pol: EV(pol, "ajuste", "lgbm", REGION_ANEXO) for pol in CONTAMINANTES}
-
-Markdown(pd.DataFrame([{
-    "contaminante": NOMBRE_POL_TXT[pol],
-    "estaciones": int(_oof_variante(pol, "loso", "lgbm", REGION_ANEXO)["estacion"].nunique()),
-    "pares horarios": f"{len(_oof_variante(pol, 'loso', 'lgbm', REGION_ANEXO)):,}".replace(",", "."),
-    "% del panel nacional": f"{100 * len(_oof_variante(pol, 'loso', 'lgbm', REGION_ANEXO)) / len(OOF[pol]):.0f}",
-    "período": f"{int(_oof_variante(pol, 'loso', 'lgbm', REGION_ANEXO)['anio'].min())}–"
-               f"{int(_oof_variante(pol, 'loso', 'lgbm', REGION_ANEXO)['anio'].max())}",
-} for pol in CONTAMINANTES]).pipe(a_markdown))
-```
-
-### Sin validación cruzada en la RM {#sec-rm-sv}
-
-```{python}
-#| echo: false
-Markdown("\n\n".join(lectura_global(p, EVAL_REGION_AJUSTE, "ajuste") for p in CONTAMINANTES))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "RM sin validación: métricas por nivel de agregación"
-#| label: tbl-rm-sv-niveles
-#| tbl-cap: "Región Metropolitana, sin validación cruzada: métricas por nivel de agregación del modelo final ajustado con todas las estaciones del país."
-Markdown(tabla_niveles(EVAL_REGION_AJUSTE))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "RM sin validación: lectura espacial, lectura temporal y categorías"
-#| label: tbl-rm-sv-lecturas
-#| tbl-cap: "Región Metropolitana, sin validación cruzada: lectura espacial por cuatrienio, lectura temporal (anomalías dentro de estación) y acuerdo por categorías de la media diaria."
-Markdown(tabla_espacial(EVAL_REGION_AJUSTE) + "\n\n" + tabla_temporal(EVAL_REGION_AJUSTE)
-         + "\n\n" + tabla_categorias(EVAL_REGION_AJUSTE))
-```
-
-```{python}
-#| output: asis
-#| echo: false
-print(bloque_figuras_region("ajuste", REGION_ANEXO))
-```
-
-### Con validación cruzada en la RM {#sec-rm-loso}
-
-```{python}
-#| echo: false
-Markdown("\n\n".join(lectura_global(p, EVAL_REGION, "loso") for p in CONTAMINANTES))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "RM con validación: métricas por protocolo y nivel de agregación"
-#| label: tbl-rm-loso-niveles
-#| tbl-cap: "Región Metropolitana, validación cruzada: métricas por protocolo y nivel de agregación. LOSO deja fuera la estación evaluada pero conserva las demás de la región; LRO deja fuera la región completa."
-Markdown(tabla_niveles(EVAL_REGION))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "RM con validación: lectura espacial, lectura temporal y categorías"
-#| label: tbl-rm-loso-lecturas
-#| tbl-cap: "Región Metropolitana, LOSO: lectura espacial por cuatrienio, lectura temporal (anomalías dentro de estación) y acuerdo por categorías de la media diaria."
-Markdown(tabla_espacial(EVAL_REGION) + "\n\n" + tabla_temporal(EVAL_REGION)
-         + "\n\n" + tabla_categorias(EVAL_REGION))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "RM con validación: desempeño por macrozona, cuatrienio, régimen y temporada"
-#| label: tbl-rm-loso-estratos
-#| tbl-cap: "Región Metropolitana, LOSO: pares diarios por cuatrienio, régimen de predictores y temporada (la fila de macrozona es Centro, porque toda la región lo es)."
-Markdown(tablas_estratos(EVAL_REGION, "loso"))
-```
-
-```{python}
-#| output: asis
-#| echo: false
-print(bloque_figuras_region("loso", REGION_ANEXO))
-```
-
-### Estación por estación {#sec-rm-estaciones}
-
-```{python}
-#| code-fold: true
-#| code-summary: "Desempeño diario de cada estación de la RM en los dos regímenes"
-#| label: tbl-rm-estaciones
-#| tbl-cap: "Cada estación de la Región Metropolitana: desempeño de la media diaria con el modelo que la vio (sin validación) y con el que no la vio (LOSO), y la diferencia entre ambos. Un optimismo grande señala una estación cuyo nivel el modelo aprende de memoria y no reconstruye desde los predictores."
-Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_estaciones_region(p, REGION_ANEXO)}"
-                      for p in CONTAMINANTES))
-```
-
-### Comparación de motores en la RM {#sec-rm-motores}
-
-Los diez motores sobre los pares de la Región Metropolitana, en los dos
-regímenes y además con la región completa fuera del entrenamiento (LRO), que
-es la pregunta que de verdad importa para una comuna sin monitor.
-
-```{python}
-#| echo: false
-Markdown("\n\n".join(lectura_motores(p, ("loso",), REGION_ANEXO) for p in CONTAMINANTES))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "RM: R² por motor, régimen y nivel de agregación"
-#| label: tbl-rm-motores
-#| tbl-cap: "Región Metropolitana: R² por motor (filas) y régimen × nivel de agregación (columnas). «Sin validación» es el motor ajustado con todas las estaciones; LOSO deja fuera la estación evaluada y conserva las vecinas de la región; LRO deja fuera toda la región."
-Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_motores(p, ('ajuste', 'loso', 'lro'), REGION_ANEXO)}"
-                      for p in CONTAMINANTES))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "RM: métricas completas y detección de excedencias por motor (LOSO)"
-#| label: tbl-rm-motores-diario
-#| tbl-cap: "Región Metropolitana, LOSO, pares diarios: batería completa de métricas por motor y detección de días sobre cada umbral."
-Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_motores_diario(p, 'loso', REGION_ANEXO)}"
-                      f"\n\n{tabla_motores_excedencia(p, 'loso', REGION_ANEXO)}" for p in CONTAMINANTES))
-```
-
-```{python}
-#| code-fold: true
-#| code-summary: "RM: optimismo por motor"
-#| label: tbl-rm-optimismo
-#| tbl-cap: "Región Metropolitana: R² sin validación, R² LOSO y su diferencia por motor, en tres lecturas."
-Markdown("\n\n".join(f"**{NOMBRE_POL_TXT[p]}**\n\n{tabla_optimismo(p, REGION_ANEXO)}" for p in CONTAMINANTES))
-```
-
-::: {.panel-tabset}
-
-#### PM₂.₅
-
-```{python}
-#| echo: false
-#| label: fig-rm-motores-pm25
-#| fig-cap: "PM₂.₅ en la Región Metropolitana: R² por motor (filas), régimen (paneles) y nivel de agregación (columnas)."
-Image(str(fig_motores_niveles("pm25", ("ajuste", "loso", "lro"), REGION_ANEXO)))
-```
-
-```{python}
-#| echo: false
-#| label: fig-rm-optimismo-pm25
-#| fig-cap: "PM₂.₅ en la Región Metropolitana: desempeño aparente por motor (izquierda) y optimismo respecto de LOSO (derecha)."
-Image(str(fig_optimismo("pm25", REGION_ANEXO)))
-```
-
-#### NO₂
-
-```{python}
-#| echo: false
-#| label: fig-rm-motores-no2
-#| fig-cap: "NO₂ en la Región Metropolitana: R² por motor (filas), régimen (paneles) y nivel de agregación (columnas)."
-Image(str(fig_motores_niveles("no2", ("ajuste", "loso", "lro"), REGION_ANEXO)))
-```
-
-```{python}
-#| echo: false
-#| label: fig-rm-optimismo-no2
-#| fig-cap: "NO₂ en la Región Metropolitana: desempeño aparente por motor (izquierda) y optimismo respecto de LOSO (derecha)."
-Image(str(fig_optimismo("no2", REGION_ANEXO)))
-```
-
+::: {#refs}
 :::
+
+[Bibliografía BibTeX](references/references.bib) · [Estilo APA CSL](references/apa.csl)
