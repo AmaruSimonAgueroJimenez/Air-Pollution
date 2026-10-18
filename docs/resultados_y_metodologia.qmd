@@ -1,0 +1,322 @@
+---
+title: "Resultados y metodología ambiental: PM₂.₅ y NO₂"
+subtitle: "Guía ampliada de los informes, resultados y límites disponibles"
+date: 2026-10-18
+lang: es
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+    html-math-method: mathml
+execute:
+  enabled: false
+---
+
+## Alcance de esta publicación
+
+Este sitio reúne los resultados ambientales existentes, desde los modelos
+multicontaminante por estación hasta la estimación horaria de PM₂.₅ y NO₂
+en una grilla angular de 0,01° para Chile. PM₂.₅ es material particulado,
+no un gas; NO₂ es dióxido de nitrógeno. El objetivo de ambos productos es
+estimar concentraciones de superficie, no emisiones ni efectos causales
+sobre la salud.
+
+Esta guía amplía la navegación y explica el diseño. **No sustituye los
+informes completos, no cambia sus cifras y no representa una nueva
+estimación.** Se conservan los `.qmd`, las tablas, las figuras y los HTML
+ya producidos. Publicarlos no vuelve a ejecutar modelos o descargadores.
+
+| Material | Qué contiene | Cómo debe leerse |
+| --- | --- | --- |
+| [Informe completo de PM₂.₅ y NO₂](modelo_1km_horario.html) y [fuente QMD](modelo_1km_horario.qmd) | Descriptivos, diseño, estimación, validación, comparación de motores, superficies y exposición | Referencia ambiental existente, con sus limitaciones originales |
+| [Modelos multicontaminante anteriores](../others_files/20260902_informe_modelos_estimacion.html) y [fuente QMD](../others_files/20260902_informe_modelos_estimacion.qmd) | PM₂.₅, PM10, NO₂, O₃, SO₂ y CO por estación/hora | Etapa histórica; no confundir con el producto horario de grilla |
+| [Piloto de pérdidas sin DMC](piloto_perdidas_sin_dmc_20261013.html) y [fuente QMD](piloto_perdidas_sin_dmc_20261013.qmd) | Comparación exploratoria real de LightGBM/XGBoost y pérdidas para PM₂.₅/NO₂ | Desarrollo, no selección confirmatoria ni sustitución de la referencia |
+| [Estado de la rama ambiental nueva](estado_ambiental_next_20261014.html) y [fuente QMD](estado_ambiental_next_20261014.qmd) | Implementación y pruebas simuladas del camino DMC–modelo–grilla | No acredita un modelo DMC real ajustado ni un nuevo producto nacional |
+
+## Recorrido de lectura completo
+
+El informe principal conserva el detalle que permite evaluar cada decisión,
+no sólo su resultado final. Se puede leer en este orden:
+
+1. [Resumen, alcance y decisiones](modelo_1km_horario.html#sec-resumen).
+2. [Red de observación, cobertura y control de calidad](modelo_1km_horario.html#sec-descriptivo).
+3. [Fuentes y resolución nativa](modelo_1km_horario.html#sec-desc-fuentes).
+4. [Metodología completa](modelo_1km_horario.html#sec-metodologia).
+5. [Ajuste sin validación cruzada](modelo_1km_horario.html#sec-sin-validacion), separado de
+   [resultados fuera de muestra](modelo_1km_horario.html#sec-resultados).
+6. [Diferencia entre ajuste y validación: optimismo](modelo_1km_horario.html#sec-optimismo).
+7. [Superficies horarias](modelo_1km_horario.html#sec-superficies) y
+   [exposición por celda y bienio](modelo_1km_horario.html#sec-exposicion).
+8. [Limitaciones](modelo_1km_horario.html#sec-limitaciones),
+   [reproducibilidad](modelo_1km_horario.html#sec-reproducibilidad) y
+   [anexo de la Región Metropolitana](modelo_1km_horario.html#sec-anexo-rm).
+
+## Diseño, población de observaciones y dominio
+
+### Qué se estima y en qué unidad
+
+El producto de referencia define como unidad la **celda de 0,01° × bin
+horario**. PM₂.₅ se presenta en µg/m³ y NO₂ en ppb. La grilla es nominalmente
+de aproximadamente 1 km: una resolución angular de 0,01° no equivale a
+1.000 metros exactos y cambia con la latitud.
+
+El período declarado por el informe y los registros de referencia es
+**2000-01-01 a 2026-09-13**. Esto identifica el rango de esa versión, no
+demuestra que todas las fuentes, estaciones o celdas dispongan de datos
+continuos durante todo él. Ampliar una descarga hasta otra fecha no
+actualiza por sí solo el modelo ya ajustado.
+
+### Estaciones y representatividad
+
+La calibración emplea observaciones SINCA y la red adicional de NO₂
+descrita en el informe. Cada estación se representa mediante su celda;
+para predecir en el territorio se deben fabricar los mismos tipos de
+predictores con las mismas reglas. La red no es una muestra aleatoria
+uniforme de Chile: la concentración urbana e industrial del monitoreo y
+su expansión temporal condicionan la generalización.
+
+Las distribuciones, mapas por cuatrienio y series por macrozona son parte
+del análisis, no adornos del documento. Permiten identificar qué lugares y
+períodos sostienen las métricas y dónde el modelo extrapola. El informe
+mantiene además un análisis específico de la Región Metropolitana.
+
+## Observaciones, calidad y reloj
+
+### Control de calidad
+
+La referencia selecciona las observaciones conforme al manifiesto del
+derivado y al rango físico admitido, y excluye rachas de 24 o más registros
+idénticos consecutivos. El filtro busca sensores detenidos, pero puede
+retirar valores realmente bajos o asociados al límite de detección. Se
+conservan los recuentos de calidad; ausencia de registro no se transforma
+en concentración cero.
+
+Las banderas de calidad, duplicados, unidades, cambios de estación y
+cobertura son cuestiones distintas. Una tabla con muchas filas no prueba
+por sí sola una serie homogénea ni completa.
+
+### Tratamiento temporal y límites de la evidencia
+
+El modelo de referencia documenta una convención UTC−4 fija y de etiqueta
+de intervalo. **La propia sección de limitaciones aclara que la prueba
+estructural no confirma por sí sola el offset ni todas las unidades
+históricas.** No debe presentarse esa convención como una confirmación
+nueva de los metadatos originales.
+
+La descarga DMC nueva conserva la hora de origen y `timestamp_utc` nulo
+cuando no hay evidencia para convertirla. No se aplica automáticamente
+el horario civil con cambios estacionales. Presión QFE, QFF y QNH no son
+intercambiables; RR06 es una acumulación de seis horas, no lluvia horaria.
+La incorporación de DMC al modelo exige resolver estas semánticas antes
+del ajuste, aunque la descarga pueda seguir reuniendo archivos.
+
+## Fuentes predictoras y soporte espacial
+
+### Resolución nativa, no observaciones horarias inventadas
+
+La referencia reúne reanálisis de meteorología y composición, productos
+satelitales y covariables estáticas o anuales. El
+[descriptivo de fuentes](modelo_1km_horario.html#sec-desc-fuentes) detalla
+cobertura, variables y productos concretos.
+
+| Familia | Uso en la referencia | Precaución de interpretación |
+| --- | --- | --- |
+| ERA5-Land y ERA5 BLH | Meteorología de superficie y altura de capa límite | La resolución de la salida no aumenta la resolución meteorológica de la fuente |
+| MERRA-2, GEOS-CF y CAMS EAC4 | Meteorología, aerosoles y composición atmosférica | Sus períodos y frecuencias no son idénticos; los productos retrospectivos no son pronósticos |
+| MAIAC | AOD y resúmenes temporales con criterios de calidad | AOD no es una medición directa de PM₂.₅ de superficie |
+| TROPOMI NO₂ | Columna troposférica, calidad, precisión y hora de pasada | Una columna satelital no es NO₂ superficial ni una observación cada hora |
+| ACAG | PM₂.₅ mensual y climatología declarada cuando falta el mes | La climatología se identifica mediante bandera; no es una medición del mes ausente |
+| Uso de suelo, población, relieve, vialidad y calendario | Contrastes espaciales y temporales | Deben conservarse el año, disponibilidad y procedencia de cada covariable |
+
+Los satélites conservan su frecuencia real. Entre pasadas, de noche o
+cuando falta una fuente, la predicción sigue siendo una **estimación de
+modelo**, no una nueva observación satelital.
+
+### Grilla y enlace al píxel
+
+La grilla de referencia se alinea con ACAG y enlaza cada celda con píxeles
+nativos de los otros productos dentro de radios declarados. El tratamiento
+costero de ERA5-Land busca un píxel de tierra válido cuando el propio no
+tiene dato, y conserva esa condición. No equivale a medir la meteorología
+exacta del punto costero.
+
+El informe conserva también el experimento que interpoló reanálisis
+gruesos y sus criterios de evaluación. La grilla fina no elimina costuras
+ni convierte información gruesa en meteorología observada de 1 km.
+Véanse [grilla y enlaces](modelo_1km_horario.html#sec-grilla) y
+[experimento de interpolación](modelo_1km_horario.html#sec-interpolacion).
+
+## Construcción del panel y prevención de fuga
+
+El panel empareja estación/celda y tiempo con las variables de su píxel
+enlazado, satélites de la fecha correspondiente, datos mensuales,
+estáticas del año y calendario. Las ausencias permanecen explícitas y se
+tratan conforme a la receta de cada motor, sin rellenarlas silenciosamente.
+
+La referencia incluye predictores de vecindario de observaciones. Por
+ello, **retener filas de prueba no basta**: al validar se debe excluir su
+información de las estaciones vecinas y de las transformaciones ajustadas.
+El informe explica qué se recalcula bajo LOSO, LBO y LRO.
+
+El nuevo piloto sin DMC excluye el vecindario y ACAG para evitar vías de
+fuga relevantes a sus pruebas espacial y temporal. Esa ablación cambia
+el problema y no reproduce exactamente el modelo de referencia. Sus
+métricas no deben compararse directamente como si fueran las mismas
+filas, predictores y presupuesto.
+
+## Estimación, transformaciones y modelos comparadores
+
+### Modelo de referencia
+
+El motor del producto es LightGBM sobre `log1p(y)`, con una corrección de
+retransformación a la escala de concentración. La referencia estima la
+corrección usando residuos fuera de pliegue y la estratifica por macrozona
+y franja horaria para los dos contaminantes. La receta, hiperparámetros,
+alternativas y límites están en
+[Motor de estimación](modelo_1km_horario.html#sec-motor).
+
+Una media en escala log no vuelve automáticamente a la media en escala
+original. La corrección de retransformación busca reducir ese sesgo, pero
+no garantiza ausencia de sesgo en cada estación ni una buena reproducción
+de los extremos. Su evaluación debe realizarse en las unidades originales.
+
+### Comparación de motores
+
+El informe conserva LightGBM, GWR, regression-kriging, interpolación,
+Random Forest, red neuronal, proceso gaussiano, modelo lineal mixto,
+modelo de alertas y ensamble por apilado. Es importante leer las
+configuraciones y los tamaños de entrenamiento de cada uno, no sólo el
+orden de una tabla.
+
+Las limitaciones originales declaran presupuestos de entrenamiento
+desiguales, ausencia de una búsqueda comparable de hiperparámetros y una
+vía de fuga favorable al ensamble. Esta publicación **no corrige ni
+oculta** esas limitaciones y no transforma esa comparación en una
+clasificación definitiva del mejor algoritmo posible.
+
+## Validación y significado de las métricas
+
+### Preguntas que responde cada protocolo
+
+| Protocolo | Separación | Pregunta |
+| --- | --- | --- |
+| LOSO | Retiene el sitio/celda y sus estaciones coincidentes | ¿Cómo se estima un sitio sin usar sus propias observaciones? |
+| LBO | Retiene el sitio y su entorno; radio de referencia de 10 km | ¿Qué ocurre si tampoco hay monitores cercanos para entrenar/anclar? |
+| LRO | Retiene una región y recalcula el vecindario sin ella | ¿Cómo se extrapola espacialmente a una región no observada en el ajuste? |
+| LPO | Retiene un cuatrienio | ¿Cómo cambia el desempeño en períodos retenidos? |
+| Ajuste completo | Usa todas las estaciones | Control del producto final; no mide generalización fuera de muestra |
+
+Se conservan separadas las secciones de ajuste aparente y validación.
+Su diferencia cuantifica optimismo; no se mezclan sus cifras para
+describir el desempeño fuera de muestra.
+
+### Agregación, comparabilidad y métricas
+
+La referencia evalúa pares observación–estimación horarios, diarios,
+mensuales y anuales. Exige al menos 18 pares horarios para un día válido,
+20 días para un mes y 9 meses para un año, con los mismos tiempos en ambos
+lados. Esas reglas pertenecen a esta evaluación y no certifican una
+cobertura continua de todas las superficies.
+
+R², correlación y acuerdo no son sinónimos. El informe informa también
+RMSE, MAE, sesgo, errores normalizados y métricas de concordancia.
+Una correlación alta puede coexistir con sobreestimación y compresión de
+picos; R² respecto de la identidad puede ser negativo. Además, separa:
+
+- **Lectura espacial:** diferencias de concentración entre estaciones.
+- **Lectura temporal:** variaciones y anomalías dentro de cada estación.
+- **Estratos:** macrozona, período, régimen de predictores y temporada.
+
+Los umbrales y categorías de la referencia conservan sus definiciones
+históricas. Su aplicación a medias del día local no reproduce por sí
+misma una evaluación regulatoria con promedios móviles.
+
+## Piloto de pérdidas y cuantiles sin DMC
+
+El [informe exploratorio completo](piloto_perdidas_sin_dmc_20261013.html)
+conserva diseño, recetas, tamaños, tablas y resultados no redondeados.
+Se completaron 48 ajustes de LightGBM y XGBoost con pruebas espacial y
+temporal sobre el período 2019–2024, sin elegir un ganador de producción.
+La prueba temporal retiene 2024 de forma retrospectiva; no es un pronóstico
+operativo, porque utiliza también fuentes retrospectivas.
+
+MSE en escala original, log+Duan, Huber y pinball no persiguen
+necesariamente la misma cantidad. P50 es una mediana, no una media de
+exposición. El intervalo P05–P95 tiene cobertura nominal del 90 %, pero
+la cobertura se comprueba en datos retenidos: el piloto documenta
+infracobertura en 7 de 8 combinaciones del test completo y en las 8
+del subconjunto validado/nativo.
+
+Ordenar cuantiles evita cruces, pero no garantiza cobertura. Tampoco
+promediar cuantiles horarios produce automáticamente un cuantil diario.
+El piloto no aporta una validación confirmatoria nacional ni intervalos
+de confianza de las diferencias entre motores.
+
+## Superficies, exposición y trazabilidad
+
+El modelo final produce superficies con el mismo contrato de predictores
+usado para los monitores. La referencia escribe NetCDF diarios con horas
+y celdas y un manifiesto asociado; el informe muestra mapas y agregaciones.
+Las medias, percentiles, duración, intensidad y número de episodios son
+métricas distintas y deben conservar su soporte temporal.
+
+Se publican las
+[métricas PM₂.₅](../output_files/modelo_1km/metricas_pm25.json),
+[métricas NO₂](../output_files/modelo_1km/metricas_no2.json) y el
+[registro de producción](../output_files/modelo_1km/produccion_serie.json).
+El último es un registro existente de ejecución: esta reparación web
+**no ha reabierto ni auditado todos los NetCDF de la serie**, ni vuelve a
+certificar cada celda/hora.
+
+Los archivos pesados de datos crudos, paneles y superficies no se copian
+al alojamiento web. El índice facilita las tablas/figuras ambientales
+publicables y conserva separadas las variantes `interp`,
+`no2sincosta`, `previoenlace`, `prueba` y `smoke`. Una prueba corta o
+una sensibilidad histórica no sustituye el producto de referencia.
+
+## Limitaciones que deben acompañar cualquier lectura
+
+El producto extrapola en lugares escasamente observados, en particular
+territorios alejados de la red. Los años tempranos y tardíos tienen
+diferentes estaciones y fuentes: contrastar sus mapas puede mezclar
+cambio ambiental y cambio del instrumento de estimación. No debe
+interpretarse automáticamente como una tendencia ambiental real.
+
+Las fuentes gruesas dejan costuras; la meteorología costera puede
+proceder de otro píxel; los límites de detección y el filtro de rachas
+afectan observaciones; y persisten incertidumbres históricas de reloj y
+unidades. Las métricas de un grupo bien monitoreado no describen por
+necesidad la incertidumbre de todo Chile.
+
+Una concentración estimada no demuestra una asociación epidemiológica,
+un efecto causal ni validez para un uso clínico. Air-Pollution conserva
+el alcance ambiental; el repositorio de salud es independiente.
+
+## Qué falta para la nueva rama con DMC
+
+Las pruebas simuladas comprueban funcionamiento del código, no calidad
+predictiva en datos reales. La adopción de la rama DMC requiere inventario
+y manifiestos verificables, evidencia de reloj/unidades/coordenadas/QC,
+operador espacial fijado, paneles y pliegues trazables y una evaluación
+ambiental explícita. Terminar la descarga no autoriza automáticamente
+un ajuste ni convierte los meses parciales en observaciones completas.
+
+## Reproducción y actualización de la web
+
+Los QMD completos siguen disponibles como fuentes de los informes y
+conservan sus métodos, tablas y figuras. Sus comandos científicos no se
+ejecutan al visitar o publicar el sitio. Las dependencias web se incluyen
+de manera explícita; el índice no ofrece archivos ignorados o presentes
+sólo en una máquina.
+
+La publicación estática valida los enlaces locales y conserva los bytes
+de los informes existentes. Un enlace que funciona prueba accesibilidad;
+un hash coincidente prueba integridad; ninguno, por sí solo, demuestra
+calidad científica o cobertura completa.
+
+Esta guía es una instantánea documental del 18 de octubre de 2026,
+basada en los informes enlazados. No es un panel de avance en tiempo real.
+

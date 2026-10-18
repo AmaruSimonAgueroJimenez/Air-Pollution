@@ -1,0 +1,220 @@
+---
+title: "Piloto ambiental sin DMC: pérdidas y cuantiles horarios"
+lang: es
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: body
+    toc-depth: 2
+    page-layout: full
+    embed-resources: true
+    include-in-header:
+      text: |
+        <style>
+        main table { display: block; max-width: 100%; overflow-x: auto; font-size: .9rem; }
+        main p { max-width: 76ch; }
+        </style>
+execute:
+  enabled: false
+---
+
+## Alcance
+
+Prueba exploratoria de LightGBM y XGBoost con datos reales de PM₂,₅ y NO₂
+disponibles antes de incorporar DMC. No modifica ni reemplaza los modelos,
+superficies o resultados anteriores del paper, presentación y póster. No es
+la comparación confirmatoria completa del protocolo ambiental v2 ni elige
+un modelo de producción. El histórico ya fue explorado en v1.
+
+Se comparan MSE en escala original, MSE sobre log1p con retransformación
+global de Duan y Huber. Pinball se utiliza adicionalmente para estimar P05,
+P50 y P95 de la concentración horaria. **P50 es una mediana, no una media**;
+el intervalo P05–P95 tiene cobertura nominal del 90%, que se comprueba
+empíricamente y no se da por garantizada.
+
+## Diseño de la prueba
+
+- Días 5, 12, 19 y 26 de cada mes, entre 2019 y 2024, fijados antes de
+  examinar las métricas. Los bloques estación–día se conservan enteros al
+  aplicar los topes de 50.000 filas de ajuste y 20.000 de calibración/prueba.
+- Reloj **UTC−4 fijo**, coherente con el panel fuente; los promedios diarios
+  de este piloto no se denominan días civiles de America/Santiago.
+- Prueba espacial: estaciones del grupo RVIII del manifiesto LRO fuera del
+  ajuste; otras estaciones completas se reservan para calibración.
+- Prueba temporal: ajuste 2019–2022, calibración 2023 y prueba 2024. Es una
+  evaluación retrospectiva sobre un año retenido, no un pronóstico operativo:
+  algunos predictores son reanálisis y productos retrospectivos.
+- Mismas filas y predictores para todos los candidatos dentro de cada prueba.
+  Dos hilos, 150 rondas, recetas fijas, sin búsqueda ni ensamble en esta pasada.
+- Duan y el umbral de Huber se estiman exclusivamente con la calibración
+  interna, sin usar las etiquetas de prueba y sin reajustar con la calibración.
+
+El ajuste conserva la calidad mixta del panel. En la evaluación se informa
+tanto el test completo como el subconjunto SINCA `validado` / SNIFA
+`usable_native`, unido por estación y hora UTC. Evaluar ese subconjunto no
+equivale a haber entrenado un modelo exclusivamente con datos validados.
+
+Se excluyen `obs_vec`, `peso_vec` y `dist_est_km` para no reutilizar vecinos
+calculados con las observaciones retenidas. También se excluyen `acag_pm25`
+y `acag_clim`, cuyo producto/climatología puede incorporar información de
+años posteriores al ajuste temporal. Quedan **65 predictores para PM₂,₅ y
+64 para NO₂**. Esta ablación no reproduce el modelo operativo completo;
+posteriormente podrá añadirse el vecindario recalculado por partición y DMC
+con reloj, unidades y procedencia verificados.
+
+## Resultados
+
+Se completaron **48 ajustes en 126,6 segundos**, sin DMC. No hay una pérdida
+que gane en todas las pruebas: log+Duan reduce RMSE de PM₂,₅ en RVIII, pero
+no en el año 2024 retenido. Los intervalos cuantílicos muestran infracobertura
+en **7 de las 8** combinaciones contaminante–prueba–motor; aún no deben
+presentarse como intervalos calibrados al 90%.
+
+### Tamaño y calidad del conjunto de prueba
+
+| Contaminante | Prueba | Ajuste | Calibración | Prueba | Prueba validada/nativa |
+| --- | --- | ---: | ---: | ---: | ---: |
+| PM₂,₅ | RVIII retenida | 50.000 | 20.000 | 20.000 | 10.293 (51,5%) |
+| PM₂,₅ | Año 2024 retenido | 50.000 | 19.998 | 20.000 | 11.960 (59,8%) |
+| NO₂ | RVIII retenida | 50.000 | 20.000 | 20.000 | 3.595 (18,0%) |
+| NO₂ | Año 2024 retenido | 50.000 | 20.000 | 20.000 | 7.822 (39,1%) |
+
+Las filas pueden reaparecer en pruebas diferentes; no son 80.000 horas
+independientes. La baja fracción validada/nativa en NO₂–RVIII es una
+limitación importante. Todos los candidatos de una misma prueba comparten
+exactamente sus 20.000 pares de evaluación.
+
+### Pérdidas orientadas a media: RMSE horario y sesgo
+
+PM₂,₅ se expresa en µg/m³ y NO₂ en ppb. NMB es el sesgo normalizado,
+`100 × Σ(predicción − observación) / Σ(observación)`: positivo significa
+sobreestimación. Estas cifras corresponden al test completo, no sólo al
+subconjunto validado/nativo.
+
+| Contaminante | Prueba | Motor | RMSE MSE | RMSE log+Duan | NMB MSE | NMB log+Duan |
+| --- | --- | --- | ---: | ---: | ---: | ---: |
+| PM₂,₅ | RVIII | LightGBM | 31,52 | 28,60 | +33,1% | −19,7% |
+| PM₂,₅ | RVIII | XGBoost | 33,75 | 28,73 | +38,1% | −19,6% |
+| PM₂,₅ | 2024 | LightGBM | 28,74 | 29,04 | +2,3% | −8,3% |
+| PM₂,₅ | 2024 | XGBoost | 28,77 | 29,16 | +2,3% | −8,4% |
+| NO₂ | RVIII | LightGBM | 6,08 | 6,05 | +15,4% | +1,8% |
+| NO₂ | RVIII | XGBoost | 6,06 | 6,03 | +17,0% | +1,6% |
+| NO₂ | 2024 | LightGBM | 6,86 | 6,75 | −3,4% | −2,6% |
+| NO₂ | 2024 | XGBoost | 6,86 | 6,75 | −3,4% | −3,3% |
+
+Un RMSE menor no garantiza un sesgo aceptable: en PM₂,₅–RVIII, log+Duan
+reduce el error cuadrático pero subestima la suma observada alrededor de
+20%. No se comparan estas cifras directamente con la v1: cambiaron los
+predictores, el presupuesto de ajuste y el conjunto de evaluación.
+
+### Huber como diagnóstico robusto, no sustituto automático de la media
+
+| Contaminante | Prueba | Motor | RMSE horario | MAE horario | NMB |
+| --- | --- | --- | ---: | ---: | ---: |
+| PM₂,₅ | RVIII | LightGBM | 30,09 | 11,74 | −23,5% |
+| PM₂,₅ | RVIII | XGBoost | 30,04 | 11,75 | −22,6% |
+| PM₂,₅ | 2024 | LightGBM | 31,21 | 10,09 | −19,8% |
+| PM₂,₅ | 2024 | XGBoost | 31,25 | 10,12 | −20,3% |
+| NO₂ | RVIII | LightGBM | 5,99 | 3,94 | +10,0% |
+| NO₂ | RVIII | XGBoost | 6,00 | 3,96 | +10,6% |
+| NO₂ | 2024 | LightGBM | 7,62 | 4,12 | −13,9% |
+| NO₂ | 2024 | XGBoost | 7,60 | 4,10 | −13,9% |
+
+### Pinball y cobertura del intervalo P05–P95
+
+Se muestran los cuantiles **reordenados**. Menor pinball es mejor para el
+cuantil correspondiente; los valores no se comparan entre contaminantes
+con unidades diferentes. La cobertura objetivo es 90%, no 95%.
+
+| Contaminante | Prueba | Motor | Pinball P05 | Pinball P50 | Pinball P95 | Cobertura | Anchura media |
+| --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| PM₂,₅ | RVIII | LightGBM | 0,906 | 5,751 | 3,630 | 83,44% | 42,70 |
+| PM₂,₅ | RVIII | XGBoost | 0,903 | 5,933 | 4,281 | 85,87% | 47,80 |
+| PM₂,₅ | 2024 | LightGBM | 0,858 | 4,854 | 2,996 | 79,82% | 30,70 |
+| PM₂,₅ | 2024 | XGBoost | 0,826 | 5,208 | 3,768 | 86,06% | 45,58 |
+| NO₂ | RVIII | LightGBM | 0,408 | 1,962 | 0,835 | 71,28% | 12,45 |
+| NO₂ | RVIII | XGBoost | 0,359 | 1,972 | 1,143 | 79,38% | 24,38 |
+| NO₂ | 2024 | LightGBM | 0,392 | 1,882 | 0,884 | 80,92% | 13,59 |
+| NO₂ | 2024 | XGBoost | 0,391 | 2,119 | 1,116 | 90,70% | 21,66 |
+
+En el subconjunto validado/nativo, las coberturas respectivas son
+82,95%, 86,14%, 78,79%, 83,93%, 58,80%, 65,81%, 76,60% y 87,36%:
+**ninguna alcanza 90%**. Esto no demuestra que la bandera de calidad cause
+el cambio, porque también cambia la composición de estaciones y horas.
+
+Se observaron 0 cruces en los cuatro casos de XGBoost. LightGBM registró
+0, 2, 2 y 19 filas con cruces para PM₂,₅–RVIII, PM₂,₅–2024, NO₂–RVIII y
+NO₂–2024, respectivamente. Se conservan tanto las predicciones originales
+como las reordenadas; no se ocultan los cruces.
+
+Estos resultados justifican probar calibración **dentro del entrenamiento**
+y revisar soporte espacial y picos antes de usar los intervalos. No justifican
+cambiar la media de exposición por P50 o P95, promover un motor ni retocar
+los resultados históricos.
+
+Las [métricas completas de los 48 ajustes](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/metricas.csv)
+incluyen RMSE, MAE, sesgo, NMB y R² horarios, evaluación validada/nativa y
+RMSE diario para MSE/log+Duan. Los [JSON detallados](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/metricas.json)
+conservan los valores sin redondear; las tablas anteriores son una síntesis.
+
+Detalle de pinball, colas, cobertura y cruces:
+
+- PM₂,₅–RVIII: [LightGBM](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/cuantiles_pm25_espacial_RVIII_lightgbm.json), [XGBoost](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/cuantiles_pm25_espacial_RVIII_xgboost.json).
+- PM₂,₅–2024: [LightGBM](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/cuantiles_pm25_temporal_2024_lightgbm.json), [XGBoost](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/cuantiles_pm25_temporal_2024_xgboost.json).
+- NO₂–RVIII: [LightGBM](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/cuantiles_no2_espacial_RVIII_lightgbm.json), [XGBoost](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/cuantiles_no2_espacial_RVIII_xgboost.json).
+- NO₂–2024: [LightGBM](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/cuantiles_no2_temporal_2024_lightgbm.json), [XGBoost](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/cuantiles_no2_temporal_2024_xgboost.json).
+
+## Cómo interpretar pinball
+
+Pinball penaliza asimétricamente los errores para estimar el cuantil elegido.
+En P95, una subestimación de igual magnitud recibe una penalización 19 veces
+mayor que una sobreestimación. No convierte P95 en la media de exposición ni
+garantiza mejorar RMSE. Se informa la pérdida por cuantil, la proporción de
+observaciones bajo cada cuantil, la cobertura y anchura del intervalo, y los
+cruces antes y después de ordenar P05 ≤ P50 ≤ P95.
+
+Los promedios diarios se calculan sólo para las predicciones orientadas a
+media, sobre los mismos pares horarios y con al menos 18 horas distintas
+por estación–día. Promediar cuantiles horarios no produce un cuantil diario.
+La primera pasada no aplica calibración conformal ni proporciona intervalos
+de confianza de las diferencias entre modelos. Las horas están correlacionadas;
+estos resultados no justifican una declaración de superioridad nacional.
+
+## Fuentes y reproducción
+
+- [Código del piloto](../scripts_modelo_1km/v2/piloto_perdidas_sin_dmc.py).
+- [Definiciones locales de pérdidas](../scripts_modelo_1km/v2/perdidas_v2.py).
+- [Pinball: documentación oficial de scikit-learn](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.mean_pinball_loss.html).
+- [Objetivos cuantílicos de XGBoost](https://xgboost.readthedocs.io/en/stable/parameter.html).
+
+```bash
+/Users/amaruagueroj/micromamba/envs/amb_v2/bin/python -B \
+  scripts_modelo_1km/v2/piloto_perdidas_sin_dmc.py ejecutar \
+  --etiqueta NUEVA_ETIQUETA --limite-segundos 900
+```
+
+La etiqueta debe ser nueva: el programa rechaza sobrescribir una ejecución
+existente. El límite de tiempo es cooperativo, comprobado entre lotes y
+ajustes, no una interrupción exacta dentro del motor.
+
+Ejecución `pre_dmc_20261013_a`, completada el 13 de octubre de 2026 en hora
+de Chile. [Configuración y SHA256 de insumos/código](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/config.json),
+[estado final](../output_files/modelo_1km_v2/piloto_pre_dmc_20261013/estado.json)
+y selecciones de filas se conservan junto a las métricas.
+
+Configuración identificada por
+`89749bfc6695bc3ad187374892ccee0a5e9867dc9562304dfe04dbf64a3c528e`.
+Código del piloto utilizado:
+`550f24be5c96ae07e4857c62deb9309865a29870a633fef1714b9b34eec6b7ee`.
+Versiones: Python 3.11, LightGBM 4.7.0, XGBoost 3.4.2, NumPy 2.2.6,
+pandas 2.3.3 y PyArrow 25.0.0. Es un experimento de desarrollo separado;
+no se presenta como ejecución sellada del protocolo confirmatorio.
+
+Las predicciones estación–hora, cuantiles originales/reordenados y claves
+seleccionadas permanecen en
+`/Users/amaruagueroj/Asesorias_Data_local/AirPollution/modelado_1km_v2/pilotos_exploratorios/pre_dmc_20261013_a/`.
+El código y este informe se mantienen idénticos en los dos repositorios.
+
+Este QMD es una instantánea estática: renderizarlo no ejecuta modelos ni
+sobrescribe los resultados anteriores.

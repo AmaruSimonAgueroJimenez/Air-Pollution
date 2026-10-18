@@ -8,6 +8,32 @@ SNIFA).
 Aquí está sólo la estimación de la exposición. El uso de estas estimaciones en salud vive en otro
 repositorio (ver [Relación con Air-Pollution-Health-Chile](#relación-con-air-pollution-paper)).
 
+## Sitio web: resultados y metodología
+
+El [portal de resultados en GitHub Pages](https://amarusimonaguerojimenez.github.io/Air-Pollution/)
+conserva el informe completo y la fuente QMD del modelo horario de PM2.5 y NO2, los modelos
+multicontaminante previos, las tablas y figuras ambientales y los avances exploratorios separados
+de los productos de referencia. La [guía metodológica ampliada](docs/resultados_y_metodologia.qmd)
+explica el diseño, la validación, las incertidumbres y cómo leer cada resultado sin confundir
+un ensayo sintético con una estimación nacional nueva.
+
+La publicación usa `.github/workflows/pages.yml` y los HTML existentes: no ejecuta Quarto,
+modelos ni descargadores en GitHub. El preparador `others_scripts/preparar_github_pages.py`
+genera el índice público desde archivos versionados y la lista exacta `config/github_pages.json`,
+comprueba enlaces y conserva los informes byte a byte. El índice local no se sobrescribe.
+En **Settings → Pages → Source** el origen es **GitHub Actions**, no Jekyll. Para comprobar
+el sitio localmente, el destino debe ser nuevo:
+
+```bash
+python3 -B -m unittest discover -s others_scripts/tests -p test_github_pages.py -v
+python3 -B others_scripts/preparar_github_pages.py --include-manifest config/github_pages.json --output _site
+python3 -m http.server 8000 --directory _site
+```
+
+Los datos crudos, superficies NetCDF, paneles de entrenamiento, credenciales, logs y archivos
+ignorados quedan fuera del sitio. Se conserva el detalle de los `.qmd`; el fallo de Liquid que
+impedía publicar se evita sirviendo HTML estático, no editando el código científico del informe.
+
 ## Qué contiene
 
 | Parte | Dónde | Qué hace |
@@ -28,8 +54,8 @@ config/               catálogos versionados: estaciones y política temporal SI
 docs/                 informe del modelo de 1 km, notas técnicas de las fuentes, index.html y references/
 output_files/         resultados chicos y figuras de las superficies y del modelo de 1 km
 others_files/         material archivado con nombre AAAAMMDD_tipo_nombre, con su índice README.md
-others_scripts/       generar_indice_docs.py (regenera docs/index.html y others_files/README.md) y
-                      aligerar_html.py (figuras del informe HTML en paleta de 256 colores)
+others_scripts/       preparar_github_pages.py (índice público y publicación estática selectiva),
+                      generadores locales y aligerar_html.py (figuras del informe HTML)
 presentaciones/       presentaciones, guiones y videos de avance del proyecto
 data                  enlace simbólico a los datos crudos en el disco externo (no se versiona)
 logs/                 bitácoras locales del pipeline de descarga (no se versiona)
@@ -171,9 +197,9 @@ celda es enteramente modelado, y lejos de los monitores es una extrapolación.
   ejecutable. Descriptivo de la red SINCA y de cada fuente a su resolución nativa, panel de calibración,
   diez motores con y sin validación cruzada, anexo regional, superficies y métricas de exposición. Su
   render es `docs/modelo_1km_horario.html`, con las figuras incrustadas en paleta de 256 colores.
-- `docs/index.html`: índice del sitio. Lo regenera `python3 others_scripts/generar_indice_docs.py`;
-  con `--archivar` además mueve a `others_files/` las notas de `docs/` que llevan 72 horas sin citarse ni
-  modificarse.
+- `docs/index.html`: portal local conservado. El sitio público genera un índice aparte con
+  `others_scripts/preparar_github_pages.py`. No usar el generador histórico
+  `generar_indice_docs.py` para sustituir el portal ni archivar fuentes durante la publicación.
 - Notas técnicas de las fuentes en `docs/*.md` (ERA5-Land, MODIS, SNIFA, TROPOMI, reloj y unidades de
   SINCA, resolución satelital). Las bitácoras de `logs/` las verifican en `docs/` por ruta y hash: no
   moverlas a mano.

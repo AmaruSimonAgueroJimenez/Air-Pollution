@@ -1,0 +1,99 @@
+---
+title: "Implementación ambiental nueva: estado pre-DMC"
+lang: es
+format:
+  html:
+    theme: cosmo
+    toc: true
+    page-layout: full
+    embed-resources: true
+execute:
+  enabled: false
+---
+
+## Resultado y alcance
+
+Se implementó una rama ambiental **nueva y separada**, con el camino
+DMC → normalización/QC → predictores en monitores y grilla → LightGBM/OOF →
+modelo persistido → predicción horaria nominal ≈1 km. El camino se probó con datos
+exclusivamente simulados, incluido LightGBM real de siete árboles y la recarga
+del modelo, con paridad numérica de predicciones dentro de 10⁻¹².
+
+**No hay un modelo DMC real ajustado ni un producto nacional nuevo fabricado.**
+La configuración de preparación bloquea ambos. La terminación de la descarga,
+por sí sola, no habilita producción: faltan evidencias y entradas explícitas.
+No se reemplazaron el modelo anterior ni sus resultados.
+
+## Qué está implementado
+
+| Componente | Comprobación | Límite |
+| --- | --- | --- |
+| Normalización DMC | Adaptador por SHA, metadatos por intervalo, unidades y QC | No inventa políticas fuente |
+| Fabricación base | Misma fábrica legada por SHA para monitor y grilla; NetCDF, MAIAC y órbita NO₂ simulados | No hay todavía índices/tablas reales preparados ni fabricación nacional |
+| Operador espacial | Mismo nearest/IDW en estaciones y grilla, soporte/distancias registrados | Parámetros aún sin fijar para datos reales |
+| Unión de predictores | Claves exactas target × instante UTC, contenido identificado | No rellena ausencias silenciosamente |
+| Entrenamiento | MSE original/LightGBM; folds explícitos y OOF | Rama experimental de ablación; no toda la comparación v2 |
+| Predicción | Recarga nativa; misma identidad de especificación, también con NaN base autorizados | Exige lotes explícitos preparados por la fábrica base |
+| Contrato de producto | Media condicional, grilla real, horas/contaminantes y hashes explícitos | No convierte P50 en media ni acredita causalidad |
+
+La rama excluye los tres predictores de vecindario de contaminación y ACAG
+para no reutilizar información contaminada o inventar predictores ausentes.
+Por ello no debe describirse como una reproducción exacta de los 70/69
+predictores del contrato v2. La identidad de contenido cambia entre lotes;
+la especificación de columnas, política y operador debe permanecer igual.
+
+La grilla conservada es angular de **0,01°**, alineada en centros
+k×0,01°+0,005°, con EPSG:4326: su tamaño es aproximadamente 1 km y varía con
+la latitud. No se convierte en una grilla métrica ni se afirma una resolución
+de 1.000 m exactos. El contrato distingue ambos tipos de geometría.
+
+La política de faltantes base se fija por columna antes del ajuste:
+rechazo o manejo nativo de LightGBM de NaN. Los datos satelitales ausentes no se
+reemplazan por cero. ±Inf y falta de soporte DMC siempre se rechazan. La prueba
+de modelo persistido/recargado también pasa con NaN autorizados, manteniendo
+la paridad 10⁻¹². Las unidades de la observación deben declararse explícitamente.
+
+La fábrica base usa los mismos lectores/transformaciones del legado, por
+huella y sin ejecutar sus lanzadores. Los índices de fuentes son explícitos,
+con SHA, presupuesto de bytes/filas/días y ausencia declarada; no busca
+archivos por glob ni lee DMC. Conserva el calendario UTC−4 de la referencia y deja
+explícito que los satélites son retrospectivos, no un pronóstico operativo.
+
+El lector del producto exige el soporte declarado grilla × hora × contaminante
+y partes UTC continuas. Se debe consumir el iterador completo para comprobar
+también el cierre del período global. Los hashes de informes QC/OOF prueban su
+integridad; **no sustituyen la revisión científica de esos informes**.
+
+## Lo que falta antes del ajuste real
+
+1. Descarga terminada y manifiestos estables. No se leyó la descarga en curso.
+2. Reloj, coordenadas históricas, semántica y políticas QC documentadas.
+3. Operador espacial fijado antes de ajustar; no heredar el radio de 20 km de
+   la sensibilidad de salud ni elegirlo según asociaciones epidemiológicas.
+4. Paneles base, folds espaciales/temporales y partes de grilla preparados,
+   con definición y SHA. El adaptador `preparar_base_v3.py` está implementado y
+   probado; falta preparar y verificar sus índices y tablas reales y ejecutar
+   la fabricación requerida. Su JSON de definición se entrega al runner con
+   SHA de archivo, separado de la identidad canónica de la especificación.
+5. Criterio ambiental previo de decisión, revisión de QC/OOF y aprobación
+   explícita del modelo que vaya a producirse. Ajustar no equivale a aprobar.
+
+## Piloto real anterior, conservado
+
+El [piloto de pérdidas sin DMC](piloto_perdidas_sin_dmc_20261013.html) contiene
+los 48 ajustes reales exploratorios y sus resultados completos. No se eligió
+un ganador por obtener resultados favorables ni se promovió P50 a exposición
+de salud. La cobertura obtenida no permite anunciar intervalos de 90 %
+calibrados. Un resultado que no mejora la referencia sigue siendo informativo
+y se conserva.
+
+## Repositorios y uso
+
+El código ambiental canónico está en
+[`scripts_modelo_1km/v3`](../scripts_modelo_1km/v3/README.md) y se copia de
+Air-Pollution a su espejo, nunca en sentido inverso. El repositorio canónico
+Air-Pollution no incorpora datos ni análisis de desenlaces de salud.
+
+La plantilla de preparación contiene `null` y aprobaciones falsas de manera
+deliberada. Sus CLI `plan` son sólo lectura y muestran los pendientes. No se
+programó ningún ajuste al finalizar DMC, ni commits, pushes o sellos de tiempo.
