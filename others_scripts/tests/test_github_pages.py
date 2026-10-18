@@ -6,6 +6,7 @@ from html.parser import HTMLParser
 import io
 import json
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
@@ -24,6 +25,24 @@ class Enlaces(HTMLParser):
     def handle_starttag(self, tag, attrs):
         self.urls.extend(value for name, value in attrs
                          if name in ("href", "src", "poster") and value)
+
+
+def quitar_navegacion(contenido):
+    """Verificación independiente de los dos bloques añadidos al artefacto."""
+    for zona in (b"HEAD", b"BODY"):
+        patron = (rb"<!--AP_SITE_NAV_" + zona + rb"_START-->.*?"
+                  rb"<!--AP_SITE_NAV_" + zona + rb"_END-->")
+        contenido = re.sub(patron, b"", contenido, flags=re.S)
+    return contenido
+
+
+class ElementosHTML(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.elementos = []
+
+    def handle_starttag(self, tag, attrs):
+        self.elementos.append((tag, dict(attrs)))
 
 
 class ProsaVisible(HTMLParser):
@@ -63,6 +82,10 @@ class GitHubPagesTests(unittest.TestCase):
                      "---\ntitle: Modelo\n---\n```{python}\nraise RuntimeError('NO EJECUTAR')\n```\n",
                      tracked=True)
         self.archivo("docs/index.html", "<html><body>Índice local obsoleto</body></html>", tracked=True)
+        self.archivo("docs/_site_nav.css", "#ap-site-nav { display: block; }\n", tracked=True)
+        self.archivo("docs/_site_nav.js", "/* navegación local sin dependencias ni red */\n", tracked=True)
+        self.archivo("docs/_site_nav_head.html", '<meta name="fixture-navigation" content="head">\n', tracked=True)
+        self.archivo("docs/_site_nav_body.html", '<span id="fixture-navigation-source"></span>\n', tracked=True)
 
     def git(self, *args):
         return subprocess.run(["git", "-C", str(self.raiz), *args], check=True,
@@ -89,7 +112,9 @@ class GitHubPagesTests(unittest.TestCase):
     def test_preserva_html_y_fuente_sin_interpretar_liquid_ni_ejecutar_qmd(self):
         fuente = (self.raiz / "docs/modelo_1km_horario.qmd").read_bytes()
         self.construir()
-        self.assertEqual((self.salida / "docs/modelo_1km_horario.html").read_bytes(), self.cientifico)
+        publicado = (self.salida / "docs/modelo_1km_horario.html").read_bytes()
+        self.assertNotEqual(publicado, self.cientifico)
+        self.assertEqual(quitar_navegacion(publicado), self.cientifico)
         self.assertEqual((self.salida / "docs/modelo_1km_horario.qmd").read_bytes(), fuente)
         self.assertEqual((self.raiz / "docs/modelo_1km_horario.html").read_bytes(), self.cientifico)
 
@@ -134,9 +159,13 @@ class GitHubPagesTests(unittest.TestCase):
         self.construir()
         for rel in ("others_files/20260902_informe_modelos_estimacion.html",
                     "others_files/20260902_informe_modelos_estimacion.qmd",
-                    "presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pdf",
                     "presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pptx"):
-            self.assertEqual((self.salida / rel).read_bytes(), (self.raiz / rel).read_bytes())
+            publicado = (self.salida / rel).read_bytes()
+            self.assertEqual(quitar_navegacion(publicado) if rel.endswith(".html") else publicado,
+                             (self.raiz / rel).read_bytes())
+        self.assertFalse((self.salida / "presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pdf").exists())
+        self.assertEqual((self.raiz / "presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pdf").read_bytes(),
+                         b"%PDF-fixture")
 
     def test_recursos_locales_versionados_con_espacios_y_url_codificada(self):
         self.archivo("docs/figuras/figura con espacio.png", b"PNG-fixture", tracked=True)
@@ -150,7 +179,7 @@ class GitHubPagesTests(unittest.TestCase):
     def test_todos_los_enlaces_del_indice_resuelven_bajo_subruta_de_pages(self):
         self.archivo("others_files/20260902_informe_modelos_estimacion.html", "<html><body>Referencia</body></html>",
                      tracked=True)
-        self.archivo("presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pdf", b"%PDF-fixture", tracked=True)
+        self.archivo("presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pptx", b"PK-fixture", tracked=True)
         self.construir()
         base_url = "https://ejemplo.github.io/Air-Pollution/docs/index.html"
         for url in self.enlaces("docs/index.html"):
@@ -315,15 +344,15 @@ class GitHubPagesTests(unittest.TestCase):
             pages.preparar(self.raiz, self.salida, manifiesto=Path("config/github_pages.json"))
         self.assertFalse(self.salida.exists())
 
-    def test_afg2_publica_solo_los_tres_materiales_actuales_exactos(self):
+    def test_afg2_publica_solo_el_powerpoint_publico_exacto(self):
         originales = "presentaciones/afg2_video_avance_1_20261017"
         carpeta = originales + "/publico"
-        actuales = (f"{carpeta}/AFG2_Video1_UC.pptx", f"{carpeta}/AFG2_Video1_UC.pdf",
-                    f"{carpeta}/Guion_Video_Avance_1.pdf")
+        actuales = (f"{carpeta}/AFG2_Video1_UC.pptx",)
         excluidos = (f"{carpeta}/~$AFG2_Video1_UC.pptx", f"{carpeta}/AFG2_Video1_UC_v2.pptx",
                      f"{carpeta}/AFG2_Video1_UC_anterior.pdf", f"{carpeta}/Plantilla_UC.potx",
                      f"{carpeta}/plantilla.pdf", f"{carpeta}/assets/figura.png",
                      f"{carpeta}/pautas/Pautas_video_avance_1_AFG2.pdf", f"{carpeta}/video.mp4",
+                     f"{carpeta}/AFG2_Video1_UC.pdf", f"{carpeta}/Guion_Video_Avance_1.pdf",
                      "presentaciones/afg2_video_avance_1_20261018/publico/AFG2_Video1_UC.pdf",
                      f"{originales}/AFG2_Video1_UC.pptx", f"{originales}/AFG2_Video1_UC.pdf",
                      f"{originales}/Guion_Video_Avance_1.pdf")
@@ -334,30 +363,57 @@ class GitHubPagesTests(unittest.TestCase):
             self.assertEqual((self.salida / rel).read_bytes(), (self.raiz / rel).read_bytes())
         for rel in excluidos:
             self.assertFalse((self.salida / rel).exists(), rel)
+            self.assertTrue((self.raiz / rel).is_file(), rel)
         urls = self.enlaces("docs/index.html")
         for rel in actuales:
             self.assertIn("../" + rel, urls)
         for rel in excluidos:
             self.assertNotIn("../" + rel, urls)
 
-    def test_afg2_actual_se_destaca_antes_del_material_afg1_anterior(self):
-        afg2 = "presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pdf"
-        afg1 = "presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pdf"
+    def test_afg2_se_integra_en_presentaciones_sin_bloque_actual(self):
+        afg2 = "presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx"
+        afg1 = "presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pptx"
         for rel in (afg1, afg2):
-            self.archivo(rel, b"%PDF-fixture", tracked=True)
+            self.archivo(rel, b"PK-fixture", tracked=True)
         self.construir()
         indice = (self.salida / "docs/index.html").read_text()
-        self.assertIn('id="presentacion-actual"', indice)
-        self.assertIn("Presentación AFG2", indice)
-        self.assertLess(indice.index(afg2), indice.index(afg1))
+        self.assertNotIn('id="presentacion-actual"', indice)
+        self.assertNotIn('class="afg2"', indice)
+        self.assertNotIn("Presentación AFG2 actual", indice)
+        self.assertIn("Presentaciones y documentos anteriores", indice)
+        self.assertIn("../" + afg2, self.enlaces("docs/index.html"))
+        self.assertIn("../" + afg1, self.enlaces("docs/index.html"))
+        self.assertLess(indice.index("Presentaciones y documentos anteriores"), indice.index(afg2))
 
     def test_afg2_inclusion_explicita_no_reintroduce_originales_ni_plantillas(self):
         carpeta = "presentaciones/afg2_video_avance_1_20261017"
         for relativo in (f"{carpeta}/AFG2_Video1_UC.pdf", f"{carpeta}/Guion_Video_Avance_1.pdf",
+                         f"{carpeta}/publico/AFG2_Video1_UC.pdf", f"{carpeta}/publico/Guion_Video_Avance_1.pdf",
                          f"{carpeta}/publico/plantilla.pdf", f"{carpeta}/publico/AFG2_Video1_UC_v2.pdf"):
             self.archivo(relativo, b"%PDF-fixture no publicar", tracked=True)
             with self.subTest(relativo=relativo), self.assertRaises(ValueError):
                 self.construir(incluir=(relativo,))
+            self.assertFalse(self.salida.exists())
+
+    def test_afg1_pdf_y_guiones_no_reentran_por_inclusion_explicita(self):
+        for rel in ("presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pdf",
+                    "presentaciones/presentacion_final/AFG1_Guion_Exposicion.pdf"):
+            self.archivo(rel, b"%PDF-fixture conservado", tracked=True)
+            with self.subTest(rel=rel), self.assertRaises(ValueError):
+                self.construir(incluir=(rel,))
+            self.assertTrue((self.raiz / rel).is_file())
+            self.assertFalse(self.salida.exists())
+
+    def test_afg_pdf_y_guiones_no_reentran_por_dependencia_html(self):
+        carpeta = "presentaciones/afg2_video_avance_1_20261017/publico"
+        for rel in ("presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pdf",
+                    f"{carpeta}/AFG2_Video1_UC.pdf", f"{carpeta}/Guion_Video_Avance_1.pdf"):
+            self.archivo(rel, b"%PDF-fixture conservado", tracked=True)
+            self.archivo("docs/enlace_no_publicable.html",
+                         f'<html><body><a href="../{rel}">Material excluido</a></body></html>', tracked=True)
+            with self.subTest(rel=rel), self.assertRaises(ValueError):
+                self.construir()
+            self.assertTrue((self.raiz / rel).is_file())
             self.assertFalse(self.salida.exists())
 
     def test_labels_editoriales_sin_dmc_con_rutas_tecnicas_conservadas(self):
@@ -392,6 +448,139 @@ class GitHubPagesTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.construir()
         self.assertFalse(self.salida.exists())
+
+    def test_recursos_nav_obligatorios_y_versionados_antes_de_crear_salida(self):
+        for rel in ("docs/_site_nav.css", "docs/_site_nav.js", "docs/_site_nav_head.html", "docs/_site_nav_body.html"):
+            self.git("rm", "--cached", "--", rel)
+            with self.subTest(rel=rel), self.assertRaises(ValueError):
+                self.construir()
+            self.assertFalse(self.salida.exists())
+            self.assertTrue((self.raiz / rel).is_file())
+            self.git("add", "--", rel)
+
+    def test_navegacion_solo_se_agrega_a_copias_del_artefacto(self):
+        metodologia = b'<html><head><title>Metodologia</title></head><body><h1>Metodologia</h1></body></html>'
+        self.archivo("docs/resultados_y_metodologia.html", metodologia, tracked=True)
+        originales = {rel: (self.raiz / rel).read_bytes()
+                      for rel in ("docs/modelo_1km_horario.html", "docs/resultados_y_metodologia.html",
+                                  "docs/index.html", "docs/modelo_1km_horario.qmd")}
+        self.construir()
+        for rel, contenido in originales.items():
+            self.assertEqual((self.raiz / rel).read_bytes(), contenido)
+            if rel.endswith(".html") and rel != "docs/index.html":
+                publicado = (self.salida / rel).read_bytes()
+                self.assertIn(b'id="ap-site-nav"', publicado)
+                self.assertEqual(quitar_navegacion(publicado), contenido)
+        self.assertNotIn(b"AP_SITE_NAV_BODY_START", (self.salida / "index.html").read_bytes())
+        self.assertIn("./docs/", (self.salida / "index.html").read_text())
+
+    def test_nav_es_idempotente_y_retirarla_recupera_bytes_exactos(self):
+        disponibles = {"docs/index.html", "docs/modelo_1km_horario.html"}
+        primera = pages.agregar_navegacion_html(self.cientifico, "docs/modelo_1km_horario.html", disponibles)
+        segunda = pages.agregar_navegacion_html(primera, "docs/modelo_1km_horario.html", disponibles)
+        self.assertEqual(segunda, primera)
+        for zona in (b"HEAD", b"BODY"):
+            self.assertEqual(primera.count(b"<!--AP_SITE_NAV_" + zona + b"_START-->"), 1)
+            self.assertEqual(primera.count(b"<!--AP_SITE_NAV_" + zona + b"_END-->"), 1)
+        self.assertEqual(primera.count(b'id="ap-site-nav"'), 1)
+        self.assertEqual(pages.retirar_navegacion_html(primera), self.cientifico)
+        self.assertEqual(quitar_navegacion(primera), self.cientifico)
+
+    def test_nav_no_confunde_body_o_head_literales_en_scripts_y_preserva_utf8_atributos(self):
+        body = '<body class="informe ágil" data-nota="área > región" lang="es">'.encode()
+        original = (b'\xef\xbb\xbf<!doctype html><html lang="es"><head><meta charset="utf-8">'
+                    b'<script>const literal = "<body>"; const cierre = "</head>";</script>'
+                    b'<style>.nota::before{content:"<body>"}</style></head>' + body
+                    + '<h1>PM₂.₅ · NO₂ · Métodos y validación</h1></body></html>'.encode())
+        publicado = pages.agregar_navegacion_html(original, "docs/informe.html", set())
+        posicion = publicado.index(body) + len(body)
+        self.assertTrue(publicado[posicion:].startswith(b"<!--AP_SITE_NAV_BODY_START-->"))
+        self.assertGreater(publicado.index(b"<!--AP_SITE_NAV_HEAD_START-->"), publicado.index(b"</style>"))
+        self.assertIn(b'const literal = "<body>"; const cierre = "</head>";', publicado)
+        self.assertEqual(quitar_navegacion(publicado), original)
+        self.assertEqual(pages.retirar_navegacion_html(publicado), original)
+
+    def test_nav_rutas_relativas_para_docs_e_historicos_sin_cdn(self):
+        disponibles = {"docs/index.html", "docs/resultados_y_metodologia.html", "docs/modelo_1km_horario.html"}
+        for rel, prefijo in (("docs/modelo_1km_horario.html", ""),
+                             ("others_files/20260902_informe_modelos_estimacion.html", "../docs/")):
+            with self.subTest(rel=rel):
+                publicado = pages.agregar_navegacion_html(self.cientifico, rel, disponibles)
+                lector = ElementosHTML()
+                lector.feed(publicado.decode())
+                enlaces = {attrs.get("href") for tag, attrs in lector.elementos if tag == "a"}
+                origen_url = "https://ejemplo.github.io/Air-Pollution/" + rel
+                resueltos = {urljoin(origen_url, url) for url in enlaces if url}
+                for destino in (prefijo + "index.html", prefijo + "resultados_y_metodologia.html",
+                                prefijo + "modelo_1km_horario.html", prefijo + "index.html#presentaciones"):
+                    self.assertIn(urljoin(origen_url, destino), resueltos)
+                    resuelto = urlsplit(urljoin(origen_url, destino)).path
+                    self.assertTrue(resuelto.startswith("/Air-Pollution/docs/"), resuelto)
+                css = [a.get("href") for t, a in lector.elementos if t == "link" and a.get("rel") == "stylesheet"]
+                js = [a.get("src") for t, a in lector.elementos if t == "script" and a.get("src")]
+                self.assertIn(urljoin(origen_url, prefijo + "_site_nav.css"),
+                              {urljoin(origen_url, url) for url in css})
+                self.assertIn(urljoin(origen_url, prefijo + "_site_nav.js"),
+                              {urljoin(origen_url, url) for url in js})
+                for url in (*css, *js):
+                    self.assertFalse(urlsplit(url).scheme, url)
+                    self.assertFalse(url.startswith("//"), url)
+
+    def test_nav_fallback_volver_y_secciones_accesibles(self):
+        publicado = pages.agregar_navegacion_html(self.cientifico, "docs/informe.html", set())
+        lector = ElementosHTML()
+        lector.feed(publicado.decode())
+        atras = [a for t, a in lector.elementos if t == "a" and "data-ap-back" in a]
+        self.assertEqual(len(atras), 1)
+        href = atras[0].get("href")
+        self.assertFalse(urlsplit(href).scheme)
+        self.assertEqual(urljoin("https://ejemplo.github.io/Air-Pollution/docs/informe.html", href),
+                         "https://ejemplo.github.io/Air-Pollution/docs/index.html")
+        detalles = [a for t, a in lector.elementos if t == "details" and "ap-sections" in a.get("class", "").split()]
+        self.assertEqual(len(detalles), 1)
+        self.assertIn("hidden", detalles[0])
+        self.assertTrue(any(t == "ol" and "data-ap-sections" in a for t, a in lector.elementos))
+        self.assertTrue(any(t == "nav" and a.get("id") == "ap-site-nav" for t, a in lector.elementos))
+        self.assertTrue(any(t == "span" and a.get("id") == "ap-page-top" for t, a in lector.elementos))
+        self.assertTrue(any(t == "a" and a.get("href") == "#ap-page-top" for t, a in lector.elementos))
+        self.assertLess(publicado.index(b'id="ap-page-top"'), publicado.index(b'id="ap-site-nav"'))
+        visible = ProsaVisible()
+        visible.feed(publicado.decode())
+        texto = " ".join(visible.textos)
+        self.assertRegex(texto, r"\b(?:Volver|Regresar)\b")
+        for etiqueta in ("Portal", "Presentaciones", "Secciones", "Arriba"):
+            self.assertIn(etiqueta, texto)
+
+    def test_fragmentos_html_sin_body_no_reciben_wrapper(self):
+        fragmento = b'<table><tr><td>Fragmento reutilizable</td></tr></table>'
+        self.assertEqual(pages.agregar_navegacion_html(fragmento, "docs/_tablas_compactas.html", set()), fragmento)
+
+    def test_fragmentos_de_nav_con_marcadores_se_conservan_sin_body(self):
+        fragmentos = (
+            b'<!--AP_SITE_NAV_HEAD_START--><link rel="stylesheet" href="_site_nav.css">'
+            b'<!--AP_SITE_NAV_HEAD_END-->',
+            b'<!--AP_SITE_NAV_BODY_START--><nav id="ap-site-nav">Portal</nav>'
+            b'<!--AP_SITE_NAV_BODY_END-->',
+            b'<!--AP_SITE_NAV_HEAD_START--><meta name="fragmento" content="parcial">',
+        )
+        for fragmento in fragmentos:
+            with self.subTest(fragmento=fragmento):
+                self.assertEqual(pages.agregar_navegacion_html(fragmento, "docs/_site_nav_head.html", set()), fragmento)
+                self.assertEqual(pages.retirar_navegacion_html(fragmento), fragmento)
+
+    def test_nav_en_html_sin_head_es_reversible_sin_alterar_body(self):
+        original = '<html lang="es"><body class="texto ágil"><h1>Informe mínimo</h1></body></html>'.encode()
+        publicado = pages.agregar_navegacion_html(original, "docs/minimo.html", set())
+        self.assertIn(b'id="ap-site-nav"', publicado)
+        self.assertEqual(quitar_navegacion(publicado), original)
+        self.assertEqual(pages.retirar_navegacion_html(publicado), original)
+        self.assertEqual(pages.agregar_navegacion_html(publicado, "docs/minimo.html", set()), publicado)
+
+    def test_nav_estatica_del_qmd_no_se_duplica_ni_modifica(self):
+        original = (b'<html><head><title>Guia</title></head><body><span id="ap-page-top"></span>'
+                    b'<nav id="ap-site-nav"><a href="index.html">Portal</a></nav>'
+                    b'<main><h1>Guia con navegacion ya renderizada</h1></main></body></html>')
+        self.assertEqual(pages.agregar_navegacion_html(original, "docs/resultados_y_metodologia.html", set()), original)
 
 
 if __name__ == "__main__":

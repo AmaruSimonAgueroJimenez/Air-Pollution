@@ -10,11 +10,14 @@ format:
     page-layout: full
     embed-resources: true
     include-in-header:
-      text: |
-        <style>
-        main table { display: block; max-width: 100%; overflow-x: auto; font-size: .9rem; }
-        main p { max-width: 76ch; }
-        </style>
+      - file: _site_nav_head.html
+      - text: |
+          <style>
+          main table { display: block; max-width: 100%; overflow-x: auto; font-size: .9rem; }
+          main p { max-width: 76ch; }
+          </style>
+    include-before-body:
+      - file: _site_nav_body.html
 execute:
   enabled: false
 ---

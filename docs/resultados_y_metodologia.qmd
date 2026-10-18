@@ -12,19 +12,37 @@ format:
     embed-resources: true
     html-math-method: mathml
     include-in-header:
-      text: |
-        <style>
-        main { min-width: 0; }
-        main h3 code, main h4 code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
-        #TOC a, #TOC code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
-        main table { display: block; max-width: 100%; overflow-x: auto; }
-        main p { max-width: 88ch; }
-        </style>
+      - file: _site_nav_head.html
+      - text: |
+          <style>
+          main { min-width: 0; }
+          main h3 code, main h4 code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+          #TOC a, #TOC code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+          main table { display: block; max-width: 100%; overflow-x: auto; }
+          main p { max-width: 88ch; }
+          </style>
+    include-before-body:
+      - file: _site_nav_body.html
 execute:
   enabled: false
 ---
 
-## Alcance de esta publicación
+## Introducción {#introduccion}
+
+La estimación de la contaminación atmosférica en Chile enfrenta un problema
+de soporte: los monitores describen lugares y horas observados, mientras que
+la caracterización territorial requiere información también fuera de esa red.
+Los satélites aportan observaciones de pasadas concretas y los reanálisis
+aportan campos continuos a resoluciones propias; ninguna de esas fuentes,
+por separado, equivale a medir cada hora la concentración superficial de
+cada celda del territorio.
+
+Este proyecto integra esas fuentes con observaciones de superficie y
+covariables geográficas para reconstruir concentraciones ambientales. La
+evaluación debe distinguir el ajuste a datos conocidos de la generalización
+a estaciones, regiones y períodos retenidos. También debe separar la escala
+nominal de la salida de la resolución efectiva de la información que la
+sostiene, y una media de exposición de un cuantil orientado a episodios.
 
 Este sitio reúne los resultados ambientales existentes, desde los modelos
 multicontaminante por estación hasta la estimación horaria de PM₂.₅ y NO₂
@@ -38,46 +56,42 @@ informes completos, no cambia sus cifras y no representa una nueva
 estimación.** Se conservan los `.qmd`, las tablas, las figuras y los HTML
 ya producidos. Publicarlos no vuelve a ejecutar modelos o descargadores.
 
-| Material | Qué contiene | Cómo debe leerse |
-| --- | --- | --- |
-| [Informe completo de PM₂.₅ y NO₂](modelo_1km_horario.html) y [fuente QMD](modelo_1km_horario.qmd) | Descriptivos, diseño, estimación, validación, comparación de motores, superficies y exposición | Referencia ambiental existente, con sus limitaciones originales |
-| [Modelos multicontaminante anteriores](../others_files/20260902_informe_modelos_estimacion.html) y [fuente QMD](../others_files/20260902_informe_modelos_estimacion.qmd) | PM₂.₅, PM10, NO₂, O₃, SO₂ y CO por estación/hora | Etapa histórica; no confundir con el producto horario de grilla |
-| [Piloto exploratorio de pérdidas](piloto_perdidas_sin_dmc_20261013.html) y [fuente QMD](piloto_perdidas_sin_dmc_20261013.qmd) | Comparación exploratoria real de LightGBM/XGBoost y pérdidas para PM₂.₅/NO₂ | Desarrollo, no selección confirmatoria ni sustitución de la referencia |
-| [Estado de la rama ambiental nueva](estado_ambiental_next_20261014.html) y [fuente QMD](estado_ambiental_next_20261014.qmd) | Implementación y pruebas simuladas del camino meteorología–modelo–grilla | No acredita un modelo nuevo ajustado con observaciones reales ni un nuevo producto nacional |
+### Pregunta de investigación
 
-## Presentación AFG2
+¿En qué medida la integración de monitores de superficie, satélites,
+reanálisis y covariables geográficas permite estimar las concentraciones
+horarias de PM₂.₅ y NO₂ en Chile sobre una grilla de aproximadamente 1 km,
+y con qué desempeño y limitaciones al evaluar lugares y períodos no usados
+en el ajuste?
 
-La presentación de avance se ofrece en [PDF](../presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pdf),
-[PowerPoint](../presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx)
-y con su [guion de exposición](../presentaciones/afg2_video_avance_1_20261017/publico/Guion_Video_Avance_1.pdf).
-El PDF presenta las ocho láminas visibles; el PowerPoint conserva también tres
-láminas ocultas de apoyo. El guion tiene doce páginas.
-Es una síntesis para comunicar el trabajo; los informes completos y las tablas
-siguen siendo la referencia para examinar métodos, resultados y limitaciones.
-Las copias públicas omiten enlaces locales no portables; no se cambian las cifras
-ni se ejecutan análisis para incorporarlas al sitio.
+### Objetivo general
 
-## Recorrido de lectura completo
+Desarrollar y evaluar un sistema reproducible de estimación de las
+concentraciones superficiales horarias de PM₂.₅ y NO₂ para Chile,
+integrando múltiples fuentes y cuantificando su desempeño fuera de muestra,
+su cobertura y las limitaciones de interpretación de los productos resultantes.
 
-El informe principal conserva el detalle que permite evaluar cada decisión,
-no sólo su resultado final. Se puede leer en este orden:
+### Objetivos específicos
 
-1. [Resumen, alcance y decisiones](modelo_1km_horario.html#sec-resumen).
-2. [Red de observación, cobertura y control de calidad](modelo_1km_horario.html#sec-descriptivo).
-3. [Fuentes y resolución nativa](modelo_1km_horario.html#sec-desc-fuentes).
-4. [Metodología completa](modelo_1km_horario.html#sec-metodologia).
-5. [Ajuste sin validación cruzada](modelo_1km_horario.html#sec-sin-validacion), separado de
-   [resultados fuera de muestra](modelo_1km_horario.html#sec-resultados).
-6. [Diferencia entre ajuste y validación: optimismo](modelo_1km_horario.html#sec-optimismo).
-7. [Superficies horarias](modelo_1km_horario.html#sec-superficies) y
-   [exposición por celda y bienio](modelo_1km_horario.html#sec-exposicion).
-8. [Limitaciones](modelo_1km_horario.html#sec-limitaciones),
-   [reproducibilidad](modelo_1km_horario.html#sec-reproducibilidad) y
-   [anexo de la Región Metropolitana](modelo_1km_horario.html#sec-anexo-rm).
+1. Caracterizar la distribución espacial y temporal de las observaciones,
+   su calidad, disponibilidad y representatividad territorial.
+2. Integrar fuentes satelitales, reanálisis y covariables geográficas
+   conservando resolución nativa, unidades, procedencia y semántica temporal.
+3. Construir paneles de calibración y predictores de grilla con un contrato
+   común y controles que eviten reutilizar información de los grupos retenidos.
+4. Ajustar y contrastar los modelos utilizados, diferenciando sus supuestos,
+   transformaciones, presupuestos de entrenamiento y cantidades estimadas.
+5. Evaluar la generalización espacial y temporal y el acuerdo horario,
+   diario, mensual y anual sobre pares comparables y cobertura explícita.
+6. Producir y documentar superficies horarias y métricas de exposición
+   reproducibles, con trazabilidad y límites claros, sin interpretarlas como
+   observaciones directas, pronósticos operativos o efectos causales de salud.
 
-## Diseño, población de observaciones y dominio
+## Metodología {#metodologia}
 
-### Qué se estima y en qué unidad
+### Diseño, población de observaciones y dominio
+
+#### Qué se estima y en qué unidad
 
 El producto de referencia define como unidad la **celda de 0,01° × bin
 horario**. PM₂.₅ se presenta en µg/m³ y NO₂ en ppb. La grilla es nominalmente
@@ -90,23 +104,9 @@ demuestra que todas las fuentes, estaciones o celdas dispongan de datos
 continuos durante todo él. Ampliar una descarga hasta otra fecha no
 actualiza por sí solo el modelo ya ajustado.
 
-### Estaciones y representatividad
+### Observaciones, calidad y reloj
 
-La calibración emplea observaciones SINCA y la red adicional de NO₂
-descrita en el informe. Cada estación se representa mediante su celda;
-para predecir en el territorio se deben fabricar los mismos tipos de
-predictores con las mismas reglas. La red no es una muestra aleatoria
-uniforme de Chile: la concentración urbana e industrial del monitoreo y
-su expansión temporal condicionan la generalización.
-
-Las distribuciones, mapas por cuatrienio y series por macrozona son parte
-del análisis, no adornos del documento. Permiten identificar qué lugares y
-períodos sostienen las métricas y dónde el modelo extrapola. El informe
-mantiene además un análisis específico de la Región Metropolitana.
-
-## Observaciones, calidad y reloj
-
-### Control de calidad
+#### Control de calidad
 
 La referencia selecciona las observaciones conforme al manifiesto del
 derivado y al rango físico admitido, y excluye rachas de 24 o más registros
@@ -119,7 +119,7 @@ Las banderas de calidad, duplicados, unidades, cambios de estación y
 cobertura son cuestiones distintas. Una tabla con muchas filas no prueba
 por sí sola una serie homogénea ni completa.
 
-### Tratamiento temporal y límites de la evidencia
+#### Tratamiento temporal y límites de la evidencia
 
 El modelo de referencia documenta una convención UTC−4 fija y de etiqueta
 de intervalo. **La propia sección de limitaciones aclara que la prueba
@@ -134,9 +134,9 @@ intercambiables; RR06 es una acumulación de seis horas, no lluvia horaria.
 La incorporación de esas observaciones al modelo exige resolver estas
 semánticas antes del ajuste; disponer de archivos no confirma su interpretación.
 
-## Fuentes predictoras y soporte espacial
+### Fuentes predictoras y soporte espacial
 
-### Resolución nativa, no observaciones horarias inventadas
+#### Resolución nativa, no observaciones horarias inventadas
 
 La referencia reúne reanálisis de meteorología y composición, productos
 satelitales y covariables estáticas o anuales. El
@@ -156,7 +156,7 @@ Los satélites conservan su frecuencia real. Entre pasadas, de noche o
 cuando falta una fuente, la predicción sigue siendo una **estimación de
 modelo**, no una nueva observación satelital.
 
-### Grilla y enlace al píxel
+#### Grilla y enlace al píxel
 
 La grilla de referencia se alinea con ACAG y enlaza cada celda con píxeles
 nativos de los otros productos dentro de radios declarados. El tratamiento
@@ -170,7 +170,7 @@ ni convierte información gruesa en meteorología observada de 1 km.
 Véanse [grilla y enlaces](modelo_1km_horario.html#sec-grilla) y
 [experimento de interpolación](modelo_1km_horario.html#sec-interpolacion).
 
-## Construcción del panel y prevención de fuga
+### Construcción del panel y prevención de fuga
 
 El panel empareja estación/celda y tiempo con las variables de su píxel
 enlazado, satélites de la fecha correspondiente, datos mensuales,
@@ -188,9 +188,9 @@ el problema y no reproduce exactamente el modelo de referencia. Sus
 métricas no deben compararse directamente como si fueran las mismas
 filas, predictores y presupuesto.
 
-## Estimación, transformaciones y modelos comparadores
+### Estimación, transformaciones y todos los modelos utilizados
 
-### Modelo de referencia
+#### Modelo de referencia
 
 El motor del producto es LightGBM sobre `log1p(y)`, con una corrección de
 retransformación a la escala de concentración. La referencia estima la
@@ -204,13 +204,32 @@ original. La corrección de retransformación busca reducir ese sesgo, pero
 no garantiza ausencia de sesgo en cada estación ni una buena reproducción
 de los extremos. Su evaluación debe realizarse en las unidades originales.
 
-### Comparación de motores
+#### Los diez motores del informe horario de referencia
 
-El informe conserva LightGBM, GWR, regression-kriging, interpolación,
-Random Forest, red neuronal, proceso gaussiano, modelo lineal mixto,
-modelo de alertas y ensamble por apilado. Es importante leer las
-configuraciones y los tamaños de entrenamiento de cada uno, no sólo el
-orden de una tabla.
+Los siguientes modelos tienen un papel definido en el informe conservado.
+La configuración completa y el presupuesto efectivo por pliegue se mantienen
+en la [tabla de motores](modelo_1km_horario.html#tbl-motores-config) y en las
+secciones de [contrastes espaciales](modelo_1km_horario.html#sec-motores-contraste)
+y [motores adicionales](modelo_1km_horario.html#sec-motores-previos).
+
+| Modelo | Qué hace y configuración documentada | Papel y precaución |
+| --- | --- | --- |
+| LightGBM | Boosting sobre `log1p(y)`: hasta 800 árboles, tasa 0,03, 127 hojas y mínimo de 50 observaciones por hoja; retransformación con residuos fuera de pliegue por macrozona y franja | Motor de las superficies de referencia; la corrección de media no elimina sesgos locales ni garantiza extremos correctos |
+| Regresión geográficamente ponderada (GWR) | Regresión local en escala original, núcleo gaussiano con ancho adaptativo de 12 estaciones y regularización de 10⁻⁶ | Contraste espacial sobre el diseño común; sus coeficientes dependen del soporte de la red y las predicciones negativas se truncan en cero |
+| Regression-kriging (RK) | Tendencia por mínimos cuadrados y kriging ordinario del residuo medio por estación, con semivariograma exponencial | Representa un efecto espacial persistente, no un campo residual horario independiente; se truncan predicciones negativas |
+| Interpolación de vecinas | Promedio contemporáneo con núcleo gaussiano de 150 km y media de entrenamiento como respaldo cuando no hay vecinas | Línea base sin ajuste de un estimador nuevo; excluye las estaciones o grupos retenidos |
+| Random Forest | 300 árboles, selección de √p predictores por división, hojas de al menos 20 filas y manejo nativo de faltantes | Comparador en escala log con la retransformación declarada; tope de 750.000 filas por pliegue |
+| Red neuronal multicapa (MLP) | Capas de 128 y 64 neuronas ReLU, Adam, L2 = 0,1, lotes de 256 y parada temprana; hasta 300 épocas y 300.000 filas por pliegue | Imputación y escala ajustadas dentro del entrenamiento; acota entradas y predicción log, lo que también recorta episodios altos |
+| Proceso gaussiano (GP) | Núcleo constante × Matérn con ν = 1,5 y ruido blanco; submuestra estratificada de 3.000 filas por pliegue y predictores compactos | Su presupuesto es mucho menor por el costo del GP exacto; no atribuir toda diferencia de desempeño a la familia del modelo |
+| Modelo lineal mixto (LME) | Efectos fijos y, por hora local, intercepto y pendiente aleatorios sobre un producto global; concentraciones predictoras en log y hasta 300.000 filas por pliegue | En el análisis documentado el efecto aleatorio aporta poco; si falla el ajuste se conserva un respaldo de parte fija, no otra familia ganadora |
+| Modelo de alertas | LightGBM con pérdida cuantílica α = 0,80, hasta 900 árboles y tasa 0,025; vuelve a escala original sin corrección de Duan | Estima un cuantil, no la media; debe interpretarse para excedencias, no como sustituto directo de exposición media |
+| Ensamble por apilado | Regresión ridge sobre las predicciones log fuera de pliegue de LightGBM, Random Forest y MLP; penalizaciones candidatas 0,01, 0,1, 1 y 10 | Conserva la fuga de información declarada en el informe; una pequeña ventaja numérica no demuestra superioridad |
+
+En GWR, RK y la interpolación la escala es la de concentración original.
+Los modelos de aprendizaje y el mixto usan la transformación y corrección
+indicadas, salvo el estimador cuantílico de alertas. Se conserva la receta
+real de cada uno: no se presenta una lista de algoritmos como si todos
+hubieran sido entrenados con iguales tamaños, optimización o recursos.
 
 Las limitaciones originales declaran presupuestos de entrenamiento
 desiguales, ausencia de una búsqueda comparable de hiperparámetros y una
@@ -218,9 +237,36 @@ vía de fuga favorable al ensamble. Esta publicación **no corrige ni
 oculta** esas limitaciones y no transforma esa comparación en una
 clasificación definitiva del mejor algoritmo posible.
 
-## Validación y significado de las métricas
+#### Modelos históricos, piloto real y desarrollos nuevos
 
-### Preguntas que responde cada protocolo
+La etapa [multicontaminante por estación](../others_files/20260902_informe_modelos_estimacion.html#sec-motores)
+emplea GWR, RK y LightGBM para PM₂.₅, PM10, NO₂, O₃, SO₂ y CO, junto con
+los productos físico-químicos crudos como referencia sin calibrar. No es
+la misma versión que el informe de grilla: su LightGBM documenta 600 árboles,
+hojas de al menos 30 filas y un tope LOSO de 300.000 filas; la corrección
+lognormal por franja se estima con residuos de entrenamiento, no con la
+receta OOF del producto horario posterior. Los parámetros de una etapa
+no deben trasladarse a otra al describir lo ejecutado.
+
+El [piloto exploratorio real](piloto_perdidas_sin_dmc_20261013.html#diseño-de-la-prueba)
+añade **XGBoost**, contrastado con LightGBM sobre las mismas filas de cada
+prueba. Compara MSE original, log+Duan, Huber y pinball para P05, P50 y P95,
+con 150 rondas y sin búsqueda ni ensamble en esa pasada. Huber no equivale
+necesariamente a estimar una media y P50 es una mediana; no se mezclan con
+las medias de exposición de la referencia.
+
+Los desarrollos v2 incluyen recetas de LightGBM, XGBoost, Random Forest,
+MLP, GP, LME, GWR, RK e interpolación, además de promedios y apilado anidado.
+**Implementar esas recetas no acredita una comparación real completa.**
+El LightGBM/MSE de la rama experimental fue probado con datos simulados;
+la rama de O₃ es también un desarrollo separado y no una estimación
+nacional nueva validada. Los nombres `HistGradientBoosting`, PyTorch/Keras
+y `mgwr` aparecen como antecedentes no portados o no ejecutados en la
+comparación original, y no se añaden como resultados existentes.
+
+### Validación y significado de las métricas
+
+#### Preguntas que responde cada protocolo
 
 | Protocolo | Separación | Pregunta |
 | --- | --- | --- |
@@ -234,7 +280,7 @@ Se conservan separadas las secciones de ajuste aparente y validación.
 Su diferencia cuantifica optimismo; no se mezclan sus cifras para
 describir el desempeño fuera de muestra.
 
-### Agregación, comparabilidad y métricas
+#### Agregación, comparabilidad y métricas
 
 La referencia evalúa pares observación–estimación horarios, diarios,
 mensuales y anuales. Exige al menos 18 pares horarios para un día válido,
@@ -255,7 +301,55 @@ Los umbrales y categorías de la referencia conservan sus definiciones
 históricas. Su aplicación a medias del día local no reproduce por sí
 misma una evaluación regulatoria con promedios móviles.
 
-## Piloto exploratorio de pérdidas y cuantiles
+## Análisis descriptivo {#analisis-descriptivo}
+
+El análisis descriptivo se presenta **después de la metodología** para
+interpretar la evidencia según el diseño, las unidades y los criterios
+de calidad ya expuestos, antes de juzgar los resultados de estimación.
+
+La calibración emplea observaciones SINCA y la red adicional de NO₂
+descrita en el informe. Cada estación se representa mediante su celda;
+para predecir en el territorio se deben fabricar los mismos tipos de
+predictores con las mismas reglas. La red no es una muestra aleatoria
+uniforme de Chile: la concentración urbana e industrial del monitoreo y
+su expansión temporal condicionan la generalización.
+
+Las distribuciones, mapas por cuatrienio y series por macrozona permiten
+identificar qué lugares y períodos sostienen las métricas y dónde el
+modelo extrapola. El informe mantiene además un análisis específico de
+la Región Metropolitana. Su lectura completa está organizada así:
+
+| Componente descriptivo | Qué se examina | Evidencia conservada |
+| --- | --- | --- |
+| Red, cobertura y calidad | Estaciones, períodos observados, disponibilidad y exclusiones | [Red y QC](modelo_1km_horario.html#sec-desc-red) |
+| Distribución geoespacial | Cambios de red y distribución observada por cuatrienio | [Mapas por período](modelo_1km_horario.html#sec-desc-mapas) |
+| Variación temporal | Series observadas por contaminante y macrozona | [Series temporales](modelo_1km_horario.html#sec-desc-series) |
+| Fuentes predictoras | Soporte espacial, frecuencia y cobertura de cada producto nativo | [Descriptivo de fuentes](modelo_1km_horario.html#sec-desc-fuentes) |
+
+Estas descripciones no estiman por sí solas tendencias comparables a lo largo
+de todo el país: pueden cambiar simultáneamente la red, la disponibilidad
+de fuentes y la composición de horas observadas.
+
+## Resultados e informes completos {#resultados}
+
+| Material | Qué contiene | Cómo debe leerse |
+| --- | --- | --- |
+| [Informe completo de PM₂.₅ y NO₂](modelo_1km_horario.html) y [fuente QMD](modelo_1km_horario.qmd) | Descriptivos, diseño, estimación, validación, comparación de motores, superficies y exposición | Referencia ambiental existente, con sus limitaciones originales |
+| [Modelos multicontaminante anteriores](../others_files/20260902_informe_modelos_estimacion.html) y [fuente QMD](../others_files/20260902_informe_modelos_estimacion.qmd) | PM₂.₅, PM10, NO₂, O₃, SO₂ y CO por estación/hora | Etapa histórica; no confundir con el producto horario de grilla |
+| [Piloto exploratorio de pérdidas](piloto_perdidas_sin_dmc_20261013.html) y [fuente QMD](piloto_perdidas_sin_dmc_20261013.qmd) | Comparación exploratoria real de LightGBM/XGBoost y pérdidas para PM₂.₅/NO₂ | Desarrollo, no selección confirmatoria ni sustitución de la referencia |
+| [Estado de la rama ambiental nueva](estado_ambiental_next_20261014.html) y [fuente QMD](estado_ambiental_next_20261014.qmd) | Implementación y pruebas simuladas del camino meteorología–modelo–grilla | No acredita un modelo nuevo ajustado con observaciones reales ni un nuevo producto nacional |
+
+Para seguir ese orden en el informe completo: [metodología](modelo_1km_horario.html#sec-metodologia),
+[descriptivo de observaciones](modelo_1km_horario.html#sec-descriptivo) y
+[fuentes](modelo_1km_horario.html#sec-desc-fuentes), después
+[ajuste aparente](modelo_1km_horario.html#sec-sin-validacion),
+[validación fuera de muestra](modelo_1km_horario.html#sec-resultados) y
+[optimismo](modelo_1km_horario.html#sec-optimismo).
+El [resumen](modelo_1km_horario.html#sec-resumen), el
+[anexo regional](modelo_1km_horario.html#sec-anexo-rm) y la
+[reproducibilidad](modelo_1km_horario.html#sec-reproducibilidad) siguen disponibles.
+
+### Piloto exploratorio de pérdidas y cuantiles
 
 El [informe exploratorio completo](piloto_perdidas_sin_dmc_20261013.html)
 conserva diseño, recetas, tamaños, tablas y resultados no redondeados.
@@ -276,7 +370,7 @@ promediar cuantiles horarios produce automáticamente un cuantil diario.
 El piloto no aporta una validación confirmatoria nacional ni intervalos
 de confianza de las diferencias entre motores.
 
-## Superficies, exposición y trazabilidad
+### Superficies, exposición y trazabilidad
 
 El modelo final produce superficies con el mismo contrato de predictores
 usado para los monitores. La referencia escribe NetCDF diarios con horas
@@ -315,6 +409,14 @@ necesidad la incertidumbre de todo Chile.
 Una concentración estimada no demuestra una asociación epidemiológica,
 un efecto causal ni validez para un uso clínico. Air-Pollution conserva
 el alcance ambiental; el repositorio de salud es independiente.
+
+## Presentaciones y documentos anteriores {#presentaciones}
+
+Las presentaciones AFG se agrupan en la sección de
+[presentaciones y documentos anteriores del portal](index.html#presentaciones).
+Se ofrece el [PowerPoint AFG2](../presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx),
+sin publicar en el menú los PDF ni los guiones. Es un apoyo de comunicación;
+los informes y tablas conservan el detalle científico de referencia.
 
 ## Requisitos de la rama ambiental experimental
 
@@ -365,10 +467,20 @@ ejecutan al visitar o publicar el sitio. Las dependencias web se incluyen
 de manera explícita; el índice no ofrece archivos ignorados o presentes
 sólo en una máquina.
 
-La publicación estática valida los enlaces locales y conserva los bytes
-de los informes existentes. Un enlace que funciona prueba accesibilidad;
+La publicación estática valida los enlaces locales y mantiene intactos
+los archivos científicos de origen. Añade navegación sólo a las copias del
+sitio; los QMD actuales incluyen los mismos componentes reutilizables para
+sus futuros renders. El informe histórico de sólo lectura recibe el menú
+en su copia publicada, sin modificar su fuente protegida.
+Un enlace que funciona prueba accesibilidad;
 un hash coincidente prueba integridad; ninguno, por sí solo, demuestra
 calidad científica o cobertura completa.
+
+La navegación se define en [cabecera](_site_nav_head.html),
+[menú](_site_nav_body.html), [estilos](_site_nav.css) y
+[comportamiento](_site_nav.js). No requiere una biblioteca externa y no
+ejecuta Python. El botón Regresar usa el historial sólo cuando la procedencia
+es otra página del mismo sitio; en un acceso directo vuelve al portal.
 
 Esta guía es una instantánea documental del 18 de octubre de 2026,
 basada en los informes enlazados. No es un panel de avance en tiempo real.

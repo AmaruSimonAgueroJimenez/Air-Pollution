@@ -19,14 +19,17 @@ un ensayo sintético con una estimación nacional nueva.
 
 La guía incluye un catálogo de los programas Python, con su finalidad, entradas,
 salidas y puntos de entrada, distinguiendo fuentes públicas de desarrollos sólo locales.
-La presentación **AFG2** está disponible en [PDF](presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pdf),
-[PowerPoint](presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx)
-y [guion](presentaciones/afg2_video_avance_1_20261017/publico/Guion_Video_Avance_1.pdf).
+El orden de lectura es introducción con pregunta y objetivos, metodología con todos
+los modelos utilizados, análisis descriptivo y resultados. Las presentaciones **AFG**,
+incluida [AFG2 en PowerPoint](presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx),
+están juntas en «Presentaciones y documentos anteriores», sin PDF ni guiones en el menú.
 
 La publicación usa `.github/workflows/pages.yml` y los HTML existentes: no ejecuta Quarto,
 modelos ni descargadores en GitHub. El preparador `others_scripts/preparar_github_pages.py`
 genera el índice público desde archivos versionados y la lista exacta `config/github_pages.json`,
-comprueba enlaces y conserva los informes byte a byte. El índice local no se sobrescribe.
+comprueba enlaces y añade una barra de navegación sólo a las copias publicadas de los
+informes conservados. Al retirar esos bloques se recupera exactamente el HTML de origen;
+los archivos científicos originales y el índice local no se sobrescriben.
 En **Settings → Pages → Source** el origen es **GitHub Actions**, no Jekyll. Para comprobar
 el sitio localmente, el destino debe ser nuevo:
 
@@ -39,6 +42,12 @@ python3 -m http.server 8000 --directory _site
 Los datos crudos, superficies NetCDF, paneles de entrenamiento, credenciales, logs y archivos
 ignorados quedan fuera del sitio. Se conserva el detalle de los `.qmd`; el fallo de Liquid que
 impedía publicar se evita sirviendo HTML estático, no editando el código científico del informe.
+
+Los QMD actuales comparten los componentes `docs/_site_nav_head.html`,
+`docs/_site_nav_body.html`, `docs/_site_nav.css` y `docs/_site_nav.js`, de modo que
+sus renders incorporan Regresar, Portal, Metodología, Presentaciones, secciones y Arriba.
+La copia publicada del informe histórico protegido recibe la misma barra sin cambiar
+su fuente de sólo lectura. Esta mejora no necesita volver a ejecutar modelos.
 
 ## Qué contiene
 

@@ -21,6 +21,9 @@ format:
     theme: cosmo
     include-in-header:
       - file: _tablas_compactas.html
+      - file: _site_nav_head.html
+    include-before-body:
+      - file: _site_nav_body.html
 execute:
   echo: true
   warning: false

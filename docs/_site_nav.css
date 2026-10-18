@@ -1,0 +1,123 @@
+/* Navigation belongs only to the published copy, not to scientific sources. */
+:root {
+  --ap-nav-height: 5rem;
+  scroll-padding-top: calc(var(--ap-nav-height) + 1rem);
+}
+#ap-site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1050;
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 1.25rem;
+  border-bottom: 1px solid #b8cad8;
+  background: #f7fafc;
+  color: #172e40;
+  box-shadow: 0 2px 8px #16334d12;
+  font: 0.95rem/1.35 system-ui, sans-serif;
+  text-align: left;
+  display: block;
+  flex-wrap: initial;
+  gap: initial;
+}
+#ap-site-nav *, #ap-site-nav *::before, #ap-site-nav *::after {
+  box-sizing: border-box;
+}
+#ap-site-nav .ap-nav-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 85rem;
+  padding: 0.5rem 1rem;
+  margin: 0 auto;
+}
+#ap-site-nav a, #ap-site-nav summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  color: #075681;
+  text-decoration: none;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+#ap-site-nav a:hover, #ap-site-nav summary:hover {
+  border-color: #bdd2e1;
+  background: #eaf2f8;
+  text-decoration: underline;
+}
+#ap-site-nav a:focus-visible, #ap-site-nav summary:focus-visible {
+  outline: 3px solid #b96e00;
+  outline-offset: 2px;
+}
+#ap-site-nav a[aria-current="page"] {
+  border-color: #aac9dd;
+  background: #e4eff7;
+  font-weight: 650;
+}
+#ap-site-nav .ap-brand {
+  padding-left: 0.25rem;
+  padding-right: 1rem;
+  color: #172e40;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+#ap-site-nav .ap-sections {
+  position: relative;
+  margin-left: auto;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+#ap-site-nav .ap-sections[hidden] { display: none; }
+#ap-site-nav .ap-sections summary::after {
+  content: "▾";
+  margin-left: 0.5rem;
+}
+#ap-site-nav .ap-sections summary::marker { content: ""; }
+#ap-site-nav .ap-sections summary::-webkit-details-marker { display: none; }
+#ap-site-nav .ap-sections[open] summary::after { content: "▴"; }
+#ap-site-nav [data-ap-sections] {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  width: min(34rem, calc(100vw - 2rem));
+  max-height: min(65vh, 36rem);
+  overflow: auto;
+  margin: 0.35rem 0 0;
+  padding: 0.45rem;
+  border: 1px solid #b8cad8;
+  border-radius: 0.5rem;
+  background: #fff;
+  box-shadow: 0 8px 24px #16334d24;
+  list-style: none;
+}
+#ap-site-nav [data-ap-sections] li { margin: 0; padding: 0; }
+#ap-site-nav [data-ap-sections] a { width: 100%; }
+#ap-site-nav [data-ap-sections] .ap-subsection a {
+  padding-left: 1.5rem;
+  font-size: 0.9em;
+  color: #365c75;
+}
+body.ap-has-nav #quarto-margin-sidebar {
+  top: calc(var(--ap-nav-height) + 1rem);
+  max-height: calc(100vh - var(--ap-nav-height) - 2rem);
+}
+@media (max-width: 40rem) {
+  #ap-site-nav { font-size: 0.85rem; }
+  #ap-site-nav .ap-nav-row { gap: 0.1rem; padding: 0.35rem 0.5rem; }
+  #ap-site-nav .ap-brand { padding-right: 0.6rem; }
+  #ap-site-nav a, #ap-site-nav summary { padding: 0.4rem 0.5rem; }
+  #ap-site-nav .ap-sections { position: static; margin-left: 0; }
+  #ap-site-nav [data-ap-sections] { left: 0.5rem; right: 0.5rem; width: auto; }
+}
+@media print {
+  #ap-site-nav { display: none !important; }
+  :root { scroll-padding-top: 0; }
+  body.ap-has-nav #quarto-margin-sidebar { top: auto; max-height: none; }
+}

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Prepara un sitio estático selectivo con archivos públicos ya versionados.
 
-No ejecuta informes, Quarto, modelos ni descargadores. Conserva los bytes de
-las fuentes y renders; sólo genera los dos índices y la marca ``.nojekyll``.
+No ejecuta informes, Quarto, modelos ni descargadores. Conserva los originales
+y añade navegación únicamente a las copias HTML del artefacto estático.
 La salida debe ser un directorio nuevo: nunca se borra ni se sobrescribe uno.
 """
 from __future__ import annotations
@@ -25,8 +25,6 @@ MATERIALES = {
 }
 AFG2_MATERIALES = {
     "presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx": "Presentación AFG2 · PowerPoint",
-    "presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pdf": "Presentación AFG2 · PDF",
-    "presentaciones/afg2_video_avance_1_20261017/publico/Guion_Video_Avance_1.pdf": "Guion del video de avance · PDF",
 }
 EXTENSIONES_DOCS = {
     ".html", ".qmd", ".md", ".txt", ".pdf", ".docx", ".css", ".js",
@@ -35,6 +33,11 @@ EXTENSIONES_DOCS = {
     ".eot", ".bib", ".csl",
 }
 GENERADOS = {"index.html", "docs/index.html", ".nojekyll"}
+ASSETS_NAVEGACION = ("docs/_site_nav.css", "docs/_site_nav.js")
+FRAGMENTOS_NAVEGACION = ("docs/_site_nav_head.html", "docs/_site_nav_body.html")
+RECURSOS_NAVEGACION = ASSETS_NAVEGACION + FRAGMENTOS_NAVEGACION
+MARCADORES_NAVEGACION = ("AP_SITE_NAV_HEAD_START", "AP_SITE_NAV_HEAD_END",
+                        "AP_SITE_NAV_BODY_START", "AP_SITE_NAV_BODY_END")
 RAICES_EXPLICITAS = {
     "docs", "others_files", "presentaciones", "output_files", "scripts_modelo_1km",
     "scripts_superficie", "scripts_estacion",
@@ -68,7 +71,12 @@ def fuente_segura(raiz: Path, relativo: str) -> Path:
         raise ValueError(f"Ruta no segura para GitHub Pages: {relativo}")
     if (relativo.startswith("presentaciones/afg2_video_avance_1_20261017/")
             and relativo not in AFG2_MATERIALES):
-        raise ValueError(f"AFG2 admite únicamente las tres copias públicas revisadas: {relativo}")
+        raise ValueError(f"AFG2 admite únicamente la presentación PowerPoint pública: {relativo}")
+    if p.parts[0] == "presentaciones" and (
+        "guion" in p.name.casefold()
+        or (p.name.startswith("AFG") and p.suffix.lower() != ".pptx")
+    ):
+        raise ValueError(f"Los guiones y PDF de presentaciones no se publican: {relativo}")
     actual = raiz
     for parte in p.parts:
         actual /= parte
@@ -93,7 +101,9 @@ def material_publico(relativo: str) -> bool:
     return (len(p.parts) == 3 and p.parts[0] == "presentaciones"
             and p.parts[1] in MATERIALES
             and p.name.startswith(("AFG1_", "Tesis_Exposoma_", "Poster_Exposoma_"))
-            and p.suffix.lower() in {".pdf", ".pptx"})
+            and "guion" not in p.name.casefold()
+            and ((p.name.startswith("AFG") and p.suffix.lower() == ".pptx")
+                 or (not p.name.startswith("AFG") and p.suffix.lower() in {".pdf", ".pptx"})))
 
 
 def seleccionar(versionados: set[str]) -> set[str]:
@@ -146,6 +156,117 @@ class ReferenciasHTML(HTMLParser):
 
 def urls_css(texto: str) -> list[str]:
     return [primera or segunda for primera, segunda in CSS_URL.findall(texto)]
+
+
+class PosicionesHTML(HTMLParser):
+    """Ubicaciones reales: ignora etiquetas aparentes dentro de scripts/comentarios."""
+    def __init__(self, texto: str):
+        super().__init__(convert_charrefs=False)
+        self.texto = texto
+        self.lineas = [0] + [i + 1 for i, letra in enumerate(texto) if letra == "\n"]
+        self.body_inicio: int | None = None
+        self.body_contenido: int | None = None
+        self.head_cierre: int | None = None
+        self.tiene_navegacion = False
+        self.marcadores: list[tuple[str, int, int]] = []
+
+    def posicion(self) -> int:
+        linea, columna = self.getpos()
+        return self.lineas[linea - 1] + columna
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "body" and self.body_inicio is None:
+            self.body_inicio = self.posicion()
+            self.body_contenido = self.body_inicio + len(self.get_starttag_text())
+        if tag == "nav" and any(k == "id" and v == "ap-site-nav" for k, v in attrs):
+            self.tiene_navegacion = True
+
+    def handle_endtag(self, tag):
+        if tag == "head" and self.head_cierre is None:
+            self.head_cierre = self.posicion()
+
+    def handle_comment(self, data):
+        nombre = data.strip()
+        if nombre in MARCADORES_NAVEGACION:
+            inicio = self.posicion()
+            self.marcadores.append((nombre, inicio, inicio + len(data) + 7))
+
+
+def retirar_navegacion_html(contenido: bytes) -> bytes:
+    """Retira sólo nuestros bloques delimitados y recupera los bytes de entrada."""
+    texto = contenido.decode("utf-8")
+    parser = PosicionesHTML(texto)
+    parser.feed(texto)
+    if not parser.marcadores or parser.body_inicio is None:
+        return contenido
+    por_nombre: dict[str, list[tuple[int, int]]] = {}
+    for nombre, inicio, fin in parser.marcadores:
+        por_nombre.setdefault(nombre, []).append((inicio, fin))
+    cortes = []
+    for tipo in ("HEAD", "BODY"):
+        inicio = por_nombre.get(f"AP_SITE_NAV_{tipo}_START", [])
+        fin = por_nombre.get(f"AP_SITE_NAV_{tipo}_END", [])
+        if len(inicio) != 1 or len(fin) != 1 or inicio[0][1] > fin[0][0]:
+            raise ValueError("Bloques de navegación incompletos o duplicados")
+        cortes.append((inicio[0][0], fin[0][1]))
+    for inicio, fin in sorted(cortes, reverse=True):
+        texto = texto[:inicio] + texto[fin:]
+    return texto.encode("utf-8")
+
+
+def agregar_navegacion_html(contenido: bytes, relativo: str, disponibles=None) -> bytes:
+    """Envuelve exclusivamente una copia del artefacto, sin reescribir su informe."""
+    texto = contenido.decode("utf-8")
+    parser = PosicionesHTML(texto)
+    parser.feed(texto)
+    if parser.tiene_navegacion:
+        return contenido
+    if parser.body_inicio is None:
+        return contenido  # Fragmentos reutilizables: conservarlos completos, incluso sus marcadores.
+    if parser.marcadores:
+        raise ValueError(f"Marcadores de navegación previos sin menú válido: {relativo}")
+    if disponibles is None:
+        disponibles = {"docs/index.html", "docs/resultados_y_metodologia.html",
+                       "docs/modelo_1km_horario.html"}
+
+    def url(ruta: str) -> str:
+        destino = posixpath.relpath(ruta, posixpath.dirname(relativo) or ".")
+        if not destino.startswith("."):
+            destino = "./" + destino
+        return html.escape(quote(destino, safe="/"), quote=True)
+
+    portal = url("docs/index.html")
+    links = [f'<a href="{portal}" data-ap-back>← Regresar</a>',
+             f'<a class="ap-brand" href="{portal}">Portal de resultados</a>']
+    if "docs/resultados_y_metodologia.html" in disponibles:
+        links.append(f'<a href="{url("docs/resultados_y_metodologia.html")}">Metodología</a>')
+    if "docs/modelo_1km_horario.html" in disponibles:
+        links.append(f'<a href="{url("docs/modelo_1km_horario.html")}">Informe PM₂.₅ y NO₂</a>')
+    links.extend((f'<a href="{portal}#presentaciones">Presentaciones</a>',
+                  '<a href="#ap-page-top">↑ Arriba</a>'))
+    menu = ('<nav id="ap-site-nav" aria-label="Navegación de Air-Pollution">'
+            '<div class="ap-nav-row">' + "\n".join(links)
+            + '<details class="ap-sections" hidden><summary>Secciones del informe</summary>'
+            '<ol data-ap-sections></ol></details></div></nav>')
+    head = ("<!--AP_SITE_NAV_HEAD_START-->\n"
+            f'<link rel="stylesheet" href="{url(ASSETS_NAVEGACION[0])}">\n'
+            f'<script defer src="{url(ASSETS_NAVEGACION[1])}"></script>\n'
+            "<!--AP_SITE_NAV_HEAD_END-->")
+    body = ('<!--AP_SITE_NAV_BODY_START-->\n<span id="ap-page-top" aria-hidden="true"></span>'
+            + menu + "\n<!--AP_SITE_NAV_BODY_END-->")
+    if parser.head_cierre is not None and parser.head_cierre < parser.body_inicio:
+        posicion_head = parser.head_cierre
+    else:
+        # HTML mínimo sin head: el wrapper añadido completo también es reversible.
+        posicion_head = parser.body_inicio
+        head = "<!--AP_SITE_NAV_HEAD_START-->\n<head>" + head.split("\n", 1)[1].rsplit("\n", 1)[0] + "</head>\n<!--AP_SITE_NAV_HEAD_END-->"
+    cambios = [(posicion_head, head), (parser.body_contenido, body)]
+    for posicion, bloque in sorted(cambios, reverse=True):
+        texto = texto[:posicion] + bloque + texto[posicion:]
+    resultado = texto.encode("utf-8")
+    if retirar_navegacion_html(resultado) != contenido:
+        raise ValueError(f"La navegación alteró el contenido original: {relativo}")
+    return resultado
 
 
 def destino_local(origen: str, url: str) -> str | None:
@@ -226,7 +347,9 @@ def inclusiones_publicas(raiz: Path, versionados: set[str], incluir=(), manifies
 
 
 def reunir_archivos(raiz: Path, versionados: set[str], incluir=()) -> dict[str, bytes]:
-    iniciales = seleccionar(versionados) | set(incluir)
+    if any(ruta not in versionados for ruta in RECURSOS_NAVEGACION):
+        raise ValueError("Los recursos de navegación deben estar versionados: " + ", ".join(RECURSOS_NAVEGACION))
+    iniciales = seleccionar(versionados) | set(incluir) | set(RECURSOS_NAVEGACION)
     if not any(p.startswith("docs/") and p.endswith(".html") for p in iniciales):
         raise ValueError("No hay informes HTML versionados en docs para publicar")
     pendientes = list(sorted(iniciales, reverse=True))
@@ -284,22 +407,17 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
         fuente = f' · {enlace(qmd, "Fuente QMD")}' if qmd in archivos else ""
         secciones.append(f"<li>{enlace(relativo, titulos.get(relativo))}{fuente}</li>")
     bloques = []
-    afg2 = [ruta for ruta in AFG2_MATERIALES if ruta in archivos]
-    if afg2:
-        bloques.append('<section class="afg2" id="presentacion-actual">'
-                       "<h2>AFG2 · Presentación actual y guion de avance</h2>"
-                       "<p>Presentación del avance ambiental y guion de exposición.</p><ul>"
-                       + "\n".join(f"<li>{enlace(ruta, AFG2_MATERIALES[ruta])}</li>" for ruta in afg2)
-                       + "</ul></section>")
     bloques.append('<section id="informes"><h2>Informes y metodología</h2><ul class="informes">'
                    + "\n".join(secciones) + "</ul></section>")
-    for titulo, seleccion in (
-        ("Informes históricos", sorted(p for p in archivos if historico_publico(p))),
-        ("Presentaciones y documentos anteriores", sorted(p for p in archivos
-                                                          if material_publico(p) and p not in AFG2_MATERIALES)),
+    for identificador, titulo, seleccion in (
+        ("historicos", "Informes históricos", sorted(p for p in archivos if historico_publico(p))),
+        ("presentaciones", "Presentaciones y documentos anteriores", sorted(p for p in archivos
+                                                                            if material_publico(p))),
     ):
         if seleccion:
-            bloques.append(f"<h2>{titulo}</h2><ul>" + "\n".join(f"<li>{enlace(p)}</li>" for p in seleccion) + "</ul>")
+            bloques.append(f'<section id="{identificador}"><h2>{titulo}</h2><ul>'
+                           + "\n".join(f"<li>{enlace(p, AFG2_MATERIALES.get(p))}</li>" for p in seleccion)
+                           + "</ul></section>")
     if incluir:
         bloques.append('<section id="evidencia"><h2>Tablas, figuras y evidencia</h2>'
                        "<p>Abra una carpeta para consultar sus archivos. Las salidas de referencia, "
@@ -368,18 +486,16 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
             "outline-offset:4px}li{margin:.55rem 0;overflow-wrap:anywhere}h1,h2,h3{line-height:1.25}"
             "h1{font-size:clamp(2rem,6vw,3rem);margin-bottom:.25rem}h2{margin-top:2.25rem}"
             "header{border-bottom:2px solid var(--borde);padding-bottom:1.25rem}"
-            ".subtitulo{font-size:1.25rem;color:#42536a;margin-top:0}nav{display:flex;gap:1rem;"
+            ".subtitulo{font-size:1.25rem;color:#42536a;margin-top:0}header>nav{display:flex;gap:1rem;"
             "flex-wrap:wrap;margin-top:1.25rem}section{scroll-margin-top:1rem}"
             ".aviso{background:#eff5fa;border-left:4px solid var(--azul);padding:.8rem 1rem}"
-            ".afg2{margin:1.5rem 0;padding:1rem 1.25rem;border:2px solid var(--azul);"
-            "border-radius:.6rem;background:#f4f9fc}.afg2 h2{margin-top:.25rem}"
             ".informes{padding-left:1.3rem}.informes li{padding:.25rem 0}"
-            "details{border:1px solid var(--borde);border-radius:.45rem;margin:.75rem 0;padding:.75rem 1rem}"
-            "summary{cursor:pointer;font-weight:650;overflow-wrap:anywhere}"
+            "#evidencia details{border:1px solid var(--borde);border-radius:.45rem;margin:.75rem 0;padding:.75rem 1rem}"
+            "#evidencia summary{cursor:pointer;font-weight:650;overflow-wrap:anywhere}"
             ".cantidad{display:block;font-weight:400;font-size:.9rem;color:#475b70;padding-left:1rem}"
             ".ruta{font-size:.85rem;color:#475b70;overflow-wrap:anywhere}code{font-size:.9em}"
             "@media(max-width:40rem){body{padding:1rem}.cantidad{padding-left:0}"
-            "details{padding:.65rem}.informes li{margin-bottom:1rem}}</style>"
+            "#evidencia details{padding:.65rem}.informes li{margin-bottom:1rem}}</style>"
             "</head><body><header><h1>Air-Pollution</h1>"
             '<p class="subtitulo">Resultados ambientales, metodología y estimación de PM₂.₅ y NO₂</p>'
             "<p>Este portal reúne los informes existentes, sus fuentes y las tablas y figuras públicas "
@@ -391,7 +507,8 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
             '<nav aria-label="Secciones"><a href="#informes">Informes y metodología</a>'
             + ('<a href="resultados_y_metodologia.html#programas-python">Catálogo de programas Python</a>'
                if "docs/resultados_y_metodologia.html" in archivos else "")
-            + ('<a href="#presentacion-actual">Presentación AFG2 actual</a>' if afg2 else "")
+            + ('<a href="#presentaciones">Presentaciones y documentos anteriores</a>'
+               if any(material_publico(p) for p in archivos) else "")
             + ('<a href="#evidencia">Tablas y figuras por carpeta</a>' if incluir else "")
             + "</nav></header><main>"
             + "\n".join(bloques) + "</main></body></html>\n")
@@ -434,6 +551,14 @@ def preparar(raiz: Path, salida: Path, incluir=(), manifiesto=None) -> dict:
         '</body></html>\n'
     ).encode("utf-8")
     archivos[".nojekyll"] = b""
+    html_con_navegacion = []
+    disponibles = set(archivos)
+    for relativo, contenido in tuple(archivos.items()):
+        if relativo.endswith(".html") and relativo != "index.html":
+            envuelto = agregar_navegacion_html(contenido, relativo, disponibles)
+            archivos[relativo] = envuelto
+            if envuelto != contenido:
+                html_con_navegacion.append(relativo)
     validar_enlaces(archivos)
     # Todos los enlaces y fuentes se comprueban antes de crear el destino.
     # mkdir(exist_ok=False) y open('xb') protegen contra carreras/sobrescrituras.
@@ -447,8 +572,9 @@ def preparar(raiz: Path, salida: Path, incluir=(), manifiesto=None) -> dict:
             raise ValueError(f"Copia no íntegra: {relativo}")
     return {"salida": str(salida), "archivos": sorted(archivos), "cantidad_archivos": len(archivos),
             "inclusiones_explicitas": sorted(explicitos),
+            "html_con_navegacion": sorted(html_con_navegacion),
             "bytes": sum(map(len, archivos.values())),
-            "nota": "Sólo contenido público versionado; renders y fuentes copiados sin modificaciones"}
+            "nota": "Sólo contenido público versionado; navegación reversible en copias HTML, originales intactos"}
 
 
 def main(argv=None) -> int:

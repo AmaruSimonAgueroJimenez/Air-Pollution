@@ -46,7 +46,7 @@ API principal: `inventariar`, `exportar_paper`, `generar`, `main`. Opciones decl
 
 Tipo: ejecutor / CLI. [Referencia pública](https://github.com/AmaruSimonAgueroJimenez/Air-Pollution/blob/bed3b3a6d8dcb75352abe5927ea660c87e862f6d/others_scripts/preparar_github_pages.py); incluye cambios locales no presentes en esa referencia.
 
-Selecciona materiales versionados para un sitio estático, incorpora dependencias locales permitidas y comprueba enlaces bajo la subruta de GitHub Pages. Produce un directorio nuevo y los índices públicos sin interpretar los QMD como código.
+Selecciona materiales versionados para un sitio estático, incorpora dependencias locales permitidas y comprueba enlaces bajo la subruta de GitHub Pages. Produce un directorio nuevo y los índices públicos sin interpretar los QMD como código; añade navegación reversible sólo a las copias HTML y agrupa las presentaciones AFG en formato PowerPoint.
 
 API principal: `seleccionar`, `reunir_archivos`, `validar_enlaces`, `preparar`, `main`. Opciones declaradas (selección): `--include`, `--include-manifest`, `--output`, `--root`.
 

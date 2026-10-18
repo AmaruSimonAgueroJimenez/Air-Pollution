@@ -7,6 +7,10 @@ format:
     toc: true
     page-layout: full
     embed-resources: true
+    include-in-header:
+      - file: _site_nav_head.html
+    include-before-body:
+      - file: _site_nav_body.html
 execute:
   enabled: false
 ---
