@@ -35,36 +35,103 @@ jupyter: python3
 
 ## Introducción {#sec-introduccion}
 
-La estimación de la contaminación atmosférica en Chile enfrenta un problema
-de soporte: los monitores describen lugares y horas observados, mientras que
-la caracterización territorial requiere información también fuera de esa
-red. Los satélites aportan observaciones de pasadas concretas y los
-reanálisis aportan campos continuos a resoluciones propias; ninguna de esas
-fuentes, por separado, equivale a medir cada hora la concentración
-superficial de cada celda del territorio.
+La contaminación atmosférica constituye un problema de salud pública cuya
+evaluación requiere caracterizar tanto la magnitud como la distribución
+espacial y temporal de la exposición. Estudios de cohortes han identificado
+asociaciones entre la exposición prolongada a material particulado fino
+(PM₂.₅) y la mortalidad, incluso en poblaciones expuestas a concentraciones
+relativamente bajas [@di2017mortality; @strak2021elapse]. Para el dióxido de
+nitrógeno (NO₂), la evidencia incluye asociaciones con mortalidad a largo
+plazo y con fluctuaciones diarias de mortalidad total, cardiovascular y
+respiratoria [@strak2021elapse; @meng2021no2mortality]. Aunque estos
+antecedentes justifican estudiar ambos contaminantes, no permiten
+equiparar sus mecanismos ni transferir directamente a Chile los efectos
+estimados en otras poblaciones. Las directrices de la Organización Mundial
+de la Salud sintetizan la relevancia sanitaria de reducir la exposición,
+sin convertir un umbral de referencia en una frontera de ausencia de
+riesgo [@who2021airquality].
 
-Este proyecto integra esas fuentes con observaciones de superficie y
-covariables geográficas para reconstruir concentraciones ambientales. La
-evaluación distingue el ajuste a datos conocidos de la generalización a
-estaciones, regiones y períodos retenidos. También separa la escala nominal
-de la salida de la resolución efectiva de la información que la sostiene,
-y una media de exposición de un cuantil orientado a episodios.
+En Chile, la relación entre emisiones y concentraciones ambientales está
+condicionada por una marcada heterogeneidad territorial. En la cuenca de
+Santiago, las condiciones sinópticas y el desarrollo de la capa de mezcla
+influyen en la ventilación y en la ocurrencia de episodios de contaminación
+[@rutllant1995meteorological]. El análisis de fuentes de PM₂.₅ en esa ciudad
+ha identificado contribuciones vehiculares, industriales y de combustión,
+con variaciones a lo largo del tiempo [@barraza2017sources]. En contraste,
+los estudios realizados en Temuco destacan la contribución de la
+combustión residencial de leña, mientras que la comparación de ciudades del
+centro-sur muestra diferencias espaciales y mayores concentraciones de
+partículas durante los meses fríos [@villalobos2017wood;
+@molina2017southcentral]. Estos resultados, circunscritos a los lugares y
+períodos estudiados, desaconsejan asumir que una única relación entre
+covariables y concentración sea uniforme en todo el país.
 
-Este informe desarrolla la estimación horaria de PM₂.₅ y NO₂ en una grilla
-angular de 0,01° para Chile. PM₂.₅ es material particulado, no un gas; NO₂ es
-dióxido de nitrógeno. Ambos productos estiman concentraciones de superficie,
-no emisiones ni efectos causales sobre salud. La metodología se presenta
-antes de los resultados; estos reúnen la caracterización de observaciones
-y fuentes, las evaluaciones del modelo y las superficies de exposición,
-con sus límites de cobertura e interpretación.
+La medición en estaciones aporta una referencia indispensable para
+caracterizar la calidad del aire, pero su soporte es puntual y su
+disponibilidad varía entre sitios y períodos. La estimación territorial
+requiere, por tanto, complementar esa información sin confundir la
+interpolación de la red con observaciones directas en lugares no medidos.
+Los modelos de exposición multifuente han abordado este problema mediante
+la combinación de observaciones de superficie, satélites, meteorología,
+uso del suelo y modelos de transporte químico. Un precedente es la
+estimación diaria de PM₂.₅ a 1 km para Estados Unidos mediante un ensamble de
+redes neuronales, Random Forest y gradient boosting [@di2019ensemble].
+También existen antecedentes de estimación horaria de PM₂.₅ mediante fusión
+y relleno de huecos de AOD multifuente [@pu2022hourly].
+Este tipo de integración ofrece un marco metodológico, pero su desempeño
+en otro dominio o a otra escala temporal debe evaluarse, no suponerse.
 
-::: {.callout-note}
-La revisión editorial del **18 de octubre de 2026** reorganiza el informe y añade referencias y la tabla
-de programas. Conserva las cifras, figuras, tablas y firmas de la ejecución
-previamente documentada: **no se ha realizado un nuevo ajuste ni una nueva
-producción de superficies**. La huella del QMD editado no debe confundirse
-con la huella archivada de aquella ejecución.
-:::
+La teledetección incorpora además diferencias físicas de soporte. La
+profundidad óptica de aerosoles (AOD) describe la extinción integrada en la
+columna atmosférica; su relación con PM₂.₅ superficial depende, entre otros
+factores, de la distribución vertical del aerosol, la humedad y el muestreo
+[@vandonkelaar2010aod]. De manera análoga, inferir NO₂ cerca de la superficie
+a partir de una columna troposférica requiere información adicional sobre
+su distribución vertical [@cooper2020surface]. Los algoritmos MAIAC y
+TROPOMI proporcionan información valiosa, pero sus productos no son
+mediciones intercambiables de concentración superficial
+[@lyapustin2018maiac; @vangeffen2022tropomi]. La disponibilidad de una grilla
+fina tampoco equivale a observación horaria: los mapas de NO₂ obtenidos por
+sobremuestreo de TROPOMI pueden integrar pasadas y agregaciones temporales,
+en lugar de resolver cada hora del día [@cooper2022finescale].
+
+Los reanálisis y los modelos de composición atmosférica complementan las
+observaciones satelitales con campos meteorológicos y químicos más
+regulares. ERA5, ERA5-Land y MERRA-2 describen el estado atmosférico o de la
+superficie terrestre, mientras que CAMS y GEOS-CF aportan información de
+composición [@hersbach2020era5; @munozsabater2021era5land;
+@gelaro2017merra2; @inness2019cams; @keller2021geoscf]. Sus resoluciones,
+frecuencias y períodos de disponibilidad difieren, por lo que asignarlos a
+una salida aproximadamente kilométrica exige conservar explícitamente su
+procedencia y sus limitaciones. En particular, reconstruir variación
+horaria durante la noche o en días sin recuperación satelital depende de
+la información meteorológica, química y de monitoreo disponible, no de una
+observación satelital inexistente.
+
+La evaluación de estos modelos requiere distinguir el ajuste aparente de
+su capacidad de transferencia. En datos espacial y temporalmente
+dependientes, una partición aleatoria de filas puede conservar entre
+entrenamiento y prueba información de sitios o períodos estrechamente
+relacionados, y responder una pregunta distinta de la predicción en un
+lugar no observado [@roberts2017crossvalidation; @meyer2018validation].
+Además, un error estimado en estaciones disponibles no garantiza el mismo
+desempeño fuera del rango de condiciones representado en el entrenamiento
+[@meyer2021applicability]. La escala espacial y la temporal deben evaluarse
+por separado, junto con la cobertura, el sesgo y el acuerdo en la escala de
+concentración de interés.
+
+En este contexto, el presente estudio desarrolla y evalúa una integración
+multifuente para reconstruir concentraciones superficiales horarias de
+PM₂.₅ y NO₂ en Chile durante 2000–2026, sobre una grilla angular de 0,01°.
+Su contribución se plantea como una evaluación reproducible de esa
+integración concreta, con comparación de familias de modelos y retención
+de unidades espaciales y temporales, y no como una demostración de
+cobertura nacional uniforme o de ausencia de error de exposición. La
+pregunta central es en qué medida la información disponible permite
+reconstruir las concentraciones fuera de los sitios y períodos utilizados
+en el ajuste, y cuáles son los límites de esa transferencia. El estudio
+estima concentraciones ambientales; no identifica emisiones ni efectos
+causales sobre salud.
 
 ## Pregunta de investigación y objetivos {#sec-pregunta-objetivos}
 
@@ -91,8 +158,8 @@ resultantes.
 2. Integrar satélites, reanálisis y covariables geográficas conservando su
    resolución nativa, unidades, procedencia y semántica temporal.
 3. Construir paneles de calibración y predictores para la grilla con un
-   contrato común, evitando incorporar información de las unidades retenidas
-   en la validación.
+   contrato común y documentando las dependencias de información respecto
+   de las unidades retenidas en la validación.
 4. Ajustar y contrastar los modelos utilizados, diferenciando sus
    supuestos, transformaciones, presupuestos de entrenamiento y cantidades
    estimadas.
@@ -105,183 +172,45 @@ resultantes.
 
 ## Metodología {#sec-metodologia}
 
-### Alcance y decisiones del diseño {#sec-resumen}
+### Enfoque analítico y alcance {#sec-resumen}
 
-Este documento contiene, de principio a fin, el **modelo de estimación
-horaria de PM₂.₅ y NO₂ en superficie a 1 km** para todo Chile. La metodología
-presenta primero la configuración, la preparación compartida de los datos,
-la definición de la grilla, la operacionalización de cada
-predictor, el ensamblaje del panel de calibración con **toda la
-temporalidad SINCA (2000–2026)**, el motor estadístico, los protocolos de
-validación y la evaluación de qué tan bien se estiman la serie temporal y
-el patrón espacial. En Resultados se reúnen la distribución geoespacial de
-las mediciones SINCA en ventanas de cuatro años y sus series temporales
-por macrozona (@sec-descriptivo), y la descriptiva de las fuentes a
-resolución nativa (@sec-desc-fuentes). La evaluación va en **dos secciones paralelas y
-autocontenidas**, con las mismas tablas y las mismas figuras para cada
-motor: primero el ajuste con todas las estaciones, que mide el desempeño
-aparente (@sec-sin-validacion), y después la validación cruzada, que mide lo
-que el producto hará en un lugar sin monitor (@sec-resultados); la distancia
-entre ambas se lee al final (@sec-optimismo). Cierra con la producción de
-las superficies diarias. A diferencia de
-`modelos_estimacion.qmd`, que calibra modelos globales por estación y hora, aquí
-la unidad de análisis es la **celda de 0,01° × bin horario UTC**: la
-estación de monitoreo se representa por la celda que la contiene y recibe
-exactamente los predictores que recibirá esa celda al predecir, de modo que
-la validación fuera de estación mide lo que el producto va a hacer en el
-resto del territorio.
+Se realizó un estudio retrospectivo de desarrollo y evaluación predictiva de
+concentraciones ambientales, basado en la integración de mediciones de
+superficie, teledetección, reanálisis y covariables geográficas. El objetivo
+de estimación fue la concentración en una celda y un intervalo horario, no
+la exposición personal. Se ajustó un modelo independiente para cada
+contaminante, con un contrato común del dominio y de los predictores. La
+integración multifuente se inscribe en los modelos de exposición que
+combinan información atmosférica y territorial a escalas complementarias
+[@di2019ensemble; @hammer2020acag].
 
-La calibración, la validación y la evaluación viven en este documento; la
-ingeniería de datos que lo alimenta (lectores de cada producto en su formato
-nativo, construcción de la grilla, covariables estáticas y la verificación del
-reloj SINCA) vive en `scripts_modelo_1km/` y se importa aquí como una
-librería. **La producción de superficies vive también en la librería**
-(`produccion.py`), no aquí: la serie completa son millones de horas de
-predicción y tiene que poder correrse en varios procesos sin renderizar el
-informe. El documento importa exactamente las mismas clases que usa el
-lanzador, de modo que lo que se publica al renderizar y lo que se publica en
-una corrida de producción no pueden diferir. Las pruebas herméticas de la
-librería están en `scripts_modelo_1km/tests/`.
+LightGBM constituyó el estimador del producto de superficie. Su desempeño se
+contrastó con interpolación de observaciones concurrentes, regresión
+geográficamente ponderada, regression-kriging, Random Forest, una red
+neuronal multicapa, un proceso gaussiano, un modelo lineal mixto, un modelo
+de cuantil para episodios y un ensamble por apilado. Se distinguieron las
+predicciones sobre los datos empleados en el ajuste de las obtenidas al
+retener unidades espaciales o temporales. Los protocolos ejecutados y sus
+límites de independencia se describen en @sec-protocolos; no se
+consideraron equivalentes a una validación externa prospectiva.
 
-::: {.callout-note}
-## Decisiones de esta iteración
+La configuración computacional, las funciones de preparación y la tabla de
+programas forman parte del material reproducible. Los detalles operativos
+se mantienen desplegables para separar la descripción científica del
+procedimiento de ejecución. Esta revisión modifica la presentación y la
+documentación bibliográfica, pero conserva los resultados de la ejecución
+analítica archivada.
 
-* **Dominio y grilla**: Chile continental e insular, 838.430 celdas de
-  0,01° alineadas con ACAG V6GL03 (centros en k·0,01 + 0,005); ACAG entra
-  1:1 y MAIAC por el píxel más cercano a ≤ 1,5 km.
-* **Período**: 2000-01-01 a 2026-09-13, toda la temporalidad del derivado
-  SINCA para ambos contaminantes. ERA5-Land, ERA5 BLH, MERRA-2 y MAIAC
-  cubren prácticamente todo el período y ACAG hasta diciembre de 2024
-  (después entra su climatología con la bandera `acag_clim`); CAMS EAC4 parte en 2003 y GEOS-CF y
-  TROPOMI sólo existen en disco para 2019–2024, de modo que fuera de esos
-  años entran como faltantes y la evaluación se reporta también por
-  cuatrienio y por régimen de predictores.
-* **Control de calidad**: se excluyen las rachas de 24 o más registros
-  idénticos consecutivos (sensor pegado), cuantificadas en @sec-desc-red.
-* **Reloj SINCA**: UTC−4 fijo con etiqueta al fin del intervalo, respaldado
-  por una prueba estructural en las fechas de cambio de hora
-  (@sec-reloj).
-* **Motor**: LightGBM sobre log(1 + y) con corrección de retransformación
-  por macrozona y franja horaria en los dos contaminantes, el mismo motor
-  que en `modelos_estimacion.qmd`; la varianza de la corrección se estima
-  con residuos fuera de pliegue (@sec-motor), no in-sample.
-* **Predictores**: los mismos candidatos para los dos contaminantes, salvo
-  la distancia a la costa, que el modelo de NO₂ excluye por diseño
-  (@sec-costa-no2, @sec-predictores-fuera).
-* **Motores**: LightGBM es el motor del producto. Como contraste, con los
-  mismos protocolos y métricas (@sec-comparacion-motores), se evalúan los
-  motores espaciales clásicos (GWR, regression-kriging y una línea base de
-  interpolación de vecinas, @sec-motores-contraste) y los motores usados
-  antes en el proyecto hermano: Random Forest, red neuronal, proceso
-  gaussiano, modelo lineal mixto, LightGBM de alertas (cuantil 0,80) y el
-  ensamble por apilado (@sec-motores-previos).
-* **Redes de observación**: al panel entran SINCA y la red adicional SNIFA
-  de NO₂ (@sec-red-adicional), cuyo reloj y cuyas unidades se resolvieron con
-  evidencia; dos de sus estaciones quedan fuera porque su escala no se pudo
-  verificar.
-* **Presentación de resultados**: dos secciones separadas con el mismo
-  material, una sin validación cruzada (@sec-sin-validacion) y otra con
-  validación (@sec-resultados), y una tercera con la diferencia entre ambas
-  (@sec-optimismo). Ninguna cifra mezcla los dos regímenes, salvo dos
-  excepciones declaradas donde aparecen: los pesos del ensamble, que se
-  aprenden con predicciones fuera de pliegue (@sec-sin-validacion), y el
-  control in-sample de @tbl-final.
-* **Validación**: fuera de estación (LOSO) como vara principal; **fuera del
-  sitio y de su entorno de 10 km (LBO)**, que es la pregunta de un lugar sin
-  monitores cerca; dejando una
-  región fuera (LRO) y dejando un cuatrienio fuera (LPO) como pruebas de
-  extrapolación espacial y temporal; protocolo del producto con todas las
-  estaciones. La evaluación separa la lectura espacial (entre estaciones)
-  de la temporal (dentro de estación) y cubre cuatro niveles de agregación
-  (horario, diario, mensual y anual).
-* **Sin interpolar en la ingesta**: ninguna fuente se remuestrea ni se
-  rellena; los huecos quedan `NaN` y el motor los trata como faltantes.
-  Interpolar los reanálisis gruesos se probó con la calibración y la
-  validación completas y se descartó (@sec-interpolacion).
-* **El disco externo queda para los datos crudos**: nada de lo que genera
-  el modelo se escribe allí. Grilla, estáticas, paneles, modelos,
-  predicciones de validación y superficies van al disco interno
-  (`~/Asesorias_Data_local/AirPollution/modelado_1km/`, reubicable con
-  `AIR_POLLUTION_MODELO_1KM_ROOT`), fuera del repositorio sincronizado.
-* **Caché reproducible**: cada artefacto pesado (panel, modelo, superficie)
-  vive en esa raíz local y cada artefacto chico
-  (métricas, figuras) en `output_files/modelo_1km/` (con etiqueta,
-  `output_files/modelo_1km_<etiqueta>/`); pliegues, predicciones fuera de
-  muestra, métricas y modelo final quedan atados al sha256 del panel que
-  los produjo y la evaluación al del archivo de predicciones; si el archivo existe,
-  el chunk que lo produce se salta el cómputo (borrar el artefacto lo
-  regenera).
-:::
-
-::: {.callout-tip}
-## Cómo se ejecuta
-
-Con el entorno `afg` de `scripts_superficie/` más
-`scripts_modelo_1km/requirements.txt`. Quarto se lanza **desde `docs/`**
-(con `embed-resources` y `--output`, lanzado desde la raíz busca
-`modelo_1km_horario_files/` en el directorio de trabajo y falla al empaquetar):
-
-```sh
-zsh scripts_modelo_1km/lanzar_corrida_completa.sh   # histórico 2000–2026 + HTML (horas; reanudable)
-# o, paso a paso, siempre con los cuatro protocolos:
-export MODELO_1KM_LBO=1 MODELO_1KM_LRO=1 MODELO_1KM_LPO=1
-python -B scripts_modelo_1km/correr_qmd.py          # los chunks fuera de Quarto
-cd docs
-quarto render modelo_1km_horario.qmd                # arma el HTML reutilizando todo lo cacheado
-cd .. && python -B others_scripts/aligerar_html.py docs/modelo_1km_horario.html   # figuras en 256 colores
-zsh scripts_modelo_1km/lanzar_produccion_serie.sh   # la serie completa de superficies, aparte
-```
-
-**El documento no se ejecuta ni se renderiza sin `MODELO_1KM_LBO`,
-`MODELO_1KM_LRO` y `MODELO_1KM_LPO` en 1.** Sin ellas la validación corre
-sólo LOSO, los motores de contraste ven una lista de protocolos distinta de
-la de su caché, reescriben sus predicciones fuera de muestra sólo con LOSO
-y la evaluación de todos los motores se recalcula sin los otros tres
-protocolos. El lanzador las fija por omisión.
-
-`correr_qmd.py` ejecuta estos mismos chunks, en orden, en un proceso de
-Python corriente: las etapas largas no dependen de un kernel de Jupyter y,
-como cada artefacto y cada pliegue se guardan al terminar, una corrida
-interrumpida se reanuda donde quedó. Quarto debe usar el mismo entorno
-(`QUARTO_PYTHON=.../envs/afg/bin/python`). La prueba corta
-(`MODELO_1KM_SMOKE=1`) se renderiza con otro nombre de salida
-(`--output modelo_1km_horario_smoke.html`), y el render real que la siga
-debe partir con un kernel nuevo (`--execute-daemon-restart`): Quarto puede
-reutilizar el kernel de la corrida anterior y, con él, sus rutas de figuras.
-`others_scripts/aligerar_html.py` reescribe las imágenes incrustadas del HTML
-con una paleta de 256 colores, sin tocar los PNG de `output_files/`, para que
-el informe quepa en GitHub.
-
-Variables de entorno: `MODELO_1KM_DESDE`/`MODELO_1KM_HASTA` (período),
-`MODELO_1KM_ETIQUETA` (sufijo de panel, modelo y superficies; `smoke` en la
-prueba corta), `MODELO_1KM_LRO=1` y `MODELO_1KM_LPO=1` (validación dejando
-una región o un cuatrienio fuera), `MODELO_1KM_LBO=1` con
-`MODELO_1KM_RADIO_LBO` (deja fuera el sitio y su entorno),
-`MODELO_1KM_QC_RACHA` (largo mínimo de
-una racha de valores idénticos; 0 la desactiva), `MODELO_1KM_PROCESOS`
-(procesos de la ingesta),
-`MODELO_1KM_DIAS_DEMO` (días de demostración de las superficies),
-`MODELO_1KM_N_TREES` y `MODELO_1KM_MAX_TRAIN_ROWS` (costo del motor),
-`MODELO_1KM_MOTORES_ML` (motores de @sec-motores-previos a correr, separados
-por coma; por defecto `alertas,rf,nn,gp,lme`; vacío los omite y la
-comparación de motores se rehace sin ellos),
-`MODELO_1KM_REGION_ANEXO` (región SINCA del anexo regional; por defecto `RM`),
-`MODELO_1KM_RED_ADICIONAL=0` (deja fuera los monitores SNIFA),
-`MODELO_1KM_SIN_VIAS=1` (estáticas sin OSM),
-`MODELO_1KM_EXCLUIR` (predictores que se sacan del modelo de un
-contaminante; por omisión `no2:dist_costa_km`, y `-` no saca ninguno),
-`MODELO_1KM_RETRANSFORMACION` o `_PM25`/`_NO2` (forma de la corrección de
-retransformación; por omisión `duan_oof_macrozona`) y
-`MODELO_1KM_INTERPOLAR` (reanálisis interpolados en vez del píxel más
-cercano; vacío por omisión, que es el diseño publicado). El avance de cada
-etapa se escribe en `output_files/modelo_1km/modelo_1km.log`.
-:::
 
 ### Configuración de la corrida {#sec-config}
 
-El primer bloque fija rutas, período, modo de ejecución y caché e importa la
-librería de ingesta; el segundo define las primitivas gráficas que comparten
-el análisis descriptivo, la validación y los mapas de superficie.
+La ejecución se parametrizó mediante un período de análisis, una semilla y
+límites de entrenamiento por motor. La preparación de datos, la evaluación
+y la producción de superficies utilizaron funciones compartidas de
+`scripts_modelo_1km/`, con artefactos vinculados a la identidad del panel y
+del código. Los bloques siguientes documentan los parámetros ejecutados;
+no constituyen una búsqueda de hiperparámetros ni un nuevo ajuste durante
+esta revisión editorial.
 
 ```{python}
 #| code-fold: true
@@ -509,6 +438,14 @@ def _comunas_borde():
 ```
 
 ### Preparación compartida de observaciones y fuentes {#sec-preparacion-descriptiva}
+
+Se prepararon las observaciones y los inventarios de predictores antes del
+emparejamiento analítico. La caracterización descriptiva conservó las
+ventanas de disponibilidad y el soporte nativo de cada fuente; los
+resúmenes se estratificaron por contaminante, estación, macrozona y ventanas
+de cuatro años. Los procedimientos empleados se muestran en los bloques
+reproducibles siguientes, y sus resultados se presentan en
+@sec-descriptivo y @sec-desc-fuentes.
 
 #### Observaciones de superficie, calidad y ventanas temporales
 
@@ -1087,19 +1024,28 @@ def tabla_medias_chile() -> pd.DataFrame:
 
 ### Diseño del estudio y dominio {#sec-diseno}
 
-Estudio de calibración y validación de un modelo de exposición. La
-**unidad de análisis** es la celda de 0,01° × bin horario UTC; el
-**período** es 2000-01-01 a 2026-09-13 (toda la temporalidad SINCA); el **dominio** son las celdas que
-tocan Chile según la máscara comunal oficial, incluidas las islas
-oceánicas. Para cada contaminante se construye un panel de calibración con
-las estaciones SINCA representadas por su celda, se ajusta el motor bajo
-validación fuera de estación y, con el modelo final, se producen
-superficies diarias de 24 horas. Las macrozonas siguen la partición de
-`modelos_estimacion.qmd` (norte grande, norte chico, centro, sur y austral).
+El período de estudio comprendió del 1 de enero de 2000 al 13 de septiembre
+de 2026, según la ventana del derivado SINCA utilizado. El dominio se
+definió como el conjunto de celdas que intersectan la máscara comunal de
+Chile, incluidas las islas oceánicas. La unidad de predicción fue la
+combinación celda de 0,01° e intervalo horario UTC; la unidad observacional
+del panel fue la medición estación–intervalo, vinculada a la celda que
+contiene al monitor. La resolución angular es aproximadamente kilométrica,
+pero no corresponde a celdas de área constante ni implica que todos los
+predictores posean esa resolución efectiva.
+
+Los análisis se estratificaron en cinco macrozonas —norte grande, norte
+chico, centro, sur y austral—, según la partición del proyecto. La red de
+estaciones se utilizó como referencia de calibración, sin asumir que
+representara mediante muestreo probabilístico la totalidad del territorio.
+Tras la evaluación, el modelo final se ajustó con el conjunto disponible y
+se utilizó para generar archivos diarios con 24 intervalos horarios. La
+cobertura efectiva de las superficies se documenta en Resultados y no se
+deduce de la sola extensión del período solicitado.
 
 ### Grilla de 0,01° y enlaces al píxel nativo {#sec-grilla}
 
-La grilla no se interpola: cada celda hereda el `pixel_id` de ACAG
+La grilla se alineó con ACAG de 0,01°; cada celda hereda el `pixel_id` de ACAG
 (fila global × 5101 + columna) y se enlaza al **píxel nativo más cercano**
 de cada producto por distancia sobre la esfera, con un radio máximo por
 producto (9 km para ERA5-Land 0,1°, 22 km para ERA5 BLH 0,25° y GEOS-CF,
@@ -1115,7 +1061,12 @@ dentro de un radio ampliado (16 km, un píxel y medio) y queda marcada como
 interpolar. Rapa Nui y Sala y Gómez no
 existen en ACAG y se generan desde los polígonos comunales con
 identificadores 900000000+k. La construcción está en
-`scripts_modelo_1km/construir_grilla.py`.
+`scripts_modelo_1km/construir_grilla.py`. El enlace conserva el valor del
+píxel de origen: varias celdas de salida pueden compartir un mismo valor
+de reanálisis. Por tanto, el tamaño nominal de la salida no se interpreta
+como una mejora de la resolución física del predictor. La literatura de
+ACAG documenta una integración de información satelital y modelación, no
+una medición directa de PM₂.₅ en cada celda [@hammer2020acag].
 
 ```{python}
 #| code-fold: true
@@ -1204,40 +1155,49 @@ Image(str(fig_grilla()))
 
 ### Red adicional de monitores fuera de SINCA {#sec-red-adicional}
 
-Además de SINCA, el panel incorpora monitores de calidad del aire publicados
-en SNIFA por titulares de RCA (`MODELO_1KM_RED_ADICIONAL=0` los desactiva).
-Aportan **sólo NO₂**, están a 22–43 km de la estación SINCA más cercana y
-cubren zonas sin red pública, que es justamente donde el producto se usa. El
-derivado de origen se publica a propósito **sin reloj UTC** (`clock_status`
-es `unverified` y `ready_for_utc_join` es falso), así que antes de usarlo
-hubo que resolver dos semánticas, con evidencia y no por supuesto.
+Se incorporaron además series de NO₂ de monitores publicados en SNIFA por
+titulares de resoluciones de calificación ambiental. Las estaciones
+admitidas se localizaron a 22–43 km de la estación SINCA más cercana. El
+derivado de origen no certificaba una referencia UTC (`clock_status =
+unverified`; `ready_for_utc_join = false`); por ello, su integración se
+condicionó a una decisión operacional explícita sobre etiquetas temporales
+y unidades, apoyada en los contrastes siguientes. Esta evidencia indirecta
+no sustituye la confirmación documental del metadato original.
 
-**Reloj.** Las fuentes mezclan etiquetas horarias: 176 documentos usan 0–23 y
+**Armonización temporal.** Las fuentes mezclan etiquetas horarias: 176 documentos usan 0–23 y
 95 usan 1–24, a veces en la misma estación. La convención se decide por
 documento (si su hora llega a 24 la etiqueta es el fin del intervalo y la
 hora local de inicio es una menos) y con esa corrección el ciclo diurno de
 **ozono** observado se alinea con el de GEOS-CF en la misma celda para
 `ts_utc = hora local + 4`, en las tres estaciones que miden O₃ y con
 correlación 0,986 a 0,990; el máximo de ozono queda a las 15:00 locales. En
-noviembre–febrero el ajuste es aún más nítido (0,976 a 0,997) y sigue dando
-+4, lo que **descarta el horario de verano oficial**: el reloj es UTC−4 fijo,
-la misma convención del derivado SINCA. El NO₂ no sirve para esta prueba: su
-ciclo en estos sitios es débil y las referencias se contradicen.
+noviembre–febrero el ajuste es aún más nítido (0,976 a 0,997) y sigue
+favoreciendo +4. Se adoptó, por tanto, UTC−4 fijo como convención de enlace,
+consistente con la utilizada para SINCA. La concordancia del ciclo diurno
+respalda esa elección operacional, pero no certifica por sí sola el reloj
+de cada documento. El ciclo de NO₂ no se utilizó como prueba de referencia
+porque su señal local fue débil y los contrastes no fueron consistentes.
 
-**Unidad.** El preparador normaliza la escritura pero no convierte, y ninguna
-hora aparece con dos unidades, así que no hay factor empírico directo.
-Contrastando cada período contra el NO₂ de CAMS en la misma celda, la razón
-observado/CAMS no cambia al pasar de µg/m³N a ppb en Charrúa (0,87 → 0,99) ni
-en Progreso (0,69 → 0,67): esos valores ya venían en escala de ppb. En El
-Peñón sí salta, de 3,60 a 1,51, y la conversión a 0 °C y 1 atm lo explica
-(3,60 × 0,4872 = 1,75), así que ahí sí se convierte.
+**Unidad.** La preparación normaliza la escritura de la unidad, pero no
+convierte las concentraciones; no existen horas duplicadas con ambas
+unidades que permitan estimar directamente un factor. En el contraste
+con CAMS, la razón observado/modelo fue relativamente estable entre
+períodos etiquetados µg/m³N y ppb en Charrúa (0,87 → 0,99) y Progreso
+(0,69 → 0,67). La ejecución adoptó operacionalmente esos valores sin
+conversión, como escala de ppb, sin considerar ese contraste una
+certificación de la unidad original. En El Peñón la razón cambió de 3,60
+a 1,51 y se aplicó el factor 0,4872, correspondiente a 0 °C y 1 atm. Ese
+factor reduce 3,60 a 1,75, pero no reproduce exactamente 1,51; la
+compatibilidad aproximada con el contraste no establece equivalencia de
+períodos ni confirma el metadato. Se mantuvo la decisión ejecutada y se
+explicitó su incertidumbre.
 
-**Dos estaciones quedan fuera.** Quinel y SAPU miden sólo en µg/m³N y no
+**Criterios de exclusión.** Quinel y SAPU miden sólo en µg/m³N y no
 tienen período en ppb con qué contrastarse, de modo que su escala queda
 indeterminada por un factor de dos (serían 18 y 15 ppb sin convertir, o 9 y
 7 ppb convertidas). Se excluyen hasta confirmar la unidad en los informes de
-origen; son las series más largas de la red, así que recuperarlas vale la
-pena.
+origen. Estas exclusiones se conservaron en la ejecución documentada y no
+se resolvieron mediante una conversión supuesta.
 
 ```{python}
 #| code-fold: true
@@ -1280,12 +1240,20 @@ atmosférica, y las estimaciones de PM₂.₅ de ACAG se sitúan en el marco de
 integración satelital y modelación descrito por @hammer2020acag. El soporte
 nativo y el uso concreto de cada predictor se detallan a continuación.
 
-**Observación.** SINCA horario de PM₂.₅ (µg/m³) y NO₂ (ppb) del derivado
+**Observaciones y selección.** Se utilizaron registros horarios SINCA de PM₂.₅ (µg/m³) y NO₂ (ppb) del derivado
 `modelado/SINCA/v1` (una versión por estación, la de ventana más amplia
-según su manifiesto), filas `seleccionada` con valor dentro del rango físico
+según su manifiesto), filas `seleccionada` con valor dentro del rango operacional
 admitido; la estación se representa por la celda que la contiene. A esa red
 se suma la **red adicional SNIFA** de NO₂ (@sec-red-adicional), con las
 mismas reglas de control de calidad, el mismo panel y los mismos protocolos.
+Se admitieron concentraciones finitas en los rangos operacionales de
+0–1.500 µg/m³ para PM₂.₅ y 0–1.000 ppb para NO₂; los duplicados dentro de
+una estación e intervalo se promediaron. Se excluyeron las rachas de al
+menos 24 registros consecutivos con idéntico valor, calculadas sobre el
+registro completo de cada estación. El criterio cuenta registros: los
+huecos de tiempo no interrumpen una racha, por lo que no equivale
+necesariamente a 24 horas contiguas. Es un filtro operacional de calidad,
+no una certificación del funcionamiento del instrumento.
 
 **Predictores por celda y hora** (píxel nativo enlazado, sin interpolación):
 ERA5-Land 0,1° (temperatura y punto de rocío a 2 m, presión, viento a 10 m,
@@ -1302,16 +1270,22 @@ nm de Terra, Aqua y del día, conteo, medias móviles de 3 y 7 días; QA
 estricta), TROPOMI NO₂ (columna troposférica del píxel a ≤ 5 km con
 `qa ≥ 0,75`, precisión y hora de la pasada, medias de 7 y 15 días), ACAG
 PM₂.₅ mensual 0,01° (meses no publicados usan la climatología 2018–2024 del
-mes con la bandera `acag_clim`).
+mes con la bandera `acag_clim`). La asignación diaria de MAIAC o TROPOMI a
+varias horas no crea observaciones satelitales horarias. La AOD y la
+columna de NO₂ se utilizan como predictores, sin identificarlas con la
+concentración superficial [@vandonkelaar2010aod; @lamsal2008surface;
+@cooper2020surface].
 
 **Predictores estáticos y anuales** (`covariables_estaticas.py`): fracciones
 ESA CCI 300 m por año, población dasimétrica, elevación y pendiente,
 distancia a la costa, densidad vial OSM y distancia a la
 estación más cercana. **Calendario**: hora local (seno y coseno), día del
 año, día de semana, mes, año. **Vecindario**: `obs_vec` y `peso_vec`,
-interpolación gaussiana (h = 150 km) de las observaciones SINCA concurrentes
-de las demás estaciones; en el panel se excluye la propia estación (válido
-bajo LOSO) y en la grilla se usan todas.
+interpolación gaussiana (h = 150 km) de las observaciones concurrentes de las redes incluidas
+de las demás estaciones. En el panel, cada fila excluye su propia estación;
+en la grilla se utiliza la red disponible completa. La exclusión por fila
+no garantiza por sí sola aislamiento entre pliegues, cuyas reglas y
+excepciones se detallan en @sec-protocolos.
 
 ```{python}
 #| code-fold: true
@@ -1382,17 +1356,21 @@ Markdown(pd.DataFrame({"grupo": [g for g, _ in _GRUPOS], "n": [len(c) for _, c i
 
 #### Reloj de las etiquetas SINCA {#sec-reloj}
 
-SINCA publica sus series en "hora local" sin declarar si el reloj sigue el
-horario de verano. El modelo adopta **UTC−4 fijo con etiqueta al fin del
-intervalo** (la norma de reporte, D.S. 61/2008 y R.E. 1449/2023) y lo
-contrasta con una prueba estructural (`verificar_reloj_sinca.py`): en la
+Las series del derivado SINCA se recibieron con etiquetas de hora local.
+Para el enlace se adoptó **UTC−4 fijo con etiqueta al fin del intervalo**,
+según la política temporal documentada del proyecto. Esta convención se
+contrastó con una prueba estructural (`verificar_reloj_sinca.py`): en la
 fecha del adelanto de septiembre un exportador en hora civil no puede emitir
 la hora inexistente, y en el atraso de abril repite u omite una etiqueta,
 mientras que un reloj fijo emite 24 etiquetas distintas ambos días. Se
 evalúa cada estación-año-contaminante con las zonas regionales de
 `config/sinca/politica_temporal.json`. La prueba secundaria con el máximo
 diurno de O₃ (corrimiento verano-invierno) mezcla reloj y estacionalidad
-fotoquímica y sólo es indicativa.
+fotoquímica y sólo es indicativa. La prueba estructural distingue patrones
+compatibles con reloj fijo o civil; no identifica por sí sola el desfase
+UTC absoluto, la semántica de inicio o fin del intervalo ni la unidad
+histórica de cada serie. Esos atributos no se presentan, por tanto, como
+metadatos originales certificados de todo el registro.
 
 ```{python}
 #| code-fold: true
@@ -1428,15 +1406,21 @@ Markdown(_t.astype(int).to_markdown() + "\n\n" +
 
 ### Covariables estáticas {#sec-estaticas}
 
-Las estáticas se calculan una vez por celda (y por año para uso de suelo y
-población) con `covariables_estaticas.py`: fracciones ESA CCI 300 m
-agrupadas (urbano, cultivo, bosque, matorral/pastizal, desnudo, agua,
-nieve/hielo; 2023+ usa 2022), población dasimétrica (proyecciones censales
-comunales repartidas por fracción urbana más un piso rural), elevación y
-pendiente (NASADEM 30 m si hay teselas, si no la media comunal y luego la
-celda vecina), distancia a la costa, densidad vial OSM total y principal
-(`NaN` si falta el shapefile) y distancia a la estación SINCA
-más cercana de cada contaminante.
+Las covariables geográficas se calcularon por celda y, en el caso de uso
+del suelo y población, por año. Las clases ESA CCI de 300 m se agruparon en
+fracciones urbanas, cultivos, bosque, matorral/pastizal, suelo desnudo,
+agua y nieve/hielo. Los años posteriores a 2022 utilizaron la cobertura de
+2022. La población comunal proyectada se distribuyó dasimétricamente
+mediante la fracción urbana más un piso rural de 0,02, por lo que no
+representa un conteo censal independiente en cada celda.
+
+La elevación y la pendiente se obtuvieron de NASADEM de 30 m cuando
+existieron teselas; en su ausencia se utilizaron respaldos comunales y de
+la celda vecina. Se incorporaron distancia a la costa, densidad vial OSM
+total y principal y distancia a la estación SINCA más cercana de cada
+contaminante. La falta del archivo vial se conservó como `NaN`. Estos
+respaldos y acotaciones temporales se consideraron parte de la definición
+del predictor, no nuevas mediciones locales.
 
 ```{python}
 #| code-fold: true
@@ -1470,13 +1454,15 @@ Markdown(_res.to_markdown() + "\n\nUso de suelo y población por celda y año ("
 
 ### Construcción del panel analítico {#sec-panel}
 
-El panel de cada contaminante empareja cada observación SINCA (estación ×
+El panel de cada contaminante empareja cada observación de superficie (estación ×
 bin UTC) con los predictores de **su celda**: satélites del día local,
 reanálisis del píxel enlazado, ACAG del mes, estáticas del año y calendario.
 Las únicas variables propias de la estación son `obs_vec`/`peso_vec` (sin la
 propia estación) y `dist_est_km` (distancia a la estación más cercana
-distinta de sí misma), para que en LOSO la estación excluida no se vea a sí
-misma por ninguna vía.
+distinta de sí misma). Esta exclusión se aplica a la estación que origina
+cada fila; no basta por sí sola para garantizar que una estación retenida
+quede ausente de los predictores de todas las filas de entrenamiento. El
+recalculo por grupos y sus excepciones se describen en @sec-protocolos.
 
 ```{python}
 #| code-fold: true
@@ -1669,64 +1655,58 @@ Markdown(pd.DataFrame([cobertura_panel(p) for p in CONTAMINANTES]).set_index("co
 
 ### Motor de estimación {#sec-motor}
 
-El motor LightGBM se documenta metodológicamente en @ke2017lightgbm; su
-configuración y evaluación específicas se describen en este informe.
+Se utilizó gradient boosting de árboles, formulado como una expansión
+aditiva ajustada por etapas [@friedman2001boosting], mediante la
+implementación LightGBM [@ke2017lightgbm]. Se estimó por separado cada
+contaminante sobre $z=\log(1+y)$, con hasta 800 árboles, tasa de aprendizaje
+0,03, 127 hojas, un mínimo de 50 observaciones por hoja, submuestreo de filas
+y columnas de 0,8 y regularización $L_2=1$. La prueba corta utilizó una
+configuración reducida y no se interpretó como evaluación del histórico.
 
-Para cada contaminante se ajusta un **gradient boosting (LightGBM)** sobre
-la transformación $z = \log(1 + y)$ de la concentración, con hasta 800
-árboles, tasa de aprendizaje 0,03, 127 hojas, mínimo de 50 observaciones por
-hoja, submuestreo de filas y columnas de 0,8 y regularización $L_2$ = 1
-(en la prueba corta se usa una versión chica). La retransformación a la
-escala original usa una corrección paramétrica basada en la varianza
-residual por franja horaria $f$ (diurna 08–18 h local, nocturna el resto):
+La retransformación a la escala de concentración utilizó una aproximación
+paramétrica lognormal basada en la varianza residual. Para una franja
+horaria $f$, se calculó:
 
 $$
 \hat y = \exp\!\left(\hat z + \tfrac{1}{2}\,\hat\sigma^2_f\right) - 1,
-\qquad \hat\sigma^2_f = \operatorname{Var}\!\left(z - \hat z \mid f\right),
+\qquad \hat\sigma^2_f = \operatorname{Var}\!\left(z - \hat z \mid f\right).
 $$
 
-de modo que el sesgo de la media en escala original no dependa de que el
-residuo nocturno sea más disperso que el diurno. La varianza
-$\hat\sigma^2_f$ **no** se toma del ajuste in-sample: un booster de 127 hojas
-y 800 árboles deja residuos de entrenamiento mucho más chicos que su error
-en un sitio que no vio, y con esa varianza la retransformación queda corta y
-la media estimada sale sistemáticamente baja. Se estima con los residuos
-**fuera de pliegue** en escala log: en la validación, para cada grupo
-excluido se usan los residuos de todos los demás grupos (nunca los propios),
-y el modelo final usa los residuos LOSO completos, que son el error que
-aplica a una celda sin monitor. `MODELO_1KM_RETRANSFORMACION=smearing_oof`
-cambia la forma paramétrica por la no paramétrica de Duan,
-$\log \overline{\exp(z - \hat z)}$; @tbl-final compara el sesgo que deja
-cada alternativa.
+Las franjas distinguieron el período diurno de 08:00–18:00, hora local,
+del resto del día. En ambos contaminantes, la configuración ejecutada
+estratificó además por macrozona
+(`duan_oof_macrozona`). Esta estratificación permitió representar
+heterogeneidad geográfica de la dispersión residual; no garantiza la
+corrección de todos los sesgos locales. La comparación entre correcciones,
+sus factores por macrozona y franja y los sesgos resultantes se presenta en
+@tbl-retransformacion.
 
-**En los dos contaminantes la corrección se estima por macrozona**, no sólo
-por franja: `duan_oof_macrozona` es el valor por omisión de ambos
-(`RETRANSFORMACION_POR_DEFECTO` en `produccion.py`), y
-`MODELO_1KM_RETRANSFORMACION_PM25` o `_NO2` lo cambian. La razón es que
-$\hat\sigma^2_f$ no es un número del país sino de cada sitio: medida fuera de
-pliegue, la mitad de la varianza del residuo log cambia mucho entre
-macrozonas, de modo que una corrección única acierta en el promedio nacional
-y se equivoca en todas partes, **sobrecorrigiendo justo donde el modelo
-ajusta bien** y quedándose corta donde ajusta peor. @tbl-retransformacion da
-la corrección de cada macrozona y franja y el sesgo normalizado LOSO que deja
-cada forma de repartirla, en el país, en cada macrozona y en la Región
-Metropolitana, para los dos contaminantes.
+La varianza se obtuvo de residuos de predicciones fuera de pliegue, no del
+ajuste aparente. Para calcular la corrección de cada grupo, en condiciones
+ordinarias se restaron sus propios residuos del conjunto disponible. Si
+quedaron menos de 100 residuos, la implementación utilizó el total como
+respaldo, reincorporando los del grupo. El modelo final utilizó el conjunto
+de residuos LOSO. Estas predicciones cruzadas se generaron globalmente y
+no dentro de una validación interna anidada en cada entrenamiento externo;
+por ello, excluir los residuos directos del grupo no equivale a demostrar
+independencia completa respecto de sus datos.
 
-Aun repartida, la corrección es un factor multiplicativo por grupo: acerca
-la media estimada a la observada en el conjunto, que es lo que importa para
-una exposición media, pero no corrige sesgos locales dentro de la macrozona
-y, en sitios de concentración baja donde el modelo ya sobreestima, puede
-empeorar el $R^2$ de la estación. Los predictores faltantes
-se dejan como `NaN` (LightGBM los enruta en cada partición), y sólo entran
-al motor los predictores que alcanzan la cobertura mínima en el panel y que
-no están excluidos por diseño (@sec-predictores-fuera). LightGBM se usa
-por su API nativa, sin scikit-learn.
+Se distinguió esa aproximación paramétrica del estimador no paramétrico de
+*smearing* de @duan1983smearing. La alternativa
+`smearing_oof` utiliza el término
+$\log\overline{\exp(z-\hat z)}$, mientras que los nombres técnicos que
+contienen `duan` se conservan para identificar la configuración
+ejecutada. @tbl-final compara las alternativas sin modificar los
+resultados archivados.
 
-La forma paramétrica mostrada corresponde a una aproximación lognormal;
-se distingue del estimador de *smearing* no paramétrico de
-@duan1983smearing. La opción `smearing_oof` calcula esa alternativa
-no paramétrica, mientras que los nombres técnicos que contienen `duan`
-se conservan para identificar la configuración ejecutada.
+Los valores faltantes permanecieron como `NaN` y fueron tratados
+mediante el mecanismo nativo de LightGBM. Se admitieron los predictores
+que cumplieron el criterio de cobertura y no estaban excluidos por diseño
+(@sec-predictores-fuera). La corrección de retransformación se interpretó
+como parte de la receta implementada: puede disminuir el sesgo medio,
+pero también aumentar la sobreestimación y reducir el $R^2$ en sitios de
+baja concentración. No se la consideró un procedimiento que asegurara
+calibración en cualquier celda o período.
 
 ```{python}
 #| code-fold: true
@@ -1757,13 +1737,16 @@ def ajustar(X: np.ndarray, y: np.ndarray, fr: np.ndarray, params: dict):
 
 #### Predictores que no entran al motor {#sec-predictores-fuera}
 
-Un predictor candidato puede quedar fuera por dos vías que conviene no
-confundir. Queda fuera **por cobertura** cuando tiene dato en menos filas del
-panel que el mínimo de `columnas_modelo`, y **por diseño** cuando
-`MODELO_1KM_EXCLUIR` lo saca del modelo de un contaminante aunque tenga datos.
-El valor por omisión de esa variable, `EXCLUSIONES_POR_DEFECTO` en
-`_features.py`, saca la distancia a la costa del modelo de NO₂; por qué, y
-qué cambió al sacarla, está en @sec-costa-no2.
+La elegibilidad de predictores se estableció mediante dos criterios. El
+criterio de disponibilidad excluyó las columnas con datos en menos del 5 %
+del panel completo de cada contaminante. Esta selección se efectuó antes
+de construir los pliegues y, por ello, no fue una selección anidada
+exclusivamente en el entrenamiento. El criterio de diseño permitió
+exclusiones explícitas aun con datos disponibles; su configuración de
+referencia retiró la distancia a la costa del modelo de NO₂. La
+justificación y el contraste documentado de esta decisión se presentan en
+@sec-costa-no2. Las columnas excluidas y su cobertura se conservan en
+@tbl-predictores-fuera.
 
 ```{python}
 #| echo: false
@@ -1826,258 +1809,275 @@ Markdown(pd.concat([predictores_fuera(p) for p in CONTAMINANTES], ignore_index=T
 
 ### Motores de contraste: GWR, regression-kriging e interpolación {#sec-motores-contraste}
 
-Los fundamentos de GWR y regression-kriging se describen, respectivamente,
-en @brunsdon1996gwr y @hengl2007regression; las decisiones de implementación
-y los contrastes específicos de este informe se explicitan a continuación.
-
-Para saber cuánto del desempeño es mérito del boosting y cuánto lo daría un
-modelo espacial clásico, se evalúan además, con **los mismos protocolos, los
-mismos pares y las mismas métricas**, los dos motores lineales de
-`modelos_estimacion.qmd`. Ambos trabajan en escala original sobre una matriz
-de diseño común,
+Se incluyeron dos comparadores espaciales con estructuras interpretables:
+regresión geográficamente ponderada (GWR), que permite coeficientes locales
+[@brunsdon1996gwr], y regression-kriging (RK), que combina una tendencia
+con una estructura espacial residual [@hengl2007regression]. Ambos se
+ajustaron en escala original sobre el diseño común:
 
 $$
 X = \big[\,1,\ \text{productos globales},\ \mathrm{ACAG}_{\mathrm{PM_{2.5}}},\ \mathrm{obs\_vec},\
-T_{2\,\mathrm m},\ \text{viento},\ 1/\mathrm{BLH},\ \mathrm{hora}_{\sin,\cos},\ \mathrm{doy}_{\sin,\cos}\,\big],
+T_{2\,\mathrm m},\ \text{viento},\ 1/\mathrm{BLH},\ \mathrm{hora}_{\sin,\cos},\ \mathrm{doy}_{\sin,\cos}\,\big].
 $$ {#eq-diseno}
 
-donde los productos globales son GEOS-CF, CAMS y (para PM₂.₅) MERRA-2, la
-temperatura y el viento son los de ERA5-Land con MERRA-2 como respaldo, y
-todas las columnas se estandarizan. Un modelo lineal no tolera faltantes, y
-aquí los hay por construcción (GEOS-CF sólo existe en 2019–2024 y CAMS desde
-2003): un predictor con más de 5 % de faltantes entra con su mediana **más
-una columna indicadora de faltante**, de modo que su coeficiente se estima
-sólo donde el producto existe y el indicador absorbe el cambio de nivel del
-resto del período. Las predicciones negativas se truncan en cero.
+Los productos globales fueron GEOS-CF y CAMS, además de MERRA-2 para
+PM₂.₅. La temperatura y el viento procedieron de ERA5-Land, con MERRA-2
+como respaldo. Las columnas se estandarizaron y los faltantes se imputaron
+por la mediana; los predictores con más del 5 % de faltantes incluyeron una
+indicadora de ausencia. En GWR y RK, esos parámetros de preprocesamiento se
+calcularon sobre el panel completo antes de construir las unidades de
+validación, no únicamente con cada entrenamiento. Las predicciones
+negativas se truncaron en cero.
 
-**Regresión geográficamente ponderada (GWR).** Para cada estación objetivo
-$s$ se ajusta una regresión ponderada por cercanía usando sólo unidades de
-entrenamiento,
+**Regresión geográficamente ponderada.** Para una estación objetivo $s$ se
+ajustó una regresión local ponderada por distancia entre estaciones de
+entrenamiento:
 
 $$
-\hat\beta(s)=\Big(\sum_{j} w_j(s)\,X_j^{\top}X_j+\lambda I\Big)^{-1}\sum_{j} w_j(s)\,X_j^{\top}y_j,
-\qquad w_j(s)=\exp\!\left[-\left(\frac{d_{sj}}{h_s}\right)^{2}\right],\qquad h_s=d_{s,(k)},
+\hat\beta(s)=\Big(\sum_jw_j(s)X_j^\top X_j+\lambda I\Big)^{-1}
+\sum_jw_j(s)X_j^\top y_j,\qquad
+w_j(s)=\exp\!\left[-(d_{sj}/h_s)^2\right],\qquad h_s=d_{s,(k)}.
 $$ {#eq-gwr}
 
-donde $X_j$ e $y_j$ son el diseño y las observaciones de la unidad de
-entrenamiento $j$, $d_{sj}$ la distancia haversine entre estaciones, $h_s$ el
-ancho de banda adaptativo (la distancia a la $k$-ésima estación de
-entrenamiento más cercana, $k = 12$, que ajusta la escala espacial a una red
-muy desigual) y $\lambda = 10^{-6}$ una regularización mínima. La predicción
-es $\hat y_{s,t}=X_{s,t}\hat\beta(s)$.
+Se empleó distancia haversine, ancho de banda adaptativo determinado por la
+duodécima estación de entrenamiento más cercana ($k=12$) y regularización
+$\lambda=10^{-6}$. La predicción fue
+$\hat y_{s,t}=X_{s,t}\hat\beta(s)$. Las indicadoras de faltante se estimaron
+en el ajuste global del pliegue y no se reestimaron localmente cuando su
+escasa variación podía generar colinealidad con el intercepto.
 
-**Regression-kriging (RK).** Se descompone la señal en una tendencia global
-y un efecto persistente de sitio, $y_{jt}=X_{jt}\beta+\delta(s_j)+\varepsilon_{jt}$:
-$\hat\beta$ se ajusta por mínimos cuadrados con el entrenamiento, el residuo
-medio por estación $\bar r_j$ define el campo a interpolar, su
-semivariograma empírico $\hat\gamma_{ij}=\tfrac12(\bar r_i-\bar r_j)^2$ se
-ajusta al modelo exponencial y el efecto del sitio objetivo sale de un
-kriging ordinario:
+**Regression-kriging.** Se representó
+$y_{jt}=X_{jt}\beta+\delta(s_j)+\varepsilon_{jt}$. La tendencia se estimó
+por mínimos cuadrados; el campo espacial se construyó con los residuos
+**medios por estación**, no con un kriging independiente en cada hora.
+Se ajustó un semivariograma exponencial y se realizó kriging ordinario:
 
 $$
-\gamma(h)=c_0+c_1\big(1-e^{-h/a}\big),\qquad
-\begin{pmatrix} C & \mathbf 1\\ \mathbf 1^{\top} & 0\end{pmatrix}
-\begin{pmatrix} \lambda\\ \mu\end{pmatrix}=\begin{pmatrix} c\\ 1\end{pmatrix},\qquad
-\hat y_{s,t}=X_{s,t}\hat\beta+\lambda^{\top}\bar r,
+\gamma(h)=c_0+c_1(1-e^{-h/a}),\qquad
+\begin{pmatrix} C&\mathbf1\\ \mathbf1^\top&0\end{pmatrix}
+\begin{pmatrix}\lambda\\\mu\end{pmatrix}
+=\begin{pmatrix}c\\1\end{pmatrix},\qquad
+\hat y_{s,t}=X_{s,t}\hat\beta+\lambda^\top\bar r.
 $$ {#eq-rk}
 
-donde $c_0$ es la pepita, $c_1$ la meseta parcial, $a$ el alcance,
-$C_{ij}=c_1e^{-h_{ij}/a}$ (más $c_0$ en la diagonal) la covarianza entre
-estaciones de entrenamiento, $c$ el vector de covarianzas hacia el sitio
-objetivo y $\mu$ el multiplicador que impone $\sum\lambda_j=1$.
+Aquí $c_0$ denota la pepita; $c_1$, la meseta parcial; $a$, el alcance;
+$C_{ij}=c_1e^{-h_{ij}/a}$, con pepita en la diagonal, y $c$, la covarianza
+con el sitio objetivo. La restricción impuso $\sum_j\lambda_j=1$.
+El semivariograma se ajustó en 15 clases de distancia definidas por
+cuantiles, hasta la mitad de la distancia máxima, con residuos relativos
+y alcance acotado.
 
-**Estadísticos suficientes por estación × cuatrienio.** Como los pesos
-dependen del par de estaciones y no de la hora, las ecuaciones normales se
-descomponen en sumas por unidad: basta acumular una vez $X_j^{\top}X_j$,
-$X_j^{\top}y_j$, $\sum X_j$, $\sum y_j$ y $n_j$. Tomando como unidad la
-estación dentro de un cuatrienio, **cualquier pliegue de los cuatro
-protocolos** (una celda, una celda con su entorno, una región o un
-cuatrienio) es una suma de unidades,
-de modo que GWR y RK se validan de forma exacta sobre los ~10 millones de
-filas. Cuando el pliegue excluye dos o más estaciones (una región, o una
-celda con dos monitores) el vecindario `obs_vec` se recalcula sin ninguna de
-ellas en **todas** las filas, de entrenamiento y de prueba (lo mismo que
-hace LightGBM), y los estadísticos se refrescan sólo en la fila y la columna
-de ese predictor. Tres resguardos numéricos: una columna sin variación en el
-entrenamiento de un pliegue (queda colineal con la constante) se desactiva;
-los coeficientes de las indicadoras de faltante se estiman en el ajuste
-global del pliegue y no se reestiman localmente en GWR, porque en un
-vecindario chico pueden no variar y arrastrar el intercepto; y el
-semivariograma se ajusta por clases de distancia (15 clases por cuantiles
-hasta la mitad de la distancia máxima, residuos relativos, alcance acotado),
-porque la nube cruda de pares, dominada por los pares lejanos, degenera con
-frecuencia a pepita pura y deja el kriging sin efecto. Estos motores son un
-contraste metodológico: las superficies las produce únicamente LightGBM.
+**Cálculo y controles numéricos.** Se acumularon estadísticos suficientes
+por estación y cuatrienio: $X_j^\top X_j$, $X_j^\top y_j$, $\sum X_j$,
+$\sum y_j$ y $n_j$. Ello permitió reconstruir los ajustes de los pliegues
+sin volver a recorrer todas las filas. Las columnas constantes dentro del
+entrenamiento se desactivaron. Cuando el grupo retenido incluyó dos o más
+estaciones, se actualizaron los estadísticos del vecindario sin sus
+observaciones. La equivalencia algebraica de este cálculo no elimina las
+dependencias del preprocesamiento global ni las excepciones de vecindario
+descritas en @sec-protocolos.
 
-**Línea base de interpolación.** El piso de la comparación no ajusta nada:
-es el promedio de las estaciones vecinas concurrentes con núcleo gaussiano de
-150 km (el predictor `obs_vec` tal cual, sin la estación evaluada ni, cuando
-el pliegue excluye varias, ninguna del grupo) y, donde no hay vecinas, la
-media de entrenamiento del pliegue. Responde cuánto se gana sobre «mirar el
-monitor más cercano», que es lo que un modelo debe superar para justificarse.
+**Interpolación de referencia.** Se utilizó el promedio de estaciones
+vecinas concurrentes ponderado por un núcleo gaussiano de 150 km, con la
+media del entrenamiento como respaldo cuando no hubo vecinas. La clave
+interna `idw` identifica este comparador, pero no corresponde a
+pesos de potencia inversa de distancia. Su función fue contrastar la
+calibración multifuente con la información aportada por la red
+contemporánea. GWR, RK y este interpolador se evaluaron como comparadores;
+las superficies de referencia fueron producidas exclusivamente por
+LightGBM.
 
-### Motores usados antes en el proyecto {#sec-motores-previos}
+### Modelos adicionales y ensamble {#sec-motores-previos}
 
-Como referencias metodológicas de las familias comparadas se utilizan
-Random Forest [@breiman2001random], redes neuronales [@hastie2009elements],
-procesos gaussianos [@rasmussen2006gaussian], modelos mixtos
-[@laird1982random], regresión de cuantiles [@koenker1978regression] y
-apilado de predictores [@wolpert1992stacked]. Estas referencias no implican
-que los hiperparámetros o los resultados de este proyecto provengan de
-esos trabajos; la configuración ejecutada se declara a continuación.
+Se incorporaron seis configuraciones adicionales para examinar la
+sensibilidad del desempeño a la familia de estimación. Sus fundamentos
+corresponden a Random Forest [@breiman2001random], redes neuronales
+multicapa [@rumelhart1986backprop; @hastie2009elements], procesos gaussianos
+[@rasmussen2006gaussian], modelos lineales mixtos [@laird1982random],
+regresión de cuantiles [@koenker1978regression] y apilado de predictores
+[@wolpert1992stacked]. Estas referencias sustentan las familias
+metodológicas, no los hiperparámetros ni los resultados específicos del
+estudio. Las configuraciones se adaptaron del análisis previo del proyecto
+hermano, documentado en
+`Neurodegen-Epidemiology-Chile/others_scripts/pm25_exposure_modeling.qmd`,
+y se evaluaron para ambos contaminantes con los protocolos de
+@sec-protocolos. @tbl-motores-config registra sus parámetros y tamaños de
+entrenamiento. Todos utilizaron $\log(1+y)$ y la retransformación descrita en
+@sec-motor, excepto el estimador de cuantil.
 
-El modelo horario de PM₂.₅ del proyecto hermano
-(`Neurodegen-Epidemiology-Chile/others_scripts/pm25_exposure_modeling.qmd`)
-comparó LightGBM con otros seis motores, con validación agrupada por estación
-en cinco pliegues. Aquí se traen **con sus hiperparámetros originales, salvo
-las desviaciones que se declaran en cada motor**, y se pasan por los
-protocolos de este informe (LOSO por celda, LBO, LRO y LPO, con la misma regla de
-vecindario por pliegue, los mismos puntos de control reanudables y las mismas
-métricas), para los dos contaminantes. Todos predicen $\log(1+y)$ y vuelven a
-escala original con la misma corrección fuera de pliegue que LightGBM
-(@sec-motor), salvo el de alertas. @tbl-motores-config resume la configuración
-y las filas de entrenamiento por pliegue, que se fijaron según el costo medido
-de cada motor sobre este panel.
+Random Forest se ajustó con 300 árboles, selección de $\sqrt{p}$ predictores
+por división y un mínimo de 20 filas por hoja, con tratamiento nativo de
+faltantes y hasta 750.000 filas de entrenamiento por pliegue. La red
+neuronal multicapa (MLP) utilizó dos capas ocultas de 128 y 64 unidades
+ReLU, optimizador Adam, penalización $L_2=0{,}1$, lotes de 256 y un máximo de
+300 épocas. La parada temprana reservó un 10 % interno del entrenamiento.
+La imputación por mediana y la estandarización de la MLP se estimaron
+dentro del pliegue; sus entradas de prueba se acotaron al rango observado
+en entrenamiento y la predicción logarítmica a los cuantiles 0,005–0,99 de
+la respuesta de entrenamiento. Estas restricciones reducen la
+extrapolación no controlada de la red, pero también limitan la estimación
+de episodios extremos. La MLP utilizó hasta 300.000 filas por pliegue.
 
-- **Random Forest.** 300 árboles, $\sqrt{p}$ predictores por división, hojas
-  de al menos 20 filas; usa los faltantes de forma nativa, igual que LightGBM.
-- **Red neuronal (MLP).** Dos capas ocultas (128 y 64, ReLU), Adam,
-  penalización $L_2$ de 0,1, lotes de 256 y parada temprana con 10 % de
-  validación interna. La imputación por mediana y la estandarización se
-  ajustan sólo con el entrenamiento del pliegue, y la predicción log se acota
-  a los cuantiles 0,005–0,99 del entrenamiento, como en la receta original,
-  para que la red no extrapole fuera de lo visto (ese tope en el percentil 99
-  también recorta los episodios más altos). Hasta 300 épocas. Una desviación
-  de la receta original: cada entrada de
-  la prueba se acota además al rango que tuvo en el entrenamiento del
-  pliegue. Una red ReLU extrapola linealmente sin freno, y al dejar una
-  región fuera la latitud y la longitud caen fuera de lo visto; sin esa cota
-  la salida se dispara y el recorte la deja clavada en el tope.
-- **Proceso gaussiano.** Núcleo constante × Matérn ($\nu = 1{,}5$) más ruido
-  blanco, con la respuesta normalizada. El GP exacto cuesta $O(n^3)$, así que
-  se ajusta con una submuestra estratificada por estación × franja horaria
-  (3.000 filas por pliegue; el original usaba 2.000) y, como en el proyecto
-  anterior, en un subespacio compacto de predictores (productos globales,
-  vecindario, meteorología, calendario y coordenadas), del que se excluye
-  cualquier columna sin datos en el entrenamiento del pliegue.
-- **Modelo lineal mixto.** Efectos fijos sobre el diseño de @eq-diseno y, por
-  hora local, intercepto y pendiente aleatorios sobre el producto global de
-  referencia (MERRA-2 en PM₂.₅, CAMS en NO₂):
-  $\log(1+y_{it}) = X_{it}\beta + b_{0,h(t)} + b_{1,h(t)}\,x_{it} + \varepsilon_{it}$.
-  El proyecto anterior predecía sólo con la parte fija; aquí se suma además
-  el efecto aleatorio de la hora, que es conocido al predecir. Como la
-  respuesta está en log, las concentraciones del diseño (productos globales,
-  ACAG y vecindario) entran en $\log(1+x)$: en escala original, un episodio
-  en las estaciones vecinas multiplicado por un coeficiente logarítmico
-  extrapola a valores absurdos. La predicción log se acota además al rango
-  observado en el entrenamiento del pliegue. El diseño (imputación,
-  indicadoras de faltante, estandarización) se ajusta dentro de cada pliegue.
-  Una advertencia de lectura: como el diseño ya lleva los armónicos de la
-  hora, al efecto aleatorio por hora le queda muy poco que explicar. En la
-  prueba de 2019–2020 su desviación estándar fue de 0,02 en escala log y, en
-  el pliegue que se verificó a mano, la predicción rindió igual que la de
-  mínimos cuadrados sobre el mismo diseño. En la práctica este motor debe
-  leerse como **una regresión lineal en log con ese diseño**, no como una
-  estructura jerárquica que aporte por sí misma. Si MixedLM no ajusta en un
-  pliegue se usa sólo la parte fija y el pliegue queda contado
-  (@tbl-motores-config).
-- **Alertas.** LightGBM con pérdida de cuantil ($\alpha = 0{,}80$): no estima
-  la media sino un valor que se supera uno de cada cinco casos, pensado para
-  no quedarse corto en episodios. Como un cuantil conmuta con una
-  transformación monótona, vuelve a escala original sin corrección de
-  retransformación. Se evalúa con las mismas métricas, pero su lectura propia
-  es la detección de excedencias. Como en el original, sin submuestreo de
-  filas por árbol.
-- **Ensamble por apilado.** Una regresión ridge sobre las predicciones log
-  fuera de pliegue de LightGBM, Random Forest y la red neuronal. Para cada
-  grupo evaluado, los pesos se estiman sólo con los demás grupos y la
-  penalización se elige entre 0,01; 0,1; 1 y 10 por validación cruzada
-  agrupada interna; la constante no se penaliza. Desviación de la receta
-  original: las bases son los motores principales de este informe (el
-  LightGBM de @sec-motor, el Random Forest de 300 árboles y la red de 128 y
-  64 neuronas), no las versiones livianas que el original reajustaba dentro
-  del apilado (LightGBM de 400 árboles y 63 hojas, Random Forest de 200
-  árboles con hojas de 5 filas, red de 64 y 32 neuronas). Si no se corren
-  tanto Random Forest como la red, el ensamble no se arma. Se hace a mano sobre
-  estadísticos suficientes por grupo (el `StackingRegressor` original
-  reajustaría los tres motores base cinco veces por pliegue), lo que lo hace
-  exacto y de costo despreciable.
+El proceso gaussiano empleó un núcleo constante multiplicado por Matérn
+($\nu=1{,}5$), más un término de ruido blanco, y normalización de la
+respuesta. Debido al costo cúbico del ajuste exacto, se utilizaron 3.000
+filas por pliegue, estratificadas por estación y franja horaria, en lugar de
+las 2.000 de la configuración previa. El conjunto compacto de predictores
+incluyó productos globales, información de vecindario, meteorología,
+calendario y coordenadas; se excluyeron las columnas sin valores de
+entrenamiento. Los parámetros del núcleo se optimizaron durante el ajuste.
+Por tanto, la ausencia de una búsqueda comparable entre familias no
+significa que todos sus parámetros permanecieran fijos.
 
-No se portan, y por qué: el respaldo `HistGradientBoosting` del proyecto
-anterior sólo existía por si faltaba LightGBM y es redundante con él; su
-tercera etapa (kriging ordinario del residuo) queda cubierta por el
-regression-kriging de @sec-motores-contraste; y el modo «anclado» a la
-estación se descartó allá mismo. Las menciones a XGBoost, redes en
-PyTorch/Keras y `mgwr` de esos scripts nunca llegaron a ejecutarse.
+El modelo lineal mixto combinó efectos fijos sobre el diseño de @eq-diseno
+con intercepto y pendiente aleatorios por hora local, no por estación:
+
+$$
+\log(1+y_{it}) =
+X_{it}\beta+b_{0,h(t)}+b_{1,h(t)}x_{it}+\varepsilon_{it},
+$$
+
+donde $x_{it}$ fue el producto global de referencia —MERRA-2 para PM₂.₅ y
+CAMS para NO₂—. Las concentraciones del diseño se incorporaron mediante
+$\log(1+x)$; imputación, indicadoras y estandarización se ajustaron con el
+entrenamiento correspondiente. Se utilizó REML sobre hasta 300.000 filas
+y se incluyó el efecto aleatorio de la hora conocida al predecir, a
+diferencia de la configuración previa que empleaba sólo la parte fija.
+La predicción logarítmica se acotó al rango de entrenamiento y se previó
+un respaldo de mínimos cuadrados si el ajuste mixto fallaba;
+@tbl-motores-config informa el número de pliegues que utilizaron ese
+respaldo. En la prueba 2019–2020
+documentada, la desviación estándar del efecto horario fue de 0,02 en
+escala logarítmica y el pliegue revisado presentó un desempeño equivalente
+al de la regresión lineal sobre el mismo diseño. Este resultado no
+demuestra una contribución independiente de la estructura aleatoria,
+especialmente porque el diseño fijo ya contiene armónicos horarios.
+
+El modelo de alertas utilizó LightGBM con pérdida de cuantil
+($\alpha=0{,}80$), 900 árboles, tasa de aprendizaje 0,025 y sin submuestreo de
+filas por árbol. Su objetivo fue estimar un cuantil condicional superior,
+no la concentración media. La transformación inversa se aplicó sin
+corrección de media porque los cuantiles son equivariantes ante
+transformaciones monótonas. Se calcularon las mismas métricas para permitir
+la comparación descriptiva, pero su interpretación principal corresponde
+a la clasificación de excedencias. Estimar el cuantil 0,80 no garantiza,
+por sí solo, una frecuencia empírica de excedencia del 20 % en toda
+subpoblación o período.
+
+El ensamble por apilado ajustó una regresión ridge a las predicciones
+logarítmicas fuera de pliegue de LightGBM, Random Forest y MLP. Para cada
+grupo evaluado, el metaajuste utilizó los demás grupos y seleccionó la
+penalización entre 0,01; 0,1; 1 y 10 mediante validación agrupada interna,
+sin penalizar la constante. Los coeficientes no se restringieron a ser
+positivos ni a sumar uno. El cálculo mediante estadísticos suficientes
+evitó repetir ajustes redundantes del metaestimador. A diferencia del
+análisis previo, se utilizaron las configuraciones principales de las
+tres bases, no sus versiones reducidas. Sin embargo, las predicciones base
+fuera de pliegue se generaron globalmente y no se regeneraron dentro de
+cada entrenamiento externo. En consecuencia, el apilado no constituye
+una evaluación plenamente anidada; la exclusión de un grupo en el
+metaajuste no elimina todas las dependencias que pudieron introducir sus
+modelos base.
+
+No se incorporó el respaldo HistGradientBoosting del análisis previo,
+porque cubría la ausencia de LightGBM, ni una segunda etapa de kriging
+redundante con @sec-motores-contraste. El modo anclado a la estación no
+formó parte de esta comparación. Las menciones previas a XGBoost,
+PyTorch/Keras o mgwr no se consideran evidencia de su ejecución en los
+diez motores aquí evaluados. La comparación caracteriza configuraciones
+concretas bajo presupuestos distintos, no una búsqueda exhaustiva del
+mejor algoritmo.
 
 ### Protocolos de validación y métricas {#sec-protocolos}
 
-La separación espacial y temporal de las unidades retenidas responde al
-problema de evaluar datos estructurados y dependientes, para el cual una
-partición aleatoria de filas puede no representar la generalización que
-interesa [@roberts2017crossvalidation]. Aquí se distinguen los protocolos
-y sus unidades de exclusión explícitas.
+La evaluación se orientó a distinguir reconstrucción espacial,
+transferencia regional y transferencia temporal. La elección de unidades
+retenidas, en lugar de una partición aleatoria de filas, responde a la
+dependencia de los datos y al objetivo de predicción
+[@roberts2017crossvalidation; @meyer2018validation]. Se ejecutaron cuatro
+protocolos de validación cruzada y un ajuste con todos los datos como
+control del producto:
 
-Tres preguntas, tres protocolos de validación cruzada, más el control del
-producto:
+1. **Exclusión de sitio (LOSO).** Se retuvo una celda de monitoreo y se
+   ajustó el modelo con las demás. Cuando dos códigos SINCA compartieron
+   celda, se excluyeron conjuntamente. El predictor de vecindario de cada
+   fila de prueba no incluyó la propia estación; para grupos de dos o más
+   estaciones se recalculó excluyendo el grupo completo. LOSO se utilizó
+   como evaluación principal de transferencia entre los sitios
+   efectivamente observados, no como garantía del desempeño en cualquier
+   celda del país.
+2. **Exclusión de sitio y entorno (LBO).** Se excluyeron del entrenamiento
+   las estaciones situadas a menos de 10 km del sitio retenido, salvo la
+   parametrización explícita de `MODELO_1KM_RADIO_LBO`. El vecindario se
+   recalculó sin esas estaciones cuando el grupo excluido tuvo al menos
+   dos integrantes; con uno se conservó la excepción descrita más abajo.
+   Este protocolo reduce la información de
+   monitores próximos respecto de LOSO. En la red analizada, la distancia
+   mediana al vecino más cercano fue de 3,0 km para PM₂.₅ y 3,6 km para NO₂.
+   El radio de 10 km retiró una mediana de tres estaciones por pliegue
+   —hasta ocho en PM₂.₅— y entre el 2,7 % y el 4,5 % de las filas de
+   entrenamiento.
+3. **Exclusión regional (LRO).** Se retuvieron todas las estaciones de una
+   región SINCA. Para grupos de al menos dos estaciones,
+   `obs_vec`, `peso_vec` y `dist_est_km` se recalcularon sin
+   el grupo excluido. El protocolo examinó transferencia a regiones sin
+   sus etiquetas de calibración, sujeto a las dependencias de
+   preprocesamiento indicadas más abajo.
+4. **Exclusión temporal (LPO).** Se retuvo un cuatrienio completo del
+   entrenamiento de la respuesta. Se conservaron, sin embargo,
+   observaciones concurrentes de otras estaciones en el predictor de
+   vecindario del período retenido. Por ello, el protocolo evaluó
+   reconstrucción temporal condicionada a una red disponible, no un
+   pronóstico ni la recuperación de un período totalmente carente de
+   observaciones.
+5. **Ajuste completo.** El modelo del producto se ajustó con todas las
+   estaciones disponibles. Sus métricas sobre el entrenamiento se
+   presentaron como control in-sample, no como estimación de
+   generalización.
 
-* **Fuera de estación (LOSO)**: se deja un sitio fuera, se entrena con los
-  demás y se predice el sitio excluido (sus vecinas `obs_vec` tampoco lo
-  incluyen). El sitio es la **celda**: cuando dos estaciones comparten
-  celda (el mismo lugar con dos códigos SINCA sucesivos, o dos monitores a
-  decenas de metros, como Concón y Concón MMA) salen juntas y el vecindario
-  se recalcula sin ninguna de las dos, para que una no se vea a través de
-  la otra. Es la vara principal de un producto de 1 km porque mide lo
-  que el modelo hace donde no hay monitor, y de sus predicciones salen tanto
-  la lectura temporal como la espacial.
-* **Dejando el sitio y su entorno fuera (LBO, `MODELO_1KM_LBO=1`)**: como
-  LOSO, pero además se excluye del entrenamiento y del vecindario **toda
-  estación a menos de `MODELO_1KM_RADIO_LBO` km** (10 km por omisión) del
-  sitio evaluado. LOSO responde «¿y si este monitor no existiera, pero sus
-  vecinos sí?»; la vecina más cercana está a 3,0 km en mediana en PM₂.₅ y a
-  3,6 km en NO₂, de modo que LOSO mide un lugar bien rodeado de monitores.
-  LBO responde «¿y si no hubiera ningún monitor en la vuelta?», que es la
-  situación de la mayor parte del territorio. Con 10 km salen de cada
-  pliegue 3 estaciones en mediana (hasta 8 en PM₂.₅) y se pierde entre el
-  2,7 % y el 4,5 % de las filas de entrenamiento, así que el protocolo
-  endurece la prueba sin dejar al modelo sin datos.
-* **Dejando una región fuera (LRO, `MODELO_1KM_LRO=1`)**: se excluyen todas
-  las estaciones de una región SINCA y, para que la región no aporte ni
-  etiquetas ni vecinas, `obs_vec`, `peso_vec` y `dist_est_km` se recalculan
-  en cada pliegue sin ninguna estación de la región excluida. Mide la
-  extrapolación a territorios sin monitoreo.
-* **Dejando un cuatrienio fuera (LPO, `MODELO_1KM_LPO=1`)**: se excluye una
-  ventana de cuatro años completa. Mide la transferencia temporal: cuánto
-  vale el modelo en años que no vio, que es la situación de los cuatrienios
-  tempranos con pocas estaciones.
-* **Protocolo del producto**: el modelo final se entrena con todas las
-  estaciones y es el que produce las superficies; su ajuste in-sample no es
-  una medida de generalización y se reporta sólo como control.
+Los pliegues utilizaron semillas específicas y los límites de
+entrenamiento de @tbl-motores-config. Las submuestras se extrajeron
+aleatoriamente dentro del entrenamiento permitido y cada ajuste se
+conservó para su reanudación reproducible. La exclusión de etiquetas no
+implicó aislamiento completo de todo el flujo analítico: la selección de
+predictores por disponibilidad se efectuó sobre el panel completo; GWR y
+regression-kriging estimaron parte de su preprocesamiento globalmente; y
+la función de ajuste del vecindario no recalculó matrices cuando el grupo
+excluido contenía menos de dos estaciones. En ese último caso, otras
+filas de entrenamiento pudieron conservar la estación retenida como
+vecina, aunque su propia fila de prueba no la incluyera. A ello se añaden
+las dependencias de la retransformación y del apilado descritas en
+@sec-motor y @sec-motores-previos. Estas condiciones impiden presentar los
+resultados como una validación totalmente anidada o libre de filtración
+de información; la revisión documental no cuantifica su efecto.
 
-Cada pliegue entrena con a lo más `MODELO_1KM_MAX_TRAIN_ROWS` filas elegidas
-al azar con una semilla propia del pliegue y se guarda al terminar, de modo
-que una corrida interrumpida se reanuda sin repetir trabajo y el resultado
-no depende del orden de ejecución.
+Los pares observado–estimado se agregaron por estación a cuatro escalas:
+horaria; diaria, con al menos 18 pares horarios por día local UTC−4;
+mensual, con al menos 20 días válidos; y anual, con al menos nueve meses
+válidos. Cada media observada y estimada utilizó los mismos tiempos
+disponibles. El pareamiento evita comparar ventanas diferentes, pero no
+elimina la posible selección de horas o estaciones con datos. Estos
+criterios pertenecen a la evaluación; no se trasladaron automáticamente
+a todas las agregaciones de exposición, cuya cobertura se documenta
+mediante sus propios recuentos.
 
-**Niveles de agregación.** Los pares observado–estimado se evalúan por
-estación a cuatro niveles: horario; **diario** (día local UTC−4 con al menos
-18 pares horarios); **mensual** (al menos 20 días válidos) y **anual** (al
-menos 9 meses válidos). Observado y estimado se promedian siempre sobre las
-mismas horas, de modo que los huecos de la estación no sesgan la comparación.
+Se distinguieron dos componentes del desempeño. La evaluación espacial
+comparó las medias observadas y estimadas entre estaciones, por
+cuatrienio y para todo el período, usando la climatología mensual del
+análisis descriptivo. La evaluación temporal comparó anomalías respecto
+de la media de cada estación,
+$y_{st}-\bar y_s$ y $\hat y_{st}-\bar{\hat y}_s$, y la distribución de
+métricas por estación. Esta separación evita atribuir a la reconstrucción
+temporal una capacidad que puede provenir principalmente del contraste
+de concentraciones medias entre lugares.
 
-**Lectura temporal y lectura espacial.** Un R² agrupado mezcla dos
-habilidades distintas. La **lectura espacial** compara, entre estaciones, la
-media observada y la media estimada de cada estación (por cuatrienio y en
-todo el período, con la misma regla de climatología mensual del
-descriptivo): responde si el modelo ordena bien los lugares. La **lectura
-temporal** resta a cada serie la media de su estación y evalúa las anomalías
-$y_{st} - \bar y_s$ contra $\hat y_{st} - \bar{\hat y}_s$, además de la
-distribución del desempeño estación a estación: responde si el modelo sigue
-bien el tiempo en un lugar que no vio.
-
-**Métricas.** Con $y_i$ lo observado, $\hat y_i$ lo estimado, $\bar y$ y
-$\bar{\hat y}$ sus medias, $s^2$ sus varianzas y $s_{y\hat y}$ su covarianza,
-todo en escala original:
+Se calcularon métricas complementarias de asociación, concordancia,
+error y sesgo en la escala original. La concordancia de Lin permite
+distinguir asociación lineal y proximidad a la identidad
+[@lin1989concordance]; el índice de acuerdo corresponde a la familia de
+medidas de validación de Willmott [@willmott1981validation]. Con $y_i$
+observado, $\hat y_i$ estimado, $\bar y$ y $\bar{\hat y}$ sus medias,
+$s^2$ sus varianzas y $s_{y\hat y}$ su covarianza, se utilizaron:
 
 $$
 R^2 = 1 - \frac{\sum_i (y_i - \hat y_i)^2}{\sum_i (y_i - \bar y)^2}, \qquad
@@ -2098,44 +2098,50 @@ $$
 \mathrm{NRMSE} = \frac{\mathrm{RMSE}}{\bar y},
 $$ {#eq-sesgos}
 
-donde $R^2$ es el coeficiente de determinación respecto de la recta 1:1
-(puede ser negativo y nunca supera a $r^2$); $r$ es la correlación de Pearson
-y $\rho$ la de Spearman (la misma fórmula sobre rangos); CCC es el coeficiente
-de concordancia de Lin, que penaliza a la vez la falta de correlación y el
-desplazamiento respecto de la identidad; IOA es el índice de acuerdo de
-Willmott; NMB y NME son el sesgo y el error medios normalizados. Se reportan
-además la pendiente y el intercepto de la recta de mínimos cuadrados de
-$\hat y$ sobre $y$ (una pendiente menor que 1 indica compresión de los
-extremos) y FAC2, la fracción de pares con $0{,}5 \le \hat y / y \le 2$ entre
-los que tienen $y > 0$.
-Con menos de tres pares o varianza observada nula la métrica queda
-indefinida.
 
-**Acuerdo por categorías.** Las medias diarias observada y estimada se
-clasifican con cortes de gestión de episodios y de guías sanitarias y se
-comparan con el acuerdo exacto, el kappa de Cohen y el kappa ponderado
-cuadrático; para cada umbral de excedencia se reportan sensibilidad,
-especificidad, valor predictivo positivo, índice crítico de éxito (CSI) y
-sesgo de frecuencia (días estimados sobre el umbral divididos por días
-observados sobre el umbral). Para PM₂.₅ los cortes son los del D.S. 12/2011
-del Ministerio del Medio Ambiente (norma de 24 h de 50 µg/m³ y niveles de
-alerta, preemergencia y emergencia en 80, 110 y 170 µg/m³) más la guía de
-24 h de la OMS de 2021 (15 µg/m³); para NO₂, cuya norma chilena (D.S.
-114/2002: 213 ppb en 1 h y 53 ppb anual) casi nunca se supera, se usan la
-guía de 24 h de la OMS (25 µg/m³) y sus metas intermedias (50 y 120 µg/m³),
-convertidas a 13,3, 26,6 y 63,8 ppb a 25 °C y 1 atm. Los cortes normativos
-se definen sobre promedios móviles de 24 h; aquí se aplican a la media del
-día local, de modo que el ejercicio mide la capacidad de clasificar días,
-no reproduce la gestión de episodios.
+El coeficiente $R^2$ se definió respecto de la recta de identidad y pudo
+ser negativo; no se interpretó como el cuadrado de la correlación.
+Además de Pearson, se calculó Spearman sobre los rangos. CCC incorporó
+diferencias de asociación, dispersión y medias; IOA resumió acuerdo
+normalizado. NMB, NME y NRMSE expresaron sesgo o error relativo a la
+concentración observada media. También se reportaron pendiente e
+intercepto de la regresión de $\hat y$ sobre $y$ y FAC2, la proporción de
+pares con $0{,}5\leq\hat y/y\leq2$ entre aquellos con $y>0$. Los indicadores
+sin el número mínimo de pares —tres— o con denominadores o varianzas
+inadecuados se conservaron como indefinidos. Ninguna métrica aislada se
+utilizó como prueba de validez para todo el dominio.
 
-**Referencia.** Para dimensionar lo que aporta la calibración, los productos
-globales sin calibrar que entran como predictores (GEOS-CF, CAMS EAC4,
-MERRA-2 y ACAG) se comparan contra SINCA y, sobre exactamente los mismos
-pares, contra la estimación LOSO.
+El acuerdo de categorías diarias se examinó mediante acuerdo exacto,
+kappa de Cohen y kappa con ponderación cuadrática
+[@cohen1960agreement; @cohen1968weighted]. Para cada umbral se calcularon
+sensibilidad, especificidad, valor predictivo positivo, índice crítico de
+éxito y sesgo de frecuencia. Los cortes de PM₂.₅ utilizados en la ejecución
+archivada fueron 50, 80, 110 y 170 µg/m³, tomados del D.S. 12/2011, y
+15 µg/m³ de la guía OMS de 2021 [@mma2011mp25; @who2021airquality]. Para
+NO₂ se utilizaron la guía diaria OMS de 25 µg/m³ y las metas intermedias de
+50 y 120 µg/m³, convertidas a 13,3; 26,6 y 63,8 ppb a 25 °C y 1 atm.
+Las referencias al D.S. 114/2002 —213 ppb horario y 53 ppb anual— describen
+el contexto histórico de la ejecución, no la norma vigente: ese decreto
+fue derogado por el D.S. 40/2023, publicado en 2024 [@mma2023no2].
+Los valores y gráficos archivados no se recalcularon en esta revisión.
+Asimismo, el ejercicio aplicó los cortes a medias del día local, no
+reprodujo la gestión normativa de episodios ni sus reglas de promedios
+móviles. Por ambas razones, sus resultados no constituyen una evaluación
+de cumplimiento regulatorio actual.
 
-**Incertidumbre del producto.** Se resume en la desviación de los residuos
-LOSO por macrozona × hora local × decil de la predicción
-(`residuos_sd.parquet`), combinable con `dist_est_km` de la grilla.
+Como referencia no calibrada se compararon GEOS-CF, CAMS EAC4, MERRA-2 y
+ACAG frente a SINCA y, sobre exactamente los mismos pares, frente a la
+predicción LOSO. Esta comparación pareada separó el aporte de la
+calibración de las diferencias de disponibilidad entre fuentes.
+
+La variabilidad residual del producto se resumió mediante la desviación
+estándar de los residuos LOSO por macrozona, hora local y decil de
+predicción, conservada en `residuos_sd.parquet`. Junto con la distancia
+a estaciones, este resumen describe heterogeneidad del error, pero no
+equivale a intervalos predictivos con cobertura calibrada. Tampoco se
+calculó un área formal de aplicabilidad; la extrapolación fuera del
+soporte de entrenamiento permanece una limitación
+[@meyer2021applicability].
 
 ```{python}
 #| code-fold: true
@@ -5540,10 +5546,12 @@ excedencias (@tbl-motores-excedencia). El **proceso gaussiano** y, en menor
 medida, la red neuronal y el modelo mixto se ajustan con una submuestra del
 entrenamiento de cada pliegue (@tbl-motores-config), de modo que parte de su
 distancia a LightGBM es tamaño de muestra y no sólo forma funcional. Y los
-pesos del **ensamble** se estiman con predicciones fuera de pliegue de
-motores que sí vieron al grupo evaluado en su entrenamiento: la fuga es de
-tres o cuatro coeficientes, pero una diferencia de centésimas a su favor no
-debe leerse como superioridad.
+pesos del **ensamble** se estiman con predicciones fuera de pliegue
+generadas globalmente, cuyos modelos base pudieron incluir el grupo
+evaluado en sus respectivos entrenamientos. El procedimiento no es
+plenamente anidado y no se cuantificó la magnitud de esa dependencia; una
+diferencia a su favor no demuestra superioridad independiente
+(@sec-motores-previos, @sec-protocolos).
 
 ```{python}
 #| echo: false
@@ -6863,67 +6871,92 @@ Image(str(fig_optimismo("no2", REGION_ANEXO)))
 
 ## Limitaciones {#sec-limitaciones}
 
-* La validación fuera de estación mide la generalización espacial sólo
-  donde hay estaciones, urbanas en su mayoría; en desierto, cordillera y
-  zonas sin monitoreo el producto es una extrapolación y debe rotularse
-  así. Las métricas de la prueba corta (`MODELO_1KM_SMOKE=1`) no son
-  representativas.
-* **Las costuras de los predictores gruesos se imprimen en la superficie.**
-  El reanálisis entra por el píxel enlazado a la celda, sin interpolar, de
-  modo que los bordes de su rejilla aparecen como escalones en un producto
-  rotulado «1 km». La textura de 1 km que sí es real viene de ACAG, MAIAC y
-  las covariables estáticas; el detalle meteorológico no baja de la
-  resolución de su fuente. @sec-interpolacion mide la costura en los
-  predictores y en la superficie, y resume el experimento que interpoló los
-  reanálisis gruesos: se probó con la calibración y la validación completas y
-  se descartó con la regla fijada de antemano, que decide por LRO.
-* **Dos regímenes de predictores.** GEOS-CF y TROPOMI sólo existen en disco
-  para 2019–2024 y CAMS EAC4 desde 2003 y hasta 2025; fuera de esos años el
-  motor los recibe como faltantes. El desempeño se reporta por régimen y
-  por cuatrienio (@sec-estratos) para no atribuir a todo el período la
-  habilidad de los años mejor observados.
-* **Red temprana.** En 2000–2007 casi todo el PM₂.₅ se mide en cuatro
-  estaciones de la Región Metropolitana y el NO₂ en la zona industrial de
-  Valparaíso y en Atacama: las métricas espaciales de esos cuatrienios
-  descansan en muy pocas estaciones y no representan al país, y las series
-  de macrozona mezclan cambio ambiental con cambio de red.
-* **ERA5-Land en la costa.** Las celdas cuyo píxel propio es mar toman la
-  meteorología del píxel de tierra más cercano (hasta 16 km): es un valor
-  nativo, pero de otro lugar, y no representa la brisa marina del sitio. El
-  0,9 % de las celdas (islotes y roqueríos a más de 16 km de un píxel de
-  tierra) sigue sin ERA5-Land.
-* **Vecindario con red rala.** `obs_vec` y `dist_est_km` se calculan con la
-  red completa del período; antes de 2012 la estación vecina más cercana
-  con dato suele estar mucho más lejos que lo que indica `dist_est_km`.
-* **Unidades y reloj anteriores a 2008.** El derivado SINCA no confirma
-  unidades (`unidades_confirmadas = false`) y el reloj UTC−4 fijo se
-  respalda con la prueba estructural, no con metadatos de origen.
-* **Control de rachas.** El filtro de valores idénticos consecutivos elimina
-  sensores pegados, pero también puede quitar períodos reales de
-  concentración muy baja en el límite de detección (la mayoría de las
-  rachas de NO₂ son de 0 o 1 ppb).
-* **Comparación de motores desigual en datos.** LightGBM y el motor de
-  alertas entrenan con hasta 1,5 millones de filas por pliegue; Random
-  Forest, la red neuronal, el modelo mixto y sobre todo el proceso gaussiano
-  lo hacen con submuestras fijadas por su costo (@tbl-motores-config), y
-  ninguno tuvo búsqueda de hiperparámetros: se usan los del proyecto
-  anterior con las desviaciones declaradas en @sec-motores-previos. La tabla dice qué rinde cada motor *tal como se puede correr
-  aquí*, no cuál sería mejor con presupuesto ilimitado. Los pesos del
-  ensamble se estiman con predicciones fuera de pliegue cuyos motores base
-  sí vieron al grupo evaluado, una fuga pequeña que lo favorece.
-* Los cortes de categorías se aplican a la media del día local, no al
-  promedio móvil de 24 h con que se gestionan los episodios.
-* Máximos nocturnos de invierno en el centro-sur (leña, capa límite
-  estable): sin observación satelital; el valor depende de los reanálisis,
-  del ciclo diurno aprendido y del vecindario de estaciones.
-* Densidad vial sólo si está el shapefile OSM; elevación comunal mientras NASADEM no
-  esté descargado. ACAG 2025+ es climatología (bandera `acag_clim`).
-* GOES-East ABI AOD (`scripts_pipeline/descargar_goes_abi_aod.py`) no entra
-  aún como predictor; cuando exista histórico se agrega como columna
-  horaria diurna. Rapa Nui y Sala y Gómez no tienen ACAG ni GEOS-CF.
-* El offset −4 y la etiqueta al fin del intervalo son la convención
-  normativa; la prueba estructural descarta el reloj civil pero no mide el
-  offset.
+La interpretación del producto está condicionada por la distribución de la
+red, el soporte de las fuentes y la independencia incompleta de algunos
+componentes de evaluación. Se distinguen las siguientes limitaciones:
+
+* **Representatividad territorial.** La validación se realizó donde existen
+  estaciones, mayoritariamente urbanas. Sus errores no se trasladan
+  automáticamente a desiertos, cordillera o territorios sin monitoreo, ni
+  a condiciones ambientales ausentes del entrenamiento
+  [@meyer2021applicability]. Las métricas de la prueba corta
+  (`MODELO_1KM_SMOKE=1`) no representan el análisis completo.
+* **Resolución de salida y soporte efectivo.** La asignación del píxel
+  nativo de reanálisis puede producir discontinuidades en sus bordes, aun
+  cuando la salida se publique en celdas de 0,01°. ACAG, MAIAC y las
+  covariables estáticas aportan variación más fina, pero no convierten la
+  meteorología gruesa en observaciones kilométricas. @sec-interpolacion
+  documenta las discontinuidades y el experimento de interpolación,
+  evaluado con la regla previamente fijada sobre LRO.
+* **Cambios de disponibilidad.** GEOS-CF y TROPOMI sólo están disponibles
+  localmente para 2019–2024 y CAMS EAC4 para 2003–2025; fuera de esas
+  ventanas se incorporan como faltantes. La evaluación por régimen y
+  cuatrienio (@sec-estratos) evita atribuir sin distinción a todo el
+  período la información de los años mejor observados. ACAG posterior a
+  2024 utiliza una climatología señalada con `acag_clim`.
+* **Red temprana y comparabilidad temporal.** En 2000–2007 las observaciones
+  de PM₂.₅ se concentran en cuatro estaciones metropolitanas, y las de
+  NO₂ en áreas industriales de Valparaíso y Atacama. Las métricas de esos
+  períodos no representan una muestra nacional; las series por macrozona
+  pueden combinar cambio ambiental y cambio de composición de la red.
+* **Enlaces costeros e insulares.** Las celdas cuyo píxel ERA5-Land es mar
+  utilizan el píxel terrestre más próximo, hasta 16 km. El valor procede
+  de otra localización y puede no representar la circulación costera
+  local. El 0,9 % de las celdas, principalmente islotes y roqueríos, carece
+  de ERA5-Land por superar esa distancia. Rapa Nui y Sala y Gómez no
+  disponen de ACAG ni GEOS-CF.
+* **Información de vecindario.** La geometría de distancia se basa en la
+  red del período completo; en años tempranos, en particular antes de
+  2012, el monitor con dato contemporáneo puede estar más lejos de lo que
+  sugiere `dist_est_km`. La reconstrucción depende de la disponibilidad
+  real de observaciones concurrentes y no equivale a estimación
+  independiente de la red.
+* **Independencia de la evaluación.** La selección global por cobertura,
+  el preprocesamiento de GWR/RK, la excepción de vecindario para grupos
+  de una estación, la retransformación con residuos OOF globales y el
+  apilado no plenamente anidado permiten dependencias de información
+  entre entrenamiento y evaluación (@sec-protocolos). No se estimó su
+  magnitud; no es justificable calificarlas como pequeñas ni considerar
+  las diferencias entre motores libres de ese posible optimismo.
+  LPO, además, conserva observaciones concurrentes de la red y no
+  representa pronóstico temporal sin observaciones.
+* **Reloj y unidades de origen.** El derivado SINCA conserva
+  `unidades_confirmadas = false`. Se adoptó UTC−4 fija y etiqueta de
+  fin del intervalo como convención operacional. La prueba estructural
+  informa sobre la compatibilidad con cambios civiles de hora, pero no
+  certifica offset absoluto, etiqueta original ni unidades históricas,
+  especialmente antes de 2008. La evidencia de la red adicional también
+  es indirecta.
+* **Control de calidad de concentraciones.** El filtro de 24 registros
+  idénticos consecutivos identifica posibles fallas instrumentales, pero
+  puede excluir valores reales próximos al límite de detección; muchas
+  rachas de NO₂ corresponden a 0 o 1 ppb. Los huecos no interrumpen la
+  corrida, por lo que 24 registros no implican necesariamente 24 horas
+  contiguas. El procedimiento no reemplaza una auditoría instrumental.
+* **Comparación de configuraciones.** LightGBM y el modelo de alertas
+  utilizan hasta 1,5 millones de filas por pliegue; Random Forest, MLP,
+  modelo mixto y proceso gaussiano emplean presupuestos menores
+  (@tbl-motores-config). No existió una búsqueda de configuraciones con
+  presupuestos comparables, aunque sí optimización interna en algunos
+  componentes. El contraste caracteriza las implementaciones ejecutadas,
+  no el rendimiento óptimo alcanzable de cada familia.
+* **Categorías y regulación.** Los cortes se aplicaron a la media del día
+  local y no reproducen los promedios móviles y reglas de gestión de
+  episodios. El D.S. 114/2002 citado como contexto histórico de NO₂ fue
+  derogado por el D.S. 40/2023 [@mma2023no2]. Los gráficos archivados no
+  constituyen evaluación de cumplimiento de la normativa vigente.
+* **Horas sin observación satelital.** Durante la noche y ante faltantes
+  satelitales, la estimación depende de meteorología, composición modelada,
+  calendario y red. Esto es particularmente relevante para episodios
+  invernales nocturnos del centro-sur; no debe describirse la salida como
+  medición satelital horaria [@vandonkelaar2010aod; @cooper2022finescale].
+* **Respaldos de covariables e incertidumbre.** La densidad vial depende
+  de la disponibilidad del archivo OSM y la elevación puede utilizar
+  respaldos comunales si faltan teselas NASADEM. GOES-East ABI AOD no
+  forma parte del modelo evaluado. La dispersión residual estratificada
+  describe el error observado, pero no proporciona intervalos con
+  cobertura predictiva validada ni resuelve la incertidumbre de
+  extrapolación.
 
 ### Costuras de los reanálisis y el experimento de interpolación {#sec-interpolacion}
 
@@ -7122,6 +7155,156 @@ Markdown(pd.DataFrame(_t).pipe(a_markdown) if _t else "_(sin las evaluaciones de
 ```
 
 ## Reproducibilidad {#sec-reproducibilidad}
+
+El código, los parámetros, la identidad de los paneles y los artefactos de
+evaluación se conservaron para permitir la trazabilidad de la ejecución.
+Los resultados publicados corresponden a los ajustes archivados; la
+revisión académica del 18 de octubre de 2026 actualizó la introducción, la
+descripción metodológica y la bibliografía, sin ejecutar nuevamente los
+modelos ni modificar sus tablas, mapas o estimaciones. En consecuencia,
+los hashes mostrados en el resumen siguiente identifican la ejecución
+analítica original y no el texto editorial revisado.
+
+Las precisiones sobre preprocesamiento global, información de vecindario
+y apilado describen límites de la implementación existente. No constituyen
+una corrección estadística de los resultados. Una evaluación estrictamente
+anidada, una nueva calibración de incertidumbre o una actualización de los
+cortes regulatorios requerirían una ejecución analítica diferenciada, con
+nuevas identidades de artefactos y comparación explícita con esta versión.
+
+::: {.callout-note collapse="true"}
+## Configuración y decisiones de la ejecución archivada
+
+* **Dominio y grilla**: Chile continental e insular, 838.430 celdas de
+  0,01° alineadas con ACAG V6GL03 (centros en k·0,01 + 0,005); ACAG entra
+  1:1 y MAIAC por el píxel más cercano a ≤ 1,5 km.
+* **Período**: 2000-01-01 a 2026-09-13, toda la temporalidad del derivado
+  SINCA para ambos contaminantes. ERA5-Land, ERA5 BLH, MERRA-2 y MAIAC
+  cubren prácticamente todo el período y ACAG hasta diciembre de 2024
+  (después entra su climatología con la bandera `acag_clim`); CAMS EAC4 parte en 2003 y GEOS-CF y
+  TROPOMI sólo existen en disco para 2019–2024, de modo que fuera de esos
+  años entran como faltantes y la evaluación se reporta también por
+  cuatrienio y por régimen de predictores.
+* **Control de calidad**: se excluyen las rachas de 24 o más registros
+  idénticos consecutivos (sensor pegado), cuantificadas en @sec-desc-red.
+* **Reloj SINCA**: convención operacional UTC−4 fija con etiqueta al fin
+  del intervalo, consistente con la prueba estructural pero sin
+  certificación del offset ni de la etiqueta original (@sec-reloj).
+* **Motor**: LightGBM sobre log(1 + y) con corrección de retransformación
+  por macrozona y franja horaria en los dos contaminantes, el mismo motor
+  que en `modelos_estimacion.qmd`; la varianza de la corrección se estima
+  con residuos fuera de pliegue (@sec-motor), no in-sample.
+* **Predictores**: los mismos candidatos para los dos contaminantes, salvo
+  la distancia a la costa, que el modelo de NO₂ excluye por diseño
+  (@sec-costa-no2, @sec-predictores-fuera).
+* **Motores**: LightGBM es el motor del producto. Como contraste, con los
+  mismos protocolos y métricas (@sec-comparacion-motores), se evalúan los
+  motores espaciales clásicos (GWR, regression-kriging y una línea base de
+  interpolación de vecinas, @sec-motores-contraste) y los motores usados
+  antes en el proyecto hermano: Random Forest, red neuronal, proceso
+  gaussiano, modelo lineal mixto, LightGBM de alertas (cuantil 0,80) y el
+  ensamble por apilado (@sec-motores-previos).
+* **Redes de observación**: al panel entran SINCA y la red adicional SNIFA
+  de NO₂ (@sec-red-adicional), con decisiones operacionales de reloj y
+  escala apoyadas en evidencia indirecta, no en certificación de los
+  metadatos originales; dos estaciones quedan fuera por escala no verificada.
+* **Presentación de resultados**: dos secciones separadas con el mismo
+  material, una sin validación cruzada (@sec-sin-validacion) y otra con
+  validación (@sec-resultados), y una tercera con la diferencia entre ambas
+  (@sec-optimismo). Ninguna cifra mezcla los dos regímenes, salvo dos
+  excepciones declaradas donde aparecen: los pesos del ensamble, que se
+  aprenden con predicciones fuera de pliegue (@sec-sin-validacion), y el
+  control in-sample de @tbl-final.
+* **Validación**: exclusión de sitio (LOSO), sitio y entorno de 10 km
+  (LBO), región (LRO) y cuatrienio (LPO), más ajuste completo del producto.
+  Sus dependencias de preprocesamiento, vecindario, retransformación y
+  apilado se explicitan en @sec-protocolos; LPO conserva observaciones
+  concurrentes de la red y no equivale a un pronóstico. La evaluación separa la lectura espacial (entre estaciones)
+  de la temporal (dentro de estación) y cubre cuatro niveles de agregación
+  (horario, diario, mensual y anual).
+* **Resolución nativa**: los reanálisis se asignan por el píxel enlazado,
+  sin interpolación espacial en el diseño publicado. Los faltantes se
+  conservan salvo los respaldos y climatologías declarados para cada
+  fuente. El experimento de interpolación se documenta en
+  @sec-interpolacion.
+* **El disco externo queda para los datos crudos**: nada de lo que genera
+  el modelo se escribe allí. Grilla, estáticas, paneles, modelos,
+  predicciones de validación y superficies van al disco interno
+  (`~/Asesorias_Data_local/AirPollution/modelado_1km/`, reubicable con
+  `AIR_POLLUTION_MODELO_1KM_ROOT`), fuera del repositorio sincronizado.
+* **Caché reproducible**: cada artefacto pesado (panel, modelo, superficie)
+  vive en esa raíz local y cada artefacto chico
+  (métricas, figuras) en `output_files/modelo_1km/` (con etiqueta,
+  `output_files/modelo_1km_<etiqueta>/`); pliegues, predicciones fuera de
+  muestra, métricas y modelo final quedan atados al sha256 del panel que
+  los produjo y la evaluación al del archivo de predicciones; si el archivo existe,
+  el chunk que lo produce se salta el cómputo (borrar el artefacto lo
+  regenera).
+:::
+
+::: {.callout-tip collapse="true"}
+## Procedimiento computacional reproducible
+
+Con el entorno `afg` de `scripts_superficie/` más
+`scripts_modelo_1km/requirements.txt`. Quarto se lanza **desde `docs/`**
+(con `embed-resources` y `--output`, lanzado desde la raíz busca
+`modelo_1km_horario_files/` en el directorio de trabajo y falla al empaquetar):
+
+```sh
+zsh scripts_modelo_1km/lanzar_corrida_completa.sh   # histórico 2000–2026 + HTML (horas; reanudable)
+# o, paso a paso, siempre con los cuatro protocolos:
+export MODELO_1KM_LBO=1 MODELO_1KM_LRO=1 MODELO_1KM_LPO=1
+python -B scripts_modelo_1km/correr_qmd.py          # los chunks fuera de Quarto
+cd docs
+quarto render modelo_1km_horario.qmd                # arma el HTML reutilizando todo lo cacheado
+cd .. && python -B others_scripts/aligerar_html.py docs/modelo_1km_horario.html   # figuras en 256 colores
+zsh scripts_modelo_1km/lanzar_produccion_serie.sh   # la serie completa de superficies, aparte
+```
+
+**El documento no se ejecuta ni se renderiza sin `MODELO_1KM_LBO`,
+`MODELO_1KM_LRO` y `MODELO_1KM_LPO` en 1.** Sin ellas la validación corre
+sólo LOSO, los motores de contraste ven una lista de protocolos distinta de
+la de su caché, reescriben sus predicciones fuera de muestra sólo con LOSO
+y la evaluación de todos los motores se recalcula sin los otros tres
+protocolos. El lanzador las fija por omisión.
+
+`correr_qmd.py` ejecuta estos mismos chunks, en orden, en un proceso de
+Python corriente: las etapas largas no dependen de un kernel de Jupyter y,
+como cada artefacto y cada pliegue se guardan al terminar, una corrida
+interrumpida se reanuda donde quedó. Quarto debe usar el mismo entorno
+(`QUARTO_PYTHON=.../envs/afg/bin/python`). La prueba corta
+(`MODELO_1KM_SMOKE=1`) se renderiza con otro nombre de salida
+(`--output modelo_1km_horario_smoke.html`), y el render real que la siga
+debe partir con un kernel nuevo (`--execute-daemon-restart`): Quarto puede
+reutilizar el kernel de la corrida anterior y, con él, sus rutas de figuras.
+`others_scripts/aligerar_html.py` reescribe las imágenes incrustadas del HTML
+con una paleta de 256 colores, sin tocar los PNG de `output_files/`, para que
+el informe quepa en GitHub.
+
+Variables de entorno: `MODELO_1KM_DESDE`/`MODELO_1KM_HASTA` (período),
+`MODELO_1KM_ETIQUETA` (sufijo de panel, modelo y superficies; `smoke` en la
+prueba corta), `MODELO_1KM_LRO=1` y `MODELO_1KM_LPO=1` (validación dejando
+una región o un cuatrienio fuera), `MODELO_1KM_LBO=1` con
+`MODELO_1KM_RADIO_LBO` (deja fuera el sitio y su entorno),
+`MODELO_1KM_QC_RACHA` (largo mínimo de
+una racha de valores idénticos; 0 la desactiva), `MODELO_1KM_PROCESOS`
+(procesos de la ingesta),
+`MODELO_1KM_DIAS_DEMO` (días de demostración de las superficies),
+`MODELO_1KM_N_TREES` y `MODELO_1KM_MAX_TRAIN_ROWS` (costo del motor),
+`MODELO_1KM_MOTORES_ML` (motores de @sec-motores-previos a correr, separados
+por coma; por defecto `alertas,rf,nn,gp,lme`; vacío los omite y la
+comparación de motores se rehace sin ellos),
+`MODELO_1KM_REGION_ANEXO` (región SINCA del anexo regional; por defecto `RM`),
+`MODELO_1KM_RED_ADICIONAL=0` (deja fuera los monitores SNIFA),
+`MODELO_1KM_SIN_VIAS=1` (estáticas sin OSM),
+`MODELO_1KM_EXCLUIR` (predictores que se sacan del modelo de un
+contaminante; por omisión `no2:dist_costa_km`, y `-` no saca ninguno),
+`MODELO_1KM_RETRANSFORMACION` o `_PM25`/`_NO2` (forma de la corrección de
+retransformación; por omisión `duan_oof_macrozona`) y
+`MODELO_1KM_INTERPOLAR` (reanálisis interpolados en vez del píxel más
+cercano; vacío por omisión, que es el diseño publicado). El avance de cada
+etapa se escribe en `output_files/modelo_1km/modelo_1km.log`.
+:::
 
 ```{python}
 #| code-fold: true

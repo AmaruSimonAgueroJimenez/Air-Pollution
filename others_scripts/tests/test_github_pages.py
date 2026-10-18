@@ -285,7 +285,7 @@ class InformePrincipalTests(unittest.TestCase):
         self.assertEqual(len(tabla.filas), 196)
         self.assertEqual({len(fila) for fila in tabla.filas}, {4})
 
-    def test_bibtex_csl_y_19_referencias_resuelven_todas_las_citas(self):
+    def test_bibtex_csl_y_referencias_resuelven_todas_las_citas(self):
         rutas = {}
         for campo in ("bibliography", "csl"):
             coincidencia = re.search(r"^" + campo + r":\s*([^\n]+)\s*$", self.qmd, re.M)
@@ -298,12 +298,41 @@ class InformePrincipalTests(unittest.TestCase):
         self.assertTrue(ElementTree.fromstring(rutas["csl"].read_text(encoding="utf-8")).tag.endswith("style"))
         citas = {clave for clave in re.findall(r"(?<![\w])@([A-Za-z][A-Za-z0-9_:-]*)", self.prosa)
                  if not clave.startswith(("sec-", "fig-", "tbl-", "eq-", "lst-"))}
-        self.assertEqual(len(citas), 19)
+        self.assertGreaterEqual(len(citas), 40)
         self.assertTrue(citas.issubset(claves), sorted(citas - set(claves)))
         self.assertEqual(self.render.contenedores_refs, 1)
-        self.assertEqual(len(self.render.ids_referencias), 19)
+        self.assertEqual(len(self.render.ids_referencias), len(citas))
         self.assertEqual(set(self.render.ids_referencias), {"ref-" + clave for clave in citas})
         self.assertEqual(set(self.render.citas), citas)
+
+    def test_introduccion_academica_con_antecedentes_y_objetivo_delimitado(self):
+        inicio = self.prosa.index("## Introducción {#sec-introduccion}")
+        fin = self.prosa.index("## Pregunta de investigación y objetivos")
+        intro = self.prosa[inicio:fin]
+        claves = set(re.findall(r"@([A-Za-z][A-Za-z0-9_:-]*)", intro))
+        self.assertTrue({
+            "di2017mortality", "strak2021elapse", "meng2021no2mortality",
+            "who2021airquality", "rutllant1995meteorological", "barraza2017sources",
+            "villalobos2017wood", "di2019ensemble", "pu2022hourly",
+            "vandonkelaar2010aod", "cooper2020surface",
+            "roberts2017crossvalidation", "meyer2021applicability",
+        }.issubset(claves))
+        self.assertIn("no identifica emisiones ni efectos", intro)
+        self.assertNotIn("Cómo se ejecuta", intro)
+
+    def test_metodos_delimitan_independencia_y_referencias_regulatorias(self):
+        inicio = self.prosa.index("## Metodología {#sec-metodologia}")
+        fin = self.prosa.index("## Resultados {#sec-resultados-generales}")
+        metodos = self.prosa[inicio:fin]
+        self.assertIn("cuatro\nprotocolos", metodos)
+        self.assertIn("no constituye\nuna evaluación plenamente anidada", metodos)
+        self.assertIn("selección se efectuó antes", metodos)
+        self.assertIn("grupos de al menos dos estaciones", metodos)
+        self.assertIn("@mma2023no2", metodos)
+        self.assertIn("fue derogado", metodos)
+        self.assertNotIn("fuga pequeña", self.prosa)
+        repro = self.prosa[self.prosa.index("## Reproducibilidad {#sec-reproducibilidad}"):]
+        self.assertIn("sin ejecutar nuevamente los\nmodelos", repro)
 
     def test_212_chunks_conservados_salvo_cinco_strings_de_encabezados(self):
         self.assertEqual(len(self.chunks), 212)
