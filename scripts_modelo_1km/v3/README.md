@@ -1,4 +1,4 @@
-# Rama ambiental DMC nueva — no producción aprobada
+# Rama ambiental experimental — no producción aprobada
 
 Código canónico en Air-Pollution, espejo idéntico en Air-Pollution-Health-Chile.
 No modifica v1/v2 ni importa desenlaces de salud. La plantilla
@@ -9,7 +9,7 @@ Camino implementado con entradas explícitas:
 0. `preparar_base_v3.py`: misma fábrica de predictores base para monitores y
    grilla; reutiliza funciones legadas por SHA, lectores nativos sin ejecutar
    sus lanzadores, índices de fuentes explícitos, calentamiento satelital y
-   lotes acotados. No lee DMC ni fabrica Chile automáticamente.
+   lotes acotados. No lee las observaciones adicionales de estaciones ni fabrica Chile automáticamente.
 1. `dmc_features.py`: adaptador v2 por SHA, políticas históricas documentadas,
    semántica/unidades/QC, reloj UTC y coordenadas; mismo nearest/IDW en monitores
    y grilla. No inventa reloj, códigos QC, radio ni potencia.
@@ -23,8 +23,8 @@ Camino implementado con entradas explícitas:
    grilla real y soporte cartesiano completo, sin partes superpuestas/discontinuas.
 6. `preflight_v3.py`: informe JSON de todos los bloqueos independientes, claves,
    folds, políticas, índices de fuentes y soporte de grilla preparados. No abre
-   observaciones crudas DMC ni fabrica predictores. Sólo inspecciona manifiestos
-   DMC cuando el progreso acredita el cierre de la descarga. Propone el próximo
+   observaciones meteorológicas crudas ni fabrica predictores. Sólo inspecciona manifiestos
+   de estaciones cuando el progreso acredita el cierre de la descarga. Propone el próximo
    comando como argumentos explícitos cuando se cumplen las entradas y guardas.
 
 La identidad de ESPECIFICACIÓN debe coincidir entre entrenamiento y producción;
@@ -35,7 +35,7 @@ selecciona el modelo según resultados de salud.
 
 Faltantes: `base_missing_policy` debe declarar rechazo o una lista concreta
 de columnas base con NaN nativoLightGBM; no se imputan ceros. Los infinitos y
-los NaN DMC sin soporte se rechazan siempre. La política entra en la identidad
+los NaN meteorológicos sin soporte de estaciones se rechazan siempre. La política entra en la identidad
 de predictores. `training.observation_unit` distingue PM₂,₅µg/m³ de NO₂ppb.
 
 Pruebas: `python -B -m unittest discover -s scripts_modelo_1km/v3/tests` desde
@@ -64,7 +64,7 @@ Ensayo integrado, con carpeta de salida nueva fuera del repositorio:
 python -B scripts_modelo_1km/v3/ensayo_sintetico_v3.py --label ENSAYO_NUEVO
 ```
 
-Genera ERA5 NetCDF, MAIAC Parquet, una órbita NO₂ NetCDF y DMC ficticios;
+Genera ERA5 NetCDF, MAIAC Parquet, una órbita NO₂ NetCDF y meteorología de estaciones ficticia;
 recorre la fábrica real, OOF espacial/temporal, persistencia/recarga LightGBM,
 dos partes horarias y el lector completo del producto. Guarda fuentes, contratos,
 informes de preflight y resumen de paridad reproducible bajo
@@ -73,13 +73,13 @@ Las aprobaciones llevan `FIXTURE` y sólo se aplican a esos archivos sintéticos
 La plantilla real permanece cerrada. La evidencia compacta del ensayo del
 14 de octubre está en `output_files/modelo_1km_v3/preparacion_pre_dmc_20261014/`.
 
-Pendientes antes de usar DMC: descarga terminada; políticas fuente documentadas;
+Pendientes antes de incorporar las nuevas observaciones: descarga terminada; políticas fuente documentadas;
 operador espacial fijado; paneles base, folds y grilla preparados por SHA;
 criterio previo de decisión y evidencias revisadas de QC/OOF/selección. El
 fabricante base ya existe, pero sus índices/tablas reales y la ejecución
 nacional aún no están preparados/verificados. No hay una fabricación nacional
 nueva completada ni programada.
 
-No leer DMC mientras el descargador escribe. No lanzar ajustes/producción
+No leer las observaciones meteorológicas mientras el descargador escribe. No lanzar ajustes/producción
 automáticos ni reemplazar productos históricos. Ver el informe
 `docs/estado_ambiental_next_20261014.html` y los resultados del piloto anterior.

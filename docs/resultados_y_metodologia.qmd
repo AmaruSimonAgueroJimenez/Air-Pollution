@@ -11,6 +11,15 @@ format:
     number-sections: true
     embed-resources: true
     html-math-method: mathml
+    include-in-header:
+      text: |
+        <style>
+        main { min-width: 0; }
+        main h3 code, main h4 code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+        #TOC a, #TOC code { overflow-wrap: anywhere; word-break: break-word; white-space: normal; }
+        main table { display: block; max-width: 100%; overflow-x: auto; }
+        main p { max-width: 88ch; }
+        </style>
 execute:
   enabled: false
 ---
@@ -33,8 +42,20 @@ ya producidos. Publicarlos no vuelve a ejecutar modelos o descargadores.
 | --- | --- | --- |
 | [Informe completo de PM₂.₅ y NO₂](modelo_1km_horario.html) y [fuente QMD](modelo_1km_horario.qmd) | Descriptivos, diseño, estimación, validación, comparación de motores, superficies y exposición | Referencia ambiental existente, con sus limitaciones originales |
 | [Modelos multicontaminante anteriores](../others_files/20260902_informe_modelos_estimacion.html) y [fuente QMD](../others_files/20260902_informe_modelos_estimacion.qmd) | PM₂.₅, PM10, NO₂, O₃, SO₂ y CO por estación/hora | Etapa histórica; no confundir con el producto horario de grilla |
-| [Piloto de pérdidas sin DMC](piloto_perdidas_sin_dmc_20261013.html) y [fuente QMD](piloto_perdidas_sin_dmc_20261013.qmd) | Comparación exploratoria real de LightGBM/XGBoost y pérdidas para PM₂.₅/NO₂ | Desarrollo, no selección confirmatoria ni sustitución de la referencia |
-| [Estado de la rama ambiental nueva](estado_ambiental_next_20261014.html) y [fuente QMD](estado_ambiental_next_20261014.qmd) | Implementación y pruebas simuladas del camino DMC–modelo–grilla | No acredita un modelo DMC real ajustado ni un nuevo producto nacional |
+| [Piloto exploratorio de pérdidas](piloto_perdidas_sin_dmc_20261013.html) y [fuente QMD](piloto_perdidas_sin_dmc_20261013.qmd) | Comparación exploratoria real de LightGBM/XGBoost y pérdidas para PM₂.₅/NO₂ | Desarrollo, no selección confirmatoria ni sustitución de la referencia |
+| [Estado de la rama ambiental nueva](estado_ambiental_next_20261014.html) y [fuente QMD](estado_ambiental_next_20261014.qmd) | Implementación y pruebas simuladas del camino meteorología–modelo–grilla | No acredita un modelo nuevo ajustado con observaciones reales ni un nuevo producto nacional |
+
+## Presentación AFG2
+
+La presentación de avance se ofrece en [PDF](../presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pdf),
+[PowerPoint](../presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx)
+y con su [guion de exposición](../presentaciones/afg2_video_avance_1_20261017/publico/Guion_Video_Avance_1.pdf).
+El PDF presenta las ocho láminas visibles; el PowerPoint conserva también tres
+láminas ocultas de apoyo. El guion tiene doce páginas.
+Es una síntesis para comunicar el trabajo; los informes completos y las tablas
+siguen siendo la referencia para examinar métodos, resultados y limitaciones.
+Las copias públicas omiten enlaces locales no portables; no se cambian las cifras
+ni se ejecutan análisis para incorporarlas al sitio.
 
 ## Recorrido de lectura completo
 
@@ -106,12 +127,12 @@ estructural no confirma por sí sola el offset ni todas las unidades
 históricas.** No debe presentarse esa convención como una confirmación
 nueva de los metadatos originales.
 
-La descarga DMC nueva conserva la hora de origen y `timestamp_utc` nulo
+La preparación de meteorología de estaciones conserva la hora de origen y `timestamp_utc` nulo
 cuando no hay evidencia para convertirla. No se aplica automáticamente
 el horario civil con cambios estacionales. Presión QFE, QFF y QNH no son
 intercambiables; RR06 es una acumulación de seis horas, no lluvia horaria.
-La incorporación de DMC al modelo exige resolver estas semánticas antes
-del ajuste, aunque la descarga pueda seguir reuniendo archivos.
+La incorporación de esas observaciones al modelo exige resolver estas
+semánticas antes del ajuste; disponer de archivos no confirma su interpretación.
 
 ## Fuentes predictoras y soporte espacial
 
@@ -161,7 +182,7 @@ ello, **retener filas de prueba no basta**: al validar se debe excluir su
 información de las estaciones vecinas y de las transformaciones ajustadas.
 El informe explica qué se recalcula bajo LOSO, LBO y LRO.
 
-El nuevo piloto sin DMC excluye el vecindario y ACAG para evitar vías de
+El piloto exploratorio excluye el vecindario y ACAG para evitar vías de
 fuga relevantes a sus pruebas espacial y temporal. Esa ablación cambia
 el problema y no reproduce exactamente el modelo de referencia. Sus
 métricas no deben compararse directamente como si fueran las mismas
@@ -234,7 +255,7 @@ Los umbrales y categorías de la referencia conservan sus definiciones
 históricas. Su aplicación a medias del día local no reproduce por sí
 misma una evaluación regulatoria con promedios móviles.
 
-## Piloto de pérdidas y cuantiles sin DMC
+## Piloto exploratorio de pérdidas y cuantiles
 
 El [informe exploratorio completo](piloto_perdidas_sin_dmc_20261013.html)
 conserva diseño, recetas, tamaños, tablas y resultados no redondeados.
@@ -295,14 +316,46 @@ Una concentración estimada no demuestra una asociación epidemiológica,
 un efecto causal ni validez para un uso clínico. Air-Pollution conserva
 el alcance ambiental; el repositorio de salud es independiente.
 
-## Qué falta para la nueva rama con DMC
+## Requisitos de la rama ambiental experimental
 
 Las pruebas simuladas comprueban funcionamiento del código, no calidad
-predictiva en datos reales. La adopción de la rama DMC requiere inventario
+predictiva en datos reales. La adopción de la rama experimental requiere inventario
 y manifiestos verificables, evidencia de reloj/unidades/coordenadas/QC,
 operador espacial fijado, paneles y pliegues trazables y una evaluación
 ambiental explícita. Terminar la descarga no autoriza automáticamente
 un ajuste ni convierte los meses parciales en observaciones completas.
+
+## Cómo se relacionan los programas Python {#programas-python}
+
+Los programas no constituyen una única orden de ejecución. Forman capas con
+responsabilidades distintas: **fuentes → preparación y QC → predictores y paneles
+→ ajuste y validación → superficies → exposición e informes**. Las utilidades
+de publicación y de presentaciones consumen resultados existentes y no sustituyen
+ninguna de esas etapas científicas.
+
+| Capa | Responsabilidad y contrato | Qué no demuestra por sí sola |
+| --- | --- | --- |
+| `scripts_pipeline/` | Adquirir fuentes en resolución nativa, registrar procedencia y preparar derivados con sus reglas de seguridad y calidad | Una descarga correcta no certifica continuidad, unidades ni un modelo validado |
+| `scripts_estacion/` y `scripts_superficie/` | Extraer predictores por estación y construir los modelos multicontaminante históricos | Los resultados por estación no equivalen automáticamente a una superficie nacional |
+| `scripts_modelo_1km/` | Definir la grilla, lectores, panel, estimadores, particiones de validación, predicciones y exposición | La resolución nominal de salida no aumenta la resolución de la información fuente |
+| Subcarpetas `v2/`, `v3/` y `o3_next/` | Separar contratos, pilotos y candidatos nuevos de la referencia conservada | Código implementado o una prueba simulada no acreditan una nueva estimación real aprobada |
+| Carpetas `tests/` | Comprobar contratos, regresiones y casos límite definidos por el código | Pruebas de software aprobadas no sustituyen validación ambiental fuera de muestra |
+| `others_scripts/` y `presentaciones/` | Navegar, publicar y comunicar artefactos existentes | Publicar o regenerar una figura no vuelve a ajustar los modelos |
+
+El catálogo siguiente explica cada archivo Python encontrado en el árbol local
+del proyecto, incluidos pruebas, constructores de presentaciones y versiones
+históricas. Identifica cuáles tienen fuente pública y cuáles sólo están
+documentados localmente: **describir un programa no publica automáticamente su
+código ni autoriza ejecutarlo**. La lectura fue estática, sin importar módulos,
+leer datos de pacientes, ejecutar modelos o activar descargas.
+
+Las funciones y opciones enumeradas son puntos de entrada para orientarse en
+el código, no una receta para correr toda la colección. Antes de reproducir una
+etapa deben respetarse su configuración, dependencias, entradas, límites y
+separación entre resultados de referencia y experimentos. La
+[fuente QMD del catálogo](_catalogo_python.qmd) acompaña a la de esta guía.
+
+{{< include _catalogo_python.qmd >}}
 
 ## Reproducción y actualización de la web
 

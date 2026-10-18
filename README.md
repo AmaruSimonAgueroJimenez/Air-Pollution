@@ -17,6 +17,12 @@ de los productos de referencia. La [guía metodológica ampliada](docs/resultado
 explica el diseño, la validación, las incertidumbres y cómo leer cada resultado sin confundir
 un ensayo sintético con una estimación nacional nueva.
 
+La guía incluye un catálogo de los programas Python, con su finalidad, entradas,
+salidas y puntos de entrada, distinguiendo fuentes públicas de desarrollos sólo locales.
+La presentación **AFG2** está disponible en [PDF](presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pdf),
+[PowerPoint](presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx)
+y [guion](presentaciones/afg2_video_avance_1_20261017/publico/Guion_Video_Avance_1.pdf).
+
 La publicación usa `.github/workflows/pages.yml` y los HTML existentes: no ejecuta Quarto,
 modelos ni descargadores en GitHub. El preparador `others_scripts/preparar_github_pages.py`
 genera el índice público desde archivos versionados y la lista exacta `config/github_pages.json`,

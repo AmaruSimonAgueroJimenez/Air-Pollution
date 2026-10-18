@@ -23,6 +23,11 @@ MATERIALES = {
     "presentacion_final", "video_avance_1", "video_avance_2", "video_avance_3",
     "tesis_doctoral_2026-10", "poster_2026-10",
 }
+AFG2_MATERIALES = {
+    "presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pptx": "Presentación AFG2 · PowerPoint",
+    "presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pdf": "Presentación AFG2 · PDF",
+    "presentaciones/afg2_video_avance_1_20261017/publico/Guion_Video_Avance_1.pdf": "Guion del video de avance · PDF",
+}
 EXTENSIONES_DOCS = {
     ".html", ".qmd", ".md", ".txt", ".pdf", ".docx", ".css", ".js",
     ".json", ".csv", ".geojson", ".svg", ".png", ".jpg", ".jpeg",
@@ -36,6 +41,7 @@ RAICES_EXPLICITAS = {
 }
 EXTENSIONES_EXPLICITAS = {".csv", ".json", ".png", ".pdf", ".md", ".py"}
 CSS_URL = re.compile(r"url\(\s*['\"]?([^\s)'\"]+)['\"]?\s*\)|@import\s+['\"]([^'\"]+)['\"]", re.I)
+QMD_INCLUDE = re.compile(r'\{\{<\s*include\s+(?:"([^"]+)"|\'([^\']+)\'|([^\s>]+))\s*>\}\}')
 SENSIBLE = re.compile(
     r"(?:^|[._ /-])(?:credenciales?|credentials?|secrets?|passwords?|passwd|"
     r"api[_-]?keys?|private[_-]?keys?|(?:access|refresh|auth)[_-]?tokens?)(?:$|[._ /-])",
@@ -60,6 +66,9 @@ def fuente_segura(raiz: Path, relativo: str) -> Path:
             or SENSIBLE.search(relativo)
             or any(palabra in relativo.casefold() for palabra in ("mni1", "privado"))):
         raise ValueError(f"Ruta no segura para GitHub Pages: {relativo}")
+    if (relativo.startswith("presentaciones/afg2_video_avance_1_20261017/")
+            and relativo not in AFG2_MATERIALES):
+        raise ValueError(f"AFG2 admite únicamente las tres copias públicas revisadas: {relativo}")
     actual = raiz
     for parte in p.parts:
         actual /= parte
@@ -78,6 +87,8 @@ def historico_publico(relativo: str) -> bool:
 
 
 def material_publico(relativo: str) -> bool:
+    if relativo in AFG2_MATERIALES:
+        return True
     p = PurePosixPath(relativo)
     return (len(p.parts) == 3 and p.parts[0] == "presentaciones"
             and p.parts[1] in MATERIALES
@@ -234,6 +245,10 @@ def reunir_archivos(raiz: Path, versionados: set[str], incluir=()) -> dict[str, 
             urls = lector.urls
         elif extension == ".css":
             urls = urls_css(contenido.decode("utf-8"))
+        elif extension == ".qmd":
+            # Copiar fuentes compañeras de un shortcode no significa renderizarlo.
+            urls = [primera or segunda or tercera
+                    for primera, segunda, tercera in QMD_INCLUDE.findall(contenido.decode("utf-8"))]
         for url in urls:
             destino = destino_local(relativo, url)
             if destino is None or destino in GENERADOS:
@@ -256,8 +271,8 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
     titulos = {
         "docs/resultados_y_metodologia.html": "Metodología ampliada y guía de resultados",
         "docs/modelo_1km_horario.html": "Informe completo PM₂.₅ y NO₂ a ≈1 km",
-        "docs/piloto_perdidas_sin_dmc_20261013.html": "Piloto exploratorio real sin DMC (no modelo aprobado)",
-        "docs/estado_ambiental_next_20261014.html": "Rama DMC nueva: pruebas simuladas, no producto nacional",
+        "docs/piloto_perdidas_sin_dmc_20261013.html": "Piloto exploratorio de pérdidas (no modelo aprobado)",
+        "docs/estado_ambiental_next_20261014.html": "Rama ambiental nueva: pruebas simuladas, no producto nacional",
     }
     orden = {ruta: numero for numero, ruta in enumerate(titulos)}
     secciones = []
@@ -268,11 +283,20 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
         qmd = str(PurePosixPath(relativo).with_suffix(".qmd"))
         fuente = f' · {enlace(qmd, "Fuente QMD")}' if qmd in archivos else ""
         secciones.append(f"<li>{enlace(relativo, titulos.get(relativo))}{fuente}</li>")
-    bloques = ['<section id="informes"><h2>Informes y metodología</h2><ul class="informes">'
-               + "\n".join(secciones) + "</ul></section>"]
+    bloques = []
+    afg2 = [ruta for ruta in AFG2_MATERIALES if ruta in archivos]
+    if afg2:
+        bloques.append('<section class="afg2" id="presentacion-actual">'
+                       "<h2>AFG2 · Presentación actual y guion de avance</h2>"
+                       "<p>Presentación del avance ambiental y guion de exposición.</p><ul>"
+                       + "\n".join(f"<li>{enlace(ruta, AFG2_MATERIALES[ruta])}</li>" for ruta in afg2)
+                       + "</ul></section>")
+    bloques.append('<section id="informes"><h2>Informes y metodología</h2><ul class="informes">'
+                   + "\n".join(secciones) + "</ul></section>")
     for titulo, seleccion in (
         ("Informes históricos", sorted(p for p in archivos if historico_publico(p))),
-        ("Presentaciones y documentos", sorted(p for p in archivos if material_publico(p))),
+        ("Presentaciones y documentos anteriores", sorted(p for p in archivos
+                                                          if material_publico(p) and p not in AFG2_MATERIALES)),
     ):
         if seleccion:
             bloques.append(f"<h2>{titulo}</h2><ul>" + "\n".join(f"<li>{enlace(p)}</li>" for p in seleccion) + "</ul>")
@@ -295,7 +319,7 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
                 categoria = (2, "Desarrollo, pilotos y pruebas: no producto aprobado")
                 nombre = {
                     "modelo_1km_v2": "Desarrollo ambiental v2",
-                    "modelo_1km_v3": "Rama DMC nueva y pruebas simuladas",
+                    "modelo_1km_v3": "Rama ambiental nueva y pruebas simuladas",
                     "modelo_o3_next": "Desarrollo de O₃",
                 }[variante]
             elif variante.startswith("modelo_1km_"):
@@ -309,7 +333,9 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
                     nombre += " · " + variante.replace("_", " ")
             if len(partes) > 2:
                 nombre += " · " + " / ".join(
-                    "Figuras" if p == "figures" else p.replace("_", " ") for p in partes[2:]
+                    "Figuras" if p == "figures" else
+                    p.replace("piloto_pre_dmc", "Piloto exploratorio de pérdidas").replace("_", " ")
+                    for p in partes[2:]
                 )
             return (*categoria, nombre)
 
@@ -345,6 +371,8 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
             ".subtitulo{font-size:1.25rem;color:#42536a;margin-top:0}nav{display:flex;gap:1rem;"
             "flex-wrap:wrap;margin-top:1.25rem}section{scroll-margin-top:1rem}"
             ".aviso{background:#eff5fa;border-left:4px solid var(--azul);padding:.8rem 1rem}"
+            ".afg2{margin:1.5rem 0;padding:1rem 1.25rem;border:2px solid var(--azul);"
+            "border-radius:.6rem;background:#f4f9fc}.afg2 h2{margin-top:.25rem}"
             ".informes{padding-left:1.3rem}.informes li{padding:.25rem 0}"
             "details{border:1px solid var(--borde);border-radius:.45rem;margin:.75rem 0;padding:.75rem 1rem}"
             "summary{cursor:pointer;font-weight:650;overflow-wrap:anywhere}"
@@ -361,6 +389,9 @@ def indice_publico(archivos: dict[str, bytes], incluir=()) -> str:
             "informes científicos ni descargas. Las referencias históricas, los pilotos reales y las "
             "pruebas simuladas están diferenciados y no equivalen a un nuevo producto nacional aprobado.</p>"
             '<nav aria-label="Secciones"><a href="#informes">Informes y metodología</a>'
+            + ('<a href="resultados_y_metodologia.html#programas-python">Catálogo de programas Python</a>'
+               if "docs/resultados_y_metodologia.html" in archivos else "")
+            + ('<a href="#presentacion-actual">Presentación AFG2 actual</a>' if afg2 else "")
             + ('<a href="#evidencia">Tablas y figuras por carpeta</a>' if incluir else "")
             + "</nav></header><main>"
             + "\n".join(bloques) + "</main></body></html>\n")

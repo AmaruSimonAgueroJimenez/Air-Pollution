@@ -1,5 +1,5 @@
 ---
-title: "Implementación ambiental nueva: estado pre-DMC"
+title: "Implementación ambiental nueva: estado experimental"
 lang: es
 format:
   html:
@@ -14,12 +14,12 @@ execute:
 ## Resultado y alcance
 
 Se implementó una rama ambiental **nueva y separada**, con el camino
-DMC → normalización/QC → predictores en monitores y grilla → LightGBM/OOF →
+Meteorología de estaciones → normalización/QC → predictores en monitores y grilla → LightGBM/OOF →
 modelo persistido → predicción horaria nominal ≈1 km. El camino se probó con datos
 exclusivamente simulados, incluido LightGBM real de siete árboles y la recarga
 del modelo, con paridad numérica de predicciones dentro de 10⁻¹².
 
-**No hay un modelo DMC real ajustado ni un producto nacional nuevo fabricado.**
+**No hay un modelo nuevo ajustado con observaciones reales de estaciones ni un producto nacional nuevo fabricado.**
 La configuración de preparación bloquea ambos. La terminación de la descarga,
 por sí sola, no habilita producción: faltan evidencias y entradas explícitas.
 No se reemplazaron el modelo anterior ni sus resultados.
@@ -28,7 +28,7 @@ No se reemplazaron el modelo anterior ni sus resultados.
 
 | Componente | Comprobación | Límite |
 | --- | --- | --- |
-| Normalización DMC | Adaptador por SHA, metadatos por intervalo, unidades y QC | No inventa políticas fuente |
+| Normalización meteorológica | Adaptador por SHA, metadatos por intervalo, unidades y QC | No inventa políticas fuente |
 | Fabricación base | Misma fábrica legada por SHA para monitor y grilla; NetCDF, MAIAC y órbita NO₂ simulados | No hay todavía índices/tablas reales preparados ni fabricación nacional |
 | Operador espacial | Mismo nearest/IDW en estaciones y grilla, soporte/distancias registrados | Parámetros aún sin fijar para datos reales |
 | Unión de predictores | Claves exactas target × instante UTC, contenido identificado | No rellena ausencias silenciosamente |
@@ -49,14 +49,14 @@ de 1.000 m exactos. El contrato distingue ambos tipos de geometría.
 
 La política de faltantes base se fija por columna antes del ajuste:
 rechazo o manejo nativo de LightGBM de NaN. Los datos satelitales ausentes no se
-reemplazan por cero. ±Inf y falta de soporte DMC siempre se rechazan. La prueba
+reemplazan por cero. ±Inf y falta de soporte meteorológico de estaciones siempre se rechazan. La prueba
 de modelo persistido/recargado también pasa con NaN autorizados, manteniendo
 la paridad 10⁻¹². Las unidades de la observación deben declararse explícitamente.
 
 La fábrica base usa los mismos lectores/transformaciones del legado, por
 huella y sin ejecutar sus lanzadores. Los índices de fuentes son explícitos,
 con SHA, presupuesto de bytes/filas/días y ausencia declarada; no busca
-archivos por glob ni lee DMC. Conserva el calendario UTC−4 de la referencia y deja
+archivos por glob ni lee las observaciones adicionales de estaciones. Conserva el calendario UTC−4 de la referencia y deja
 explícito que los satélites son retrospectivos, no un pronóstico operativo.
 
 El lector del producto exige el soporte declarado grilla × hora × contaminante
@@ -80,7 +80,7 @@ integridad; **no sustituyen la revisión científica de esos informes**.
 
 ## Piloto real anterior, conservado
 
-El [piloto de pérdidas sin DMC](piloto_perdidas_sin_dmc_20261013.html) contiene
+El [piloto exploratorio de pérdidas](piloto_perdidas_sin_dmc_20261013.html) contiene
 los 48 ajustes reales exploratorios y sus resultados completos. No se eligió
 un ganador por obtener resultados favorables ni se promovió P50 a exposición
 de salud. La cobertura obtenida no permite anunciar intervalos de 90 %
@@ -96,4 +96,4 @@ Air-Pollution no incorpora datos ni análisis de desenlaces de salud.
 
 La plantilla de preparación contiene `null` y aprobaciones falsas de manera
 deliberada. Sus CLI `plan` son sólo lectura y muestran los pendientes. No se
-programó ningún ajuste al finalizar DMC, ni commits, pushes o sellos de tiempo.
+programó ningún ajuste al finalizar la adquisición de fuentes, ni commits, pushes o sellos de tiempo.

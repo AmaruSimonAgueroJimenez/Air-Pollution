@@ -26,6 +26,26 @@ class Enlaces(HTMLParser):
                          if name in ("href", "src", "poster") and value)
 
 
+class ProsaVisible(HTMLParser):
+    """El código y las rutas técnicas se conservan, pero no son prosa editorial."""
+    def __init__(self):
+        super().__init__()
+        self.omitir = 0
+        self.textos = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag in ("script", "style", "code"):
+            self.omitir += 1
+
+    def handle_endtag(self, tag):
+        if tag in ("script", "style", "code") and self.omitir:
+            self.omitir -= 1
+
+    def handle_data(self, data):
+        if not self.omitir:
+            self.textos.append(data)
+
+
 class GitHubPagesTests(unittest.TestCase):
     def setUp(self):
         self.temporal = tempfile.TemporaryDirectory(prefix="test_pages_")
@@ -293,6 +313,84 @@ class GitHubPagesTests(unittest.TestCase):
         self.archivo("config/github_pages.json", '{"include": [], "copiar_todo": true}', tracked=True)
         with self.assertRaises(ValueError):
             pages.preparar(self.raiz, self.salida, manifiesto=Path("config/github_pages.json"))
+        self.assertFalse(self.salida.exists())
+
+    def test_afg2_publica_solo_los_tres_materiales_actuales_exactos(self):
+        originales = "presentaciones/afg2_video_avance_1_20261017"
+        carpeta = originales + "/publico"
+        actuales = (f"{carpeta}/AFG2_Video1_UC.pptx", f"{carpeta}/AFG2_Video1_UC.pdf",
+                    f"{carpeta}/Guion_Video_Avance_1.pdf")
+        excluidos = (f"{carpeta}/~$AFG2_Video1_UC.pptx", f"{carpeta}/AFG2_Video1_UC_v2.pptx",
+                     f"{carpeta}/AFG2_Video1_UC_anterior.pdf", f"{carpeta}/Plantilla_UC.potx",
+                     f"{carpeta}/plantilla.pdf", f"{carpeta}/assets/figura.png",
+                     f"{carpeta}/pautas/Pautas_video_avance_1_AFG2.pdf", f"{carpeta}/video.mp4",
+                     "presentaciones/afg2_video_avance_1_20261018/publico/AFG2_Video1_UC.pdf",
+                     f"{originales}/AFG2_Video1_UC.pptx", f"{originales}/AFG2_Video1_UC.pdf",
+                     f"{originales}/Guion_Video_Avance_1.pdf")
+        for numero, rel in enumerate((*actuales, *excluidos)):
+            self.archivo(rel, f"fixture no ejecutar {numero}", tracked=True)
+        self.construir()
+        for rel in actuales:
+            self.assertEqual((self.salida / rel).read_bytes(), (self.raiz / rel).read_bytes())
+        for rel in excluidos:
+            self.assertFalse((self.salida / rel).exists(), rel)
+        urls = self.enlaces("docs/index.html")
+        for rel in actuales:
+            self.assertIn("../" + rel, urls)
+        for rel in excluidos:
+            self.assertNotIn("../" + rel, urls)
+
+    def test_afg2_actual_se_destaca_antes_del_material_afg1_anterior(self):
+        afg2 = "presentaciones/afg2_video_avance_1_20261017/publico/AFG2_Video1_UC.pdf"
+        afg1 = "presentaciones/video_avance_1/AFG1_Video1_Presentacion_UC.pdf"
+        for rel in (afg1, afg2):
+            self.archivo(rel, b"%PDF-fixture", tracked=True)
+        self.construir()
+        indice = (self.salida / "docs/index.html").read_text()
+        self.assertIn('id="presentacion-actual"', indice)
+        self.assertIn("Presentación AFG2", indice)
+        self.assertLess(indice.index(afg2), indice.index(afg1))
+
+    def test_afg2_inclusion_explicita_no_reintroduce_originales_ni_plantillas(self):
+        carpeta = "presentaciones/afg2_video_avance_1_20261017"
+        for relativo in (f"{carpeta}/AFG2_Video1_UC.pdf", f"{carpeta}/Guion_Video_Avance_1.pdf",
+                         f"{carpeta}/publico/plantilla.pdf", f"{carpeta}/publico/AFG2_Video1_UC_v2.pdf"):
+            self.archivo(relativo, b"%PDF-fixture no publicar", tracked=True)
+            with self.subTest(relativo=relativo), self.assertRaises(ValueError):
+                self.construir(incluir=(relativo,))
+            self.assertFalse(self.salida.exists())
+
+    def test_labels_editoriales_sin_dmc_con_rutas_tecnicas_conservadas(self):
+        informe = "docs/piloto_perdidas_sin_dmc_20261013.html"
+        evidencia = "output_files/modelo_1km_v2/piloto_pre_dmc_20261013/metricas.json"
+        self.archivo(informe, "<html><body>Piloto exploratorio</body></html>", tracked=True)
+        self.archivo(evidencia, '{"fixture": true}', tracked=True)
+        self.construir(incluir=(evidencia,))
+        indice = (self.salida / "docs/index.html").read_text()
+        prosa = ProsaVisible()
+        prosa.feed(indice)
+        self.assertNotIn("dmc", " ".join(prosa.textos).casefold())
+        self.assertIn("piloto_perdidas_sin_dmc_20261013.html", self.enlaces("docs/index.html"))
+        self.assertIn("../" + evidencia, self.enlaces("docs/index.html"))
+        self.assertIn(evidencia.rsplit("/", 1)[0], indice)
+
+    def test_qmd_companero_y_fragmentos_include_recursivos_se_conservan(self):
+        principal = self.archivo("docs/modelo_1km_horario.qmd",
+                                 '---\ntitle: Modelo\n---\n{{< include "_detalle con espacio.qmd" >}}\n',
+                                 tracked=True)
+        fragmento = self.archivo("docs/_detalle con espacio.qmd", "Detalle\n{{< include '_anexo.qmd' >}}\n",
+                                tracked=True)
+        anexo = self.archivo("docs/_anexo.qmd", "Anexo preservado sin ejecución\n", tracked=True)
+        self.construir()
+        for origen in (principal, fragmento, anexo):
+            rel = origen.relative_to(self.raiz)
+            self.assertEqual((self.salida / rel).read_bytes(), origen.read_bytes())
+
+    def test_qmd_no_publica_fragmentos_include_solo_locales(self):
+        self.archivo("docs/modelo_1km_horario.qmd", "{{< include _solo_local.qmd >}}\n", tracked=True)
+        self.archivo("docs/_solo_local.qmd", "No publicar sin versión")
+        with self.assertRaises(ValueError):
+            self.construir()
         self.assertFalse(self.salida.exists())
 
 

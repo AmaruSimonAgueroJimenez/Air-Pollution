@@ -1,5 +1,5 @@
 ---
-title: "Piloto ambiental sin DMC: pérdidas y cuantiles horarios"
+title: "Piloto ambiental exploratorio: pérdidas y cuantiles horarios"
 lang: es
 format:
   html:
@@ -22,7 +22,8 @@ execute:
 ## Alcance
 
 Prueba exploratoria de LightGBM y XGBoost con datos reales de PM₂,₅ y NO₂
-disponibles antes de incorporar DMC. No modifica ni reemplaza los modelos,
+disponibles antes de incorporar observaciones meteorológicas adicionales de estaciones.
+No modifica ni reemplaza los modelos,
 superficies o resultados anteriores del paper, presentación y póster. No es
 la comparación confirmatoria completa del protocolo ambiental v2 ni elige
 un modelo de producción. El histórico ya fue explorado en v1.
@@ -60,12 +61,12 @@ calculados con las observaciones retenidas. También se excluyen `acag_pm25`
 y `acag_clim`, cuyo producto/climatología puede incorporar información de
 años posteriores al ajuste temporal. Quedan **65 predictores para PM₂,₅ y
 64 para NO₂**. Esta ablación no reproduce el modelo operativo completo;
-posteriormente podrá añadirse el vecindario recalculado por partición y DMC
+posteriormente podrá añadirse el vecindario recalculado por partición y meteorología de estaciones
 con reloj, unidades y procedencia verificados.
 
 ## Resultados
 
-Se completaron **48 ajustes en 126,6 segundos**, sin DMC. No hay una pérdida
+Se completaron **48 ajustes en 126,6 segundos** con los predictores de este piloto. No hay una pérdida
 que gane en todas las pruebas: log+Duan reduce RMSE de PM₂,₅ en RVIII, pero
 no en el año 2024 retenido. Los intervalos cuantílicos muestran infracobertura
 en **7 de las 8** combinaciones contaminante–prueba–motor; aún no deben
@@ -189,7 +190,7 @@ estos resultados no justifican una declaración de superioridad nacional.
 - [Objetivos cuantílicos de XGBoost](https://xgboost.readthedocs.io/en/stable/parameter.html).
 
 ```bash
-/Users/amaruagueroj/micromamba/envs/amb_v2/bin/python -B \
+python -B \
   scripts_modelo_1km/v2/piloto_perdidas_sin_dmc.py ejecutar \
   --etiqueta NUEVA_ETIQUETA --limite-segundos 900
 ```
@@ -212,9 +213,10 @@ pandas 2.3.3 y PyArrow 25.0.0. Es un experimento de desarrollo separado;
 no se presenta como ejecución sellada del protocolo confirmatorio.
 
 Las predicciones estación–hora, cuantiles originales/reordenados y claves
-seleccionadas permanecen en
-`/Users/amaruagueroj/Asesorias_Data_local/AirPollution/modelado_1km_v2/pilotos_exploratorios/pre_dmc_20261013_a/`.
-El código y este informe se mantienen idénticos en los dos repositorios.
+seleccionadas permanecen en el directorio local de derivados
+`modelado_1km_v2/pilotos_exploratorios/pre_dmc_20261013_a/`, fuera del sitio web.
+La ejecución requiere el entorno científico con las versiones indicadas;
+el comando no forma parte de la publicación estática.
 
 Este QMD es una instantánea estática: renderizarlo no ejecuta modelos ni
 sobrescribe los resultados anteriores.
