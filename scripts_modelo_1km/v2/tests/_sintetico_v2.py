@@ -187,7 +187,33 @@ def config_pequena(n_comun: int = 1200, internos: int = 2) -> dict:
     f["N_comun_eje_A"] = n_comun
     f["curvas_de_aprendizaje"] = {"protocolos": ["LRO", "BLQ-75"], "lightgbm": [500, n_comun, 2400, "todas"],
                                   "xgboost": [500, n_comun, 2400, "todas"], "random_forest": [500, n_comun, 2400]}
+    cfg.pop("red_de_monitores", None)              # la red de estas pruebas es la sintética (Enmienda 2, R2 a R22)
     return cfg
+
+
+def anexo_de_la_red(cfg: dict) -> dict | None:
+    """Enmienda 2, R16, R17 y R22 paso 4: si el anexo «Registro de la red v2» ya llenó
+    ``red_de_monitores.registro_de_la_red``, lo que rige después de él: los tramos comunes de
+    ``paneles/regimenes_red2.json`` y el bloque más influyente de ``pliegues_v2_red2.json`` (de la raíz v2,
+    comprobados por las huellas del anexo). Sin el anexo, None: rigen los valores de la Enmienda 1."""
+    import hashlib
+    import unittest
+
+    reg = (cfg.get("red_de_monitores") or {}).get("registro_de_la_red") or {}
+    sha_reg = (reg.get("regimenes") or {}).get("sha256")
+    if not sha_reg:
+        return None
+    raiz = rv.RutasV2.desde_entorno().raiz_v2
+    ruta_reg, ruta_pl = raiz / "paneles" / "regimenes_red2.json", raiz / "pliegues_v2_red2.json"
+    if not (ruta_reg.exists() and ruta_pl.exists()):
+        raise unittest.SkipTest("el anexo está escrito, pero falta la raíz v2 con sus artefactos")
+    if hashlib.sha256(ruta_reg.read_bytes()).hexdigest() != sha_reg:
+        raise AssertionError("regimenes_red2.json no es el que registró el anexo")
+    m = json.loads(ruta_pl.read_text(encoding="utf-8"))
+    if m.get("huella_pliegues") != (reg.get("pliegues") or {}).get("huella_pliegues"):
+        raise AssertionError("pliegues_v2_red2.json no es el que registró el anexo")
+    return {"tramos": json.loads(ruta_reg.read_text(encoding="utf-8"))["comunes"]["tramos"],
+            "bloque": {p: m["bloque_mas_influyente"][p]["grupo"] for p in ("LRO", "BLQ-75")}}
 
 
 @contextmanager

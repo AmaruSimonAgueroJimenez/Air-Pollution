@@ -236,6 +236,22 @@ def observaciones_v1_float64(pol: str, r: RutasV2) -> tuple[pd.DataFrame, dict]:
     return o, info
 
 
+def observaciones_red2_float64(pol: str, r: RutasV2, meta: dict) -> tuple[pd.DataFrame, dict]:
+    """Con la red ampliada (Enmienda 2, R11 y R12), las observaciones float64 del panel red 2 son las que escribió
+    ``panel_red2_v2`` al armarlo (``paneles/observaciones_<pol>_red2.parquet``), leídas por su sha256; no se reconstruye
+    la v1. Antes comprueba que el json del panel declara el esquema, el período y las rachas del armado."""
+    import panel_red2_v2 as pr
+
+    esperado = {"schema": pr.SCHEMA, "desde": pr.DESDE, "hasta": pr.HASTA, "qc_racha_minima": pr.QC_RACHA}
+    dif = {k: meta.get(k) for k, v in esperado.items() if meta.get(k) != v}
+    if dif:
+        raise SystemExit(f"{pol}: el panel de la red 2 declara otra configuración que la de su armado: {dif}")
+    o, info = pr.observaciones_float64(pol, r, meta)
+    info["qc_nota"] = ("Red ampliada (Enmienda 2): observaciones float64 del armado, verificadas por su sha256; los "
+                       "conteos del QC son los del json del panel (horas antes de las rachas y horas en racha).")
+    return o, info
+
+
 def alinear_con_panel(vec: Vecindario, o: pd.DataFrame, obs32: np.ndarray) -> tuple[np.ndarray, dict]:
     """Valores float64 de ``o`` en el orden de las filas del vecindario, tras comprobar que ``o`` tiene
     exactamente las mismas (estación, ts_utc) que el panel y el mismo float32."""
@@ -492,7 +508,11 @@ def validar_contaminante(pol: str, r: RutasV2, cfg: dict, m: dict, hilos: int, n
     res["a1_fuente_panel_float32"] = a1
 
     # (a2) observaciones float64 de la v1
-    if fuentes_v1:
+    red2 = "red_de_monitores" in cfg                     # Enmienda 2: el panel es el de la red ampliada
+    if fuentes_v1 and red2:
+        t1 = time.perf_counter()
+        o, info = observaciones_red2_float64(pol, r, meta)
+    elif fuentes_v1:
         esperado = {"desde": DESDE, "hasta": HASTA, "qc_racha_minima": QC_RACHA, "reloj_sinca": "UTC-4 fijo; etiqueta=fin",
                     "redes": ["sinca", "snifa"]}
         dif = {k: meta.get(k) for k, v in esperado.items() if meta.get(k) != v}
@@ -506,6 +526,7 @@ def validar_contaminante(pol: str, r: RutasV2, cfg: dict, m: dict, hilos: int, n
         info["qc_nota"] = ("El QC descriptivo del panel (qc_descriptivo) cuenta sólo SINCA; la reconstrucción suma la red "
                            "SNIFA en NO2 (como el panel y el vecindario de la v1). En PM2,5 deben coincidir; en NO2 la "
                            "reconstrucción tiene además las filas SNIFA (el mapa v1 da 39.071 filas en racha con SNIFA).")
+    if fuentes_v1:
         obs64, alin = alinear_con_panel(vec, o, panel["obs"].to_numpy())
         coords = dict(zip(vec.estaciones, zip(vec.lat, vec.lon)))
         estacion = pd.Categorical.from_codes(vec.js, categories=[str(s) for s in vec.estaciones])
@@ -526,10 +547,13 @@ def validar_contaminante(pol: str, r: RutasV2, cfg: dict, m: dict, hilos: int, n
                                  "a1_diferentes_que_a2_reproduce": int(((x32.astype("float32") != panel["obs_vec"].to_numpy())
                                                                         & (x64.astype("float32") == panel["obs_vec"].to_numpy())).sum()),
                                  "lectura": "razón ≤ 1 en todas las filas: cada diferencia de a1 es el redondeo de V a float32"}
-        res["a2_fuente_v1_float64"] = a2
-        insumos_extra = {"catalogo_sinca": r.catalogo_sinca, "snifa": r.snifa,
-                         **{f"grilla_{Path(nm).stem}": r.grilla_v1 / nm for nm in pv.INSUMOS_GRILLA}}
-        res["a2_fuente_v1_float64"]["reconstruccion"]["insumos_extra"] = sorted(insumos_extra)
+        clave_a2 = "a2_fuente_red2_float64" if red2 else "a2_fuente_v1_float64"   # Enmienda 2: la del armado
+        res[clave_a2] = a2
+        insumos_extra = ({f"observaciones_{pol}_red2": r.raiz_v2 / "paneles" / f"observaciones_{pol}_red2.parquet"}
+                         if red2 else
+                         {"catalogo_sinca": r.catalogo_sinca, "snifa": r.snifa,
+                          **{f"grilla_{Path(nm).stem}": r.grilla_v1 / nm for nm in pv.INSUMOS_GRILLA}})
+        res[clave_a2]["reconstruccion"]["insumos_extra"] = sorted(insumos_extra)
         del vec64, b64, o, obs64
 
     # (b) muestra frente al cálculo ingenuo
@@ -623,8 +647,9 @@ def veredicto(informe: dict) -> dict:
         v = {"a1_peso_y_dist_bit_a_bit": all(a1[c]["bit_a_bit"] == a1[c]["filas"] - a1[c]["nan"] for c in ("peso_vec", "dist_est_km"))
              and all(a1[c]["nan_iguales"] for c in VARIABLES),
              "a1_obs_vec_a_lo_mas_1_ulp": a1["obs_vec"]["a_mas_de_1_ulp"] == 0 and a1["obs_vec"]["nan_iguales"]}
-        if "a2_fuente_v1_float64" in res:
-            a2 = res["a2_fuente_v1_float64"]
+        clave_a2 = next((k for k in ("a2_fuente_v1_float64", "a2_fuente_red2_float64") if k in res), None)
+        if clave_a2 is not None:
+            a2 = res[clave_a2]
             v["a2_bit_a_bit"] = all(a2[c]["bit_a_bit"] == a2[c]["filas"] - a2[c]["nan"] and a2[c]["nan_iguales"] for c in VARIABLES)
             v["a2_cota_redondeo_V_cumplida"] = a2["cota_redondeo_V"]["razon_max"] <= 1.0 + 1e-9
         v["b_muestra_pasa"] = all(x["pasa"] for x in res["b_muestra_vs_ingenuo"])
@@ -645,8 +670,9 @@ def resumen_texto(inf: dict) -> str:
             x = a1[c]
             lineas.append(f"  (a1 panel) {c}: NaN iguales {x['nan_iguales']}; bit a bit {x['bit_a_bit']:,}; 1 ULP {x['a_1_ulp']:,}; "
                           f">1 ULP {x['a_mas_de_1_ulp']}; rel máx {x['dif_rel_max']:.2e}")
-        if "a2_fuente_v1_float64" in res:
-            a2 = res["a2_fuente_v1_float64"]
+        clave_a2 = next((k for k in ("a2_fuente_v1_float64", "a2_fuente_red2_float64") if k in res), None)
+        if clave_a2 is not None:
+            a2 = res[clave_a2]
             for c in VARIABLES:
                 x = a2[c]
                 lineas.append(f"  (a2 v1 f64) {c}: NaN iguales {x['nan_iguales']}; bit a bit {x['bit_a_bit']:,} de "

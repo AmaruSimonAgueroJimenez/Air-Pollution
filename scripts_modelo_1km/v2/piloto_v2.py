@@ -72,8 +72,8 @@ los ajustes con contención fuerte corregidos con CPU / p90) y ``horas_menos_con
 total supera unas 120 horas de máquina, se aplican en orden 1) curvas de aprendizaje fuera de LRO, 2) MLP fuera de
 LRO y BLQ-75, 3) semillas fuera de LRO y BLQ-75 y 4) pérdidas del §6 fuera de LRO, BLQ-75 y LOSO-D, hasta quedar
 bajo el umbral (``correr_v2.plan_protocolo`` con ``presupuesto.orden_de_recortes``), sin elección a mano. Si ni con
-los cuatro se llega, el orden enmendado no prevé otro: se aplican los cuatro y el exceso queda para el autor
-(enmienda). La decisión usa la estimación medida (conservadora) y el plan dice si alguna sensibilidad la
+los cuatro se llega, se aplican los cuatro, se corre igual y queda en la bitácora: no hay quinto recorte
+(Enmienda 2, R18). La decisión usa la estimación medida (conservadora) y el plan dice si alguna sensibilidad la
 cambiaría. Todo recorte queda en la bitácora del plan y en la del manifiesto de pliegues.
 
 **Sesiones y código** (Complemento, punto 8): cada sesión registra el código de ajuste con que midió
@@ -1098,7 +1098,8 @@ def extrapolar(df: pd.DataFrame, manifiesto: dict, recetas: dict, calidad_dispon
 def decidir_recortes(estimacion: dict, umbral_h: float, orden: list[dict]) -> dict:
     """Aplica en orden los recortes de ``orden`` (``presupuesto.orden_de_recortes``: los cuatro de la Enmienda 1,
     punto 12) hasta quedar bajo el umbral (con la estimación medida, conservadora), sin elección a mano, y deja la
-    bitácora de cada paso. Si ni con todos se llega, se aplican todos y el exceso queda para el autor."""
+    bitácora de cada paso. Si ni con todos se llega, se aplican todos y se corre igual: no hay quinto recorte
+    (Enmienda 2, R18)."""
     textos = {int(x["orden"]): x["recorte"] for x in orden}
     ultimo = max(textos) if textos else 0
     if sorted(textos) != list(range(1, ultimo + 1)):
@@ -1122,8 +1123,8 @@ def decidir_recortes(estimacion: dict, umbral_h: float, orden: list[dict]) -> di
         if rc < ultimo:
             paso["accion"] = f"supera el umbral: se aplica el recorte {rc + 1} ({textos[rc + 1]})"
         else:
-            paso["accion"] = (f"supera el umbral aun con los {ultimo} recortes: el orden de la Enmienda 1 (punto 12) no "
-                              f"prevé otro; se corre con los {ultimo} y el exceso queda para el autor (enmienda)")
+            paso["accion"] = (f"supera el umbral aun con los {ultimo} recortes: se corre igual con los {ultimo} y "
+                              f"queda registrado; no hay quinto recorte (Enmienda 2, R18)")
         bitacora.append(paso)
     excede = elegido is None
     elegido = ultimo if excede else elegido
@@ -1247,6 +1248,12 @@ def estimar_y_publicar(r: RutasV2, cfg: dict, hilos: int, criterio: str = "entre
     (``vigencia_por_codigo``): faltan para el alcance y no entran en la extrapolación. El plan anterior queda
     respaldado (``plan_corrida_v2_reemplazado_<sello>.json``) antes de publicar el nuevo."""
     contaminantes = tuple(contaminantes)
+    if "red_de_monitores" in cfg:                       # Enmienda 2: con la red 2 la bandera es obligatoria
+        import calidad_v2
+        sin_bandera = [pol for pol in contaminantes if not calidad_v2.ruta_calidad(r, pol).exists()]
+        if sin_bandera:
+            raise SystemExit(f"con la red ampliada la bandera de calidad es obligatoria y falta en {sin_bandera}: el "
+                             f"plan no se estima sin sus variantes de calidad")
     recetas = mv.recetas_de(cfg, hilos)
     man = manifiesto if manifiesto is not None else leer_json(r.manifiesto_pliegues)
     doc = leer_json(r.raiz_v2 / CARPETA / NOMBRE_MEDICIONES)
@@ -1368,11 +1375,11 @@ def estimar_y_publicar(r: RutasV2, cfg: dict, hilos: int, criterio: str = "entre
         "todas_las_sesiones_libres": bool(sesiones) and all((s.get("maquina_libre") or {}).get("libre") for s in sesiones)}
     if dec["excede_tras_recortes"]:
         n = dec["recorte"]
-        plan["pendiente_del_autor"] = (
+        plan["sobre_el_umbral_tras_los_recortes"] = (
             f"Con los {n} recortes del orden enmendado (Enmienda 1, punto 12) la estimación sigue en "
-            f"{est['por_recorte'][str(n)]['horas']} h de máquina (umbral: unas {umbral:g} h). El orden no prevé otro "
-            f"recorte: correr igual o reducir por enmienda fechada es decisión del autor. Los componentes que más "
-            f"pesan están en estimacion['{n}']['componentes_horas'].")
+            f"{est['por_recorte'][str(n)]['horas']} h de máquina (umbral: unas {umbral:g} h). Se corre igual y queda "
+            f"registrado; no hay quinto recorte (Enmienda 2, R18). Los componentes que más pesan están en "
+            f"estimacion['{n}']['componentes_horas'].")
     tabla = df_todo.drop(columns=[c for c in ("error",) if c in df_todo and df_todo[c].isna().all()])
     with candado_escritura(CANDADO_PLAN, rutas=r):
         # el plan anterior queda respaldado, con los mismos bytes y fechas, antes de sobrescribirlo

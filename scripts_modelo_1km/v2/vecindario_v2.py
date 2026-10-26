@@ -307,7 +307,7 @@ class Vecindario:
         info = manifiesto["contaminantes"][pol]["panel"]
         ruta = r.panel(pol)
         if not ruta.exists():
-            raise SystemExit(f"Falta el panel v1 {r.relativa(ruta)}")
+            raise SystemExit(f"Falta el panel {r.relativa(ruta)} (desde la Enmienda 2, el de la red ampliada)")
         if verificar_sha:
             sha = sha256_archivo(ruta)
             if sha != info["sha256"]:

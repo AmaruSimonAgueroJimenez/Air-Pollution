@@ -1,6 +1,6 @@
 {
  "schema": "airpollution.modelo-1km-v2.config.v2",
- "descripcion": "Traducción a datos del contrato DISENO_AMBIENTAL_V2.md, fijado el 2026-10-12 antes de estimar ningún motor v2, con su Enmienda 1 y el Complemento de la Enmienda 1 (los dos del 2026-10-13, antes de cualquier ajuste comparativo). No agrega decisiones: lo que el contrato no fija queda como «pendiente».",
+ "descripcion": "Traducción a datos del contrato DISENO_AMBIENTAL_V2.md, fijado el 2026-10-12 antes de estimar ningún motor v2, con su Enmienda 1 y el Complemento de la Enmienda 1 (los dos del 2026-10-13, antes de cualquier ajuste comparativo), y con el bloque «Red ampliada e insumos de hoy» de la Enmienda 2 ambiental (2026-10-25, antes de cualquier ajuste comparativo). No agrega decisiones: lo que el contrato no fija queda como «pendiente».",
  "convenciones": {
   "pendiente": "La cadena «pendiente» marca un valor que el contrato no fija. Cuando hace falta una nota, o cuando el código de alguna etapa necesitó un valor para funcionar, el campo es un objeto {\"estado\": \"pendiente\", \"nota\": ..., \"provisional\": ...}. El «provisional» no es contrato: se ratifica o se corrige por enmienda.",
   "ratificado": "Un objeto {\"estado\": \"ratificado (Enmienda 1)\", \"punto\": ..., \"valor\": ..., \"nota\": ...} es un provisional que la enmienda ratificó por nombre: «valor» es contrato y es lo que lee el código. Si la enmienda lo ratificó con un cambio, «cambio» dice cuál y, si el valor cambió, «provisional_anterior» guarda el que tenía. «ratificado (Complemento)» marca, con la misma forma, los 7 detalles que el Complemento de la Enmienda 1 ratificó en su punto 4: «punto» remite a los puntos del Complemento y «origen», al punto de la Enmienda 1 que dejó el detalle pendiente.",
@@ -11,11 +11,11 @@
  },
  "contrato": {
   "archivo": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
-  "sha256": "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0",
+  "sha256": "5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670",
   "fijado": "2026-10-12",
   "commit": "51d125e",
   "sha256_original": "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918",
-  "nota": "«commit» y «sha256_original» son los del texto fijado el 2026-10-12, que se sigue informando. «sha256» es el del texto vigente, con la Enmienda 1 y su Complemento, que se confirma en git junto con esta configuración y el código antes de cualquier ajuste comparativo (Enmienda 1, punto 14). Cada entrada de «enmiendas» guarda el sha256 del texto tal como quedó con ella.",
+  "nota": "«commit» y «sha256_original» son los del texto fijado el 2026-10-12, que se sigue informando. «sha256» es el del texto vigente, con la Enmienda 1, su Complemento y el bloque «Red ampliada e insumos de hoy» de la Enmienda 2, que se confirma en git junto con esta configuración y el código antes de cualquier ajuste comparativo (Enmienda 1, punto 14). Cada entrada de «enmiendas» guarda el sha256 del texto tal como quedó con ella.",
   "enmiendas": [
    {
     "id": "Enmienda 1",
@@ -80,7 +80,7 @@
     "id": "Complemento de la Enmienda 1",
     "fecha": "2026-10-13",
     "sha256": "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0",
-    "sha256_de": "el texto vigente: la Enmienda 1 y su Complemento",
+    "sha256_de": "el texto con la Enmienda 1 y su Complemento: lo anterior al encabezado «### Enmienda 2 ambiental — bloque …», sin los saltos de línea del final y terminado en un único salto de línea",
     "complementa_a": "Enmienda 1",
     "momento": "antes de cualquier ajuste comparativo",
     "motivo": "al implementar la Enmienda 1, la configuración dejó 7 detalles con valor provisional; la verificación independiente encontró además que la regla de factibilidad y la segunda prueba no estaban bien fijadas",
@@ -109,6 +109,213 @@
     ],
     "commit": null,
     "sellado": "como la Enmienda 1 (punto 14): el contrato, la configuración y el código se confirman en git antes de cualquier ajuste comparativo; el commit queda en la traza de cada artefacto"
+   },
+   {
+    "id": "Enmienda 2, bloque de la red ampliada",
+    "fecha": "2026-10-25",
+    "sha256": "5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670",
+    "sha256_de": "el texto vigente: la Enmienda 1, su Complemento y el bloque «Red ampliada e insumos de hoy» de la Enmienda 2",
+    "texto_del_bloque": {
+     "archivo": "auditoria/20261024/sinca_al_modelo/ENMIENDA_2_BLOQUE_RED_AMPLIADA.md",
+     "repositorio": "Air-Pollution-Health-Chile",
+     "sha256": "274ebae06bee8eeeb7470a650ce0539af751577d292513b8198cdec7c159094b",
+     "commit": "f2c6cfc",
+     "sello_opentimestamps": "65afe8a"
+    },
+    "decisiones_del_autor": {
+     "archivo": "auditoria/20261024/sinca_al_modelo/decisiones_autor_20261024.md",
+     "sha256": "01744a98101ff149fc3e65a32046c27b2fd810bd2b23d8c72594e00b4355b7af"
+    },
+    "decisiones_de_traduccion": {
+     "archivo": "auditoria/20261024/sinca_al_modelo/decisiones_autor_traduccion_20261025.md",
+     "repositorio": "Air-Pollution-Health-Chile",
+     "sha256": "fdfbfa3149dae432a392c5dbea338b933fddf6f5f15a22cf2d18ad93d7da9a60",
+     "T1": "se aceptan las cuatro lecturas de implementación: (1) peso de un bloque = peso fijo × filas de sus estaciones (R16); (2) duplicados con tolerancia relativa 1e-6 y grupos de más de dos códigos como uno (R9); (3) pública o de empresa: la calificación de la ficha y, si no la trae, el propietario (R10); (4) órbitas antiguas de TROPOMI y GEOS-CF sin registro propio, por su fecha de modificación (R11)",
+     "T2": "aplicar después de una revisión independiente, en AP y en su espejo APH, ajustando las pruebas que cambian, con commit local y sin envío al remoto",
+     "T3": "MERRA-2 2026-10 (publicado como parcial): copia con su huella en el disco interno",
+     "T4": "convención de la etiqueta civil: una sola para todo SINCA, decidida antes del paso a UTC y sólo con las etiquetas de los días de cambio de hora; gana la que da hora_civil en más unidades estación × contaminante × año local (la unidad de T9) en que la otra no; empate, también en cero, inicio_mas_1h; los dos conteos y la elegida van al anexo",
+     "T5": "las teselas del catálogo MAIAC sin registro por archivo se registran antes del armado con su sha256 y entran como los demás insumos; entran sólo las de archivo anterior al corte; el registro va al anexo",
+     "T6": "la copia congelada de los insumos (≈ 232 GB) va al disco interno; sin enlaces vivos",
+     "T7": "un revisor nuevo comprueba sólo las correcciones (y T4 y T5) contra el bloque anclado; después se aplica en AP y en APH, se ajustan las pruebas y las huellas y se hace un commit local sin envío; con esto se aceptan las diferencias con el cuadro del §3 del bloque que listaba PROPUESTA §8.6 (programas propios para la red 2; catalogo_sinca y metricas_v2 sin cambios) y la lectura de R21 como pliegues_v2_red2.json (PROPUESTA §9.4)",
+     "T8": "R5, «la misma huella del ranking»: rige el sha256 de afg_lib.py, el de la v1 (4391787a…); las huellas del árbol de sintaxis quedan como procedencia, con la versión de Python; el derivado corre en amb_v2",
+     "T9": "votan las unidades del veredicto de R7, estación × contaminante × año local; reemplaza la lectura «estación × año»",
+     "T10": "la conversión a hora civil está en reloj_sinca_v2.convertir y en el panel, no en preparar_sinca_modelado.py (al preparador se le usa por su API): se acepta como diferencia con el cuadro del §3",
+     "T11": "[delegada] (decidida con la opción recomendada por delegación del autor, 2026-10-26 cerca de las 01:35, sin que la viera; pendiente de que la ratifique): las 146 órbitas TROPOMI de 2024 sin registro (138 OFFL 02.08.00 del 2 al 31 de diciembre y 8 RPRO 02.06.00 sueltas, en el formato antiguo .chile.nc, escritas el 2026-08-10) entran por su fecha de modificación, como las de 2019-2022 (T1(4)); TROPOMI_MTIME_ANIOS queda sin límite; el anexo lista por año las órbitas que entran así (3.826)",
+     "T12": "[delegada] diferencias con el cuadro del §3 y lecturas que T7 no cubría (verificaciones de la madrugada del 2026-10-26); se aceptan cinco: (a) la segunda corrida del contraste se hace con el derivado cerrado y antes de armar el panel, para que rija sobre él (la lectura de «al cerrar el panel» y de R22.3); (b) el derivado de la red 2 vuelve a derivar completas las 107 estaciones actuales desde DATOS/sinca (sellado más actualización) en una sola raíz v1_red2, que leen el reloj, el contraste y el panel (R4); (c) inferencia_diferencias.influencia.bloque_mas_influyente y …criterio no se vuelven regla y quedan con nodos hermanos; (d) las raíces del derivado de la red 2 viven en derivado_red2_v2 (raiz_derivados, destino_por_omision) y no en _rutas_v2; (e) las lecturas §8.8 a §8.13 de PROPUESTA.md (la §8.12 queda corregida), entre ellas las SNIFA como «no informado» (R10); y se corrige la sexta: la masa molar del O3 es la literal de R6, 47,998 g/mol (unidades_v2.MASA_MOLAR y contraste_unidades_v2.M), y el panel importa produccion.py con su huella fijada (panel_red2_v2.HUELLAS_CODIGO_V1, la de cada repositorio) y marca las rachas con produccion.marcar_rachas, la regla de produccion.observaciones; la función misma lee las series de la v1 y no admite las de la red 2, así que el resto se replica, con una prueba de equivalencia; pendiente de que el autor la ratifique",
+     "T13": "[delegada] el commit local de la traducción (T2) puede hacerse antes de la ratificación; el armado no: el paso 2 de §11 (armado) no empieza hasta que el autor ratifique T11, T12 y T13 (paso 0 de §11); si cambia alguna, se hace otro commit antes del armado; el commit local se puede reemplazar, la copia congelada y los json del panel, de escritura única, no; pendiente de que el autor la ratifique"
+    },
+    "momento": "antes de cualquier ajuste comparativo, antes de M3-4 y de M6",
+    "motivo": "el autor decidió bajar todo SINCA y que las estaciones nuevas entren al modelo como monitores, sin regla de completitud, con los insumos de hoy y sin contrastar con lo anterior (R1)",
+    "conocido_al_escribirla": {
+     "v2": "no existe ninguna métrica de desempeño",
+     "piloto": "piloto_perdidas_sin_dmc (2026-10-13 22:28, después del sellado): lo corrió un asistente; el autor declara «No vi sus cifras»; ninguna decisión del bloque se tomó a la vista de ellas",
+     "v1": [
+      "NO2 transfiere mal a regiones sin monitores (R² diario LRO 0,119)",
+      "RF supera a LightGBM en NO2"
+     ],
+     "unidades": "para el contraste de R6 se leyeron valores de concentración de SINCA y de CAMS; sólo razones de niveles y razones con la vecina más cercana"
+    },
+    "puntos": [
+     {
+      "punto": "R2",
+      "titulo": "Lista cerrada y huellas",
+      "config": [
+       "red_de_monitores.lista_cerrada"
+      ]
+     },
+     {
+      "punto": "R3",
+      "titulo": "Regla única de inclusión",
+      "config": [
+       "red_de_monitores.regla_de_inclusion"
+      ]
+     },
+     {
+      "punto": "R4",
+      "titulo": "Período",
+      "config": [
+       "red_de_monitores.periodo"
+      ]
+     },
+     {
+      "punto": "R5",
+      "titulo": "Control de calidad",
+      "config": [
+       "red_de_monitores.calidad"
+      ]
+     },
+     {
+      "punto": "R6",
+      "titulo": "Unidades",
+      "config": [
+       "red_de_monitores.unidades"
+      ]
+     },
+     {
+      "punto": "R7",
+      "titulo": "Reloj",
+      "config": [
+       "red_de_monitores.reloj",
+       "protocolos.LPO.anio_local"
+      ]
+     },
+     {
+      "punto": "R8",
+      "titulo": "Coordenadas y celda",
+      "config": [
+       "red_de_monitores.coordenadas"
+      ]
+     },
+     {
+      "punto": "R9",
+      "titulo": "Series duplicadas",
+      "config": [
+       "red_de_monitores.duplicados"
+      ]
+     },
+     {
+      "punto": "R10",
+      "titulo": "Estaciones de empresas",
+      "config": [
+       "red_de_monitores.propietarios",
+       "metricas.desagregaciones.propietario"
+      ]
+     },
+     {
+      "punto": "R11",
+      "titulo": "Panel con los insumos de hoy",
+      "config": [
+       "red_de_monitores.insumos_de_hoy",
+       "relacion_v1.insumos_v1_solo_lectura",
+       "fuera_del_contrato"
+      ]
+     },
+     {
+      "punto": "R12",
+      "titulo": "Sin comparación con la v1",
+      "config": [
+       "red_de_monitores.sin_comparacion",
+       "retransformacion.comparaciones_v2_frente_a_v1"
+      ]
+     },
+     {
+      "punto": "R13",
+      "titulo": "Pliegues recalculados",
+      "config": [
+       "protocolos.manifiesto.red_ampliada",
+       "protocolos.LOSO-D.estaciones"
+      ]
+     },
+     {
+      "punto": "R14",
+      "titulo": "Pesos fijos y desagrupamiento",
+      "config": [
+       "red_de_monitores.pesos"
+      ]
+     },
+     {
+      "punto": "R15",
+      "titulo": "E2 recalculada",
+      "config": [
+       "calidad_blanco.evaluacion.cobertura_conocida",
+       "red_de_monitores.registro_de_la_red.evaluabilidad_e2",
+       "red_de_monitores.fuente_unica_de_pliegues"
+      ]
+     },
+     {
+      "punto": "R16",
+      "titulo": "Bloque más influyente por criterio",
+      "config": [
+       "inferencia_diferencias.influencia.bloque_mas_influyente_enmienda_2"
+      ]
+     },
+     {
+      "punto": "R17",
+      "titulo": "Regímenes de predictores",
+      "config": [
+       "metricas.desagregaciones.regimen_de_predictores.criterio_enmienda_2"
+      ]
+     },
+     {
+      "punto": "R18",
+      "titulo": "Presupuesto",
+      "config": [
+       "presupuesto.despues_de_los_cuatro_recortes"
+      ]
+     },
+     {
+      "punto": "R19",
+      "titulo": "Factibilidad: no se revisa",
+      "config": [
+       "red_de_monitores.factibilidad"
+      ]
+     },
+     {
+      "punto": "R20",
+      "titulo": "O3",
+      "config": [
+       "red_de_monitores.o3"
+      ]
+     },
+     {
+      "punto": "R21",
+      "titulo": "Producto meteorológico",
+      "config": [
+       "red_de_monitores.producto_meteorologico"
+      ]
+     },
+     {
+      "punto": "R22",
+      "titulo": "Sellado y orden",
+      "config": [
+       "red_de_monitores.orden",
+       "red_de_monitores.compuerta_r22",
+       "red_de_monitores.ratificacion_t11_t13"
+      ]
+     }
+    ],
+    "commit": null,
+    "sellado": "como la Enmienda 1 (punto 14): el contrato, la configuración y el código se confirman en git en AP y en su espejo antes de armar datos y antes de cualquier ajuste comparativo (R22, paso 2)"
    }
   ]
  },
@@ -126,10 +333,18 @@
    "candado_de_escritura": true
   },
   "tablas_pequenas": "output_files/modelo_1km_v2/",
-  "insumos_v1_solo_lectura": [
-   "paneles/panel_pm25.parquet",
-   "paneles/panel_no2.parquet"
-  ],
+  "insumos_v1_solo_lectura": {
+   "estado": "sin efecto desde la Enmienda 2 (bloque de la red ampliada, R11): la v2 ya no lee los paneles v1, que quedan intactos",
+   "antes_de_la_enmienda_2": [
+    "paneles/panel_pm25.parquet",
+    "paneles/panel_no2.parquet"
+   ],
+   "insumos_v2": [
+    "paneles/panel_pm25_red2.parquet",
+    "paneles/panel_no2_red2.parquet"
+   ],
+   "raiz_de_los_insumos_v2": "raíz v2 (AIR_POLLUTION_MODELO_1KM_ROOT)"
+  },
   "recalculos": "van a la raíz v2",
   "procedencia_por_artefacto": [
    "commit",
@@ -140,6 +355,530 @@
    "semillas"
   ]
  },
+ "red_de_monitores": {
+  "fuente": "Enmienda 2 ambiental, bloque «Red ampliada e insumos de hoy» (R1 a R22)",
+  "codigo": {
+   "scripts_modelo_1km/v2/reloj_sinca_v2.py": "c1eb98c52660dae3755c65a69fb2cc33e7e8d54736c269cc111bde35289795f7",
+   "scripts_modelo_1km/v2/unidades_v2.py": "5738943c623e3e2bf50b7b6abd7e67286fa1972dbd5543b09b04a5edcc8a354c",
+   "scripts_modelo_1km/v2/contraste_unidades_v2.py": "e2e9b6d37405ce331301c44cb5a569123dd3982aa0031e122ddeef84d3b1401e",
+   "scripts_modelo_1km/v2/duplicados_v2.py": "fd53bad7f7dc02822cce1ae7c1bccfc352d39f093018ca7e6772a73a172fb524",
+   "scripts_modelo_1km/v2/red_ampliada_v2.py": "85e16a9dd209994a237bb978322f7a684eab5aa0809e9809dc7e08334655b337",
+   "scripts_modelo_1km/v2/derivado_red2_v2.py": "eeee1995d12d22b171570a6b8e3c7f87fde54852539af8b3e4b624b99888f101",
+   "scripts_modelo_1km/v2/panel_red2_v2.py": "2750d2dce3750f52a5ced3e48a8076511ccfbbaf5c42fe21e9c32324fcc4e9b5",
+   "scripts_modelo_1km/v2/pliegues_red2_v2.py": "aeebeac945fa1f2da92f53a291761f9c34fda0df813628fe2246319c262144d7",
+   "nota": "huellas al traducir el bloque (2026-10-26, tras la quinta revisión independiente y las rondas de verificación de la traducción: derivado completo, T12 y T13); se vuelven a fijar en el commit de la traducción, y test_red_ampliada_v2.test_huellas_del_codigo_nuevo_declaradas las compara con los archivos"
+  },
+  "lista_cerrada": {
+   "raiz": "AIR_POLLUTION_DATA_ROOT",
+   "archivos": {
+    "sinca/manifiesto_descarga.csv": "79d4fd770e5ad0aa7e5c88487598c20106989fb6be184b457f8502ecee289f7f",
+    "sinca/estaciones_georreferenciadas.csv": "51ff693e6ac9a75eb92afc4da4995950f2b39fa4e241fd0e1f57a183cc381995",
+    "sinca/estaciones_georreferenciadas.geojson": "85a8eb08bfb9315fb5c3324a9912641878943366e93137a7e0c0e316121ae12d",
+    "sinca_ampliacion_20261024/actualizacion_configuradas/manifiesto_descarga.csv": "0fc77ae1b89cb9db5308ac38703dc7f2b8606902327705257e1b1b15551a8388",
+    "sinca_ampliacion_20261024/actualizacion_configuradas/SHA256SUMS.txt": "785283793ee2aa79cb7e2ff3355af6121c542d5e12c2275e203320a07d621fbc",
+    "sinca_ampliacion_20261024/actualizacion_configuradas/estaciones_georreferenciadas.csv": "51ff693e6ac9a75eb92afc4da4995950f2b39fa4e241fd0e1f57a183cc381995",
+    "sinca_ampliacion_20261024/actualizacion_configuradas/estado_validacion_series.csv": "b398f69d2a701b7212a763d41f1ae422052e3e5ae64b168c5274a3d54fb902fb",
+    "sinca_ampliacion_20261024/manifiesto_descarga.csv": "19865e3b03f0abc2bd6d3673a5ddd63978c465625c1aec1355bc473824f85480",
+    "sinca_ampliacion_20261024/SHA256SUMS.txt": "db36e2084f75d262cea445665d7a403c53a0058cd18c87b7f5f1f48bffd3d7fa",
+    "sinca_ampliacion_20261024/estaciones_fichas.csv": "5d22889a185a41af067b36a1b066e1b988eb06d14b23e89b67566dda132a5f5b",
+    "sinca_ampliacion_20261024/catalogo/20261024T232023Z/catalogo.json": "1c523f6f66f70fb7c5e40bc13686309ec58137d5c34f722f3addb87ae44eaede",
+    "sinca_ampliacion_20261024/catalogo/20261024T232023Z/SHA256SUMS.txt": "14c9b5cba28d25daa62a9ec226350b5216dbc98efbe0479384d4ea002227e106",
+    "sinca_ampliacion_20261024/estado_validacion_series.csv": "b6ee431fe8be8960bce8620fd8e9017387b1dce4c121bcd2be9c739578eb0f03",
+    "sinca_ampliacion_20261024/manifiesto_descarga_otras_series.csv": "dee257046f0871e2f7d249c30f592a268bc6d49de3c8823f7ffaca1131edb9cc",
+    "sinca_ampliacion_20261024/geometria_20261025/estaciones_georreferenciadas.csv": "d5764ee2f8f6afa3a92cca609744080749254fbfb041d58783b99f31b4169308",
+    "sinca_ampliacion_20261024/geometria_20261025/estaciones_georreferenciadas.geojson": "eaeaf965ffa2f5a8d0a734128473ecc5646916ef2dd958c7c5b37b94364df29b",
+    "sinca_ampliacion_20261024/geometria_20261025/SHA256SUMS.txt": "945640f3cb5f0e9f244b6dda2ae7c4845f991225f7fb87a3b291bb1967bd6827",
+    "sinca_ampliacion_20261024/geometria_20261025/metadata/correcciones_coordenadas.json": "d0a42ac02aaff81db6af17d263f2d195aa75289536834689beda0c3c30075e97",
+    "sinca_ampliacion_20261024/geometria_20261025/metadata/envoltorio_geometria.json": "bd47ebcac10b6ac15e3c3153936f3b2a50fb63d382bef1f31deca4772b78cb0e",
+    "snifa_adicional/processed/observaciones_horarias.parquet": "2aa177d9f0e3f8626d03c9e8381357a58eb81e43192b7aa802c5f03b4e055a55"
+   },
+   "no_se_usan": {
+    "sinca_ampliacion_20261024/estaciones_georreferenciadas.csv": "c5eb0806cf9346c2313e06a1ff98eb337dab8abaeaf707044d86083a452e4e6f"
+   },
+   "regla": "la red se cierra con estos archivos; ninguna estación posterior entra en la v2; el código falla cerrado si una huella cambia (red_ampliada_v2.verificar_lista_cerrada, con la constante red_ampliada_v2.LISTA_CERRADA, que test_red_ampliada_v2.test_la_configuracion_repite_las_constantes_del_codigo compara con esta lista; lo mismo para los demás valores de este nodo que repite el código)"
+  },
+  "procedencia_descarga": {
+   "programa": "scripts_pipeline/descargar_sinca_ampliacion.py",
+   "versiones": [
+    {
+     "script_version": "1.0.0",
+     "script_sha256": "647f55183155d66ccbe4712879b00fd6a2c1842cbb0f8c19c4fe1e058199442d",
+     "produjo": {
+      "sinca_ampliacion_20261024/manifiesto_descarga.csv": 167,
+      "sinca_ampliacion_20261024/manifiesto_descarga_otras_series.csv": 1076
+     },
+     "estado": "no está en git ni junto al código; si se recupera del historial del Drive, la copia va a <raíz v2>/procedencia_descarga/ y se confirma con esta huella; el anexo registra «recuperada» o «perdida» en registro_de_la_red.procedencia_descarga"
+    },
+    {
+     "script_version": "1.0.0",
+     "script_sha256": "93f20aeb20179cefce3f4bbbe76631f1784f05f760053ace2140bd090475fd22",
+     "produjo": {
+      "sinca_ampliacion_20261024/catalogo/20261024T232023Z/catalogo.json": 1
+     },
+     "estado": "otra huella con la misma versión 1.0.0 (el catálogo); no está en git ni junto al código; como la anterior"
+    },
+    {
+     "script_version": "1.1.0",
+     "script_sha256": "d77247232ed4857941d8a4616193d805ed612af20a816949b44b6b1c9cb63c62",
+     "produjo": {
+      "sinca_ampliacion_20261024/actualizacion_configuradas/manifiesto_descarga.csv": 330
+     },
+     "estado": "la versión de hoy: entra en el commit de la traducción (ARCHIVOS_TRADUCCION); el anexo registra «en_git» si el programa del commit tiene esta huella"
+    }
+   ],
+   "lectura": "filas de cada manifiesto con esa script_version y ese script_sha256 (catalogo.json: sus campos script_version y script_sha256); sólo columnas de procedencia, ningún valor"
+  },
+  "estaciones_nuevas": {
+   "pm25": {
+    "µg/m³": [
+     "332",
+     "D31"
+    ]
+   },
+   "no2": {
+    "ppb": [
+     "252",
+     "501",
+     "506",
+     "507",
+     "511",
+     "602",
+     "846",
+     "850"
+    ],
+    "µg/m³N": [
+     "207",
+     "209",
+     "215",
+     "216",
+     "221",
+     "329",
+     "517",
+     "518",
+     "533",
+     "534",
+     "614",
+     "876",
+     "E01"
+    ],
+    "sin": [
+     "601",
+     "603",
+     "816",
+     "A02",
+     "A03"
+    ]
+   },
+   "o3": {
+    "ppb": [
+     "501",
+     "506",
+     "507",
+     "511",
+     "601",
+     "602",
+     "603",
+     "816",
+     "846",
+     "850"
+    ],
+    "µg/m³N": [
+     "207",
+     "215",
+     "216",
+     "221",
+     "329",
+     "518",
+     "519",
+     "533",
+     "534",
+     "614",
+     "876",
+     "E01"
+    ],
+    "sin": [
+     "517",
+     "A02",
+     "A03"
+    ]
+   }
+  },
+  "fuera_por_coordenadas": {
+   "series": [
+    "518",
+    "408",
+    "fichas sin código (id 38 «Cine Inca» e id 44 «Intelec»)"
+   ],
+   "orden": "salen y se registran antes de la regla de unidades (unidades_v2.unidades_red2, con_coordenada): una serie sin coordenada no llega al contraste",
+   "clausula_518": "la 518 «Rural 1» entra con las reglas de R8 si aparece una coordenada oficial antes del anexo «Registro de la red v2» (R22, paso 4); después del anexo, no. Si aparece después de empezar el armado y antes del anexo, el reloj, la segunda corrida del contraste y el panel ya se escribieron una sola vez sobre el maestro corregido d5764ee2…; el camino para que entre es: maestro corregido nuevo con la coordenada oficial y su huella en LISTA_CERRADA; commit nuevo de la traducción en AP y en el espejo (R22, paso 2); lo que el armado escribe una sola vez se mueve a mano a un respaldo «<nombre>_reemplazado_<marca>» con un registro del motivo «R8, 518»: las carpetas verificacion_reloj_sinca_red2, unidades_red2 e insumos_red2 (con registro_catalogo_maiac.json, inventario.json, congelados.json y la copia congelada), el archivo grilla/estaciones_enlaces_red2.parquet y, de paneles/, sólo los archivos de la red 2, nombrados uno por uno (panel_pm25_red2.parquet, panel_pm25_red2.json, panel_no2_red2.parquet, panel_no2_red2.json, calidad_pm25_red2.parquet, calidad_no2_red2.parquet, reloj_civil_pm25_red2.parquet, reloj_civil_no2_red2.parquet, observaciones_pm25_red2.parquet, observaciones_no2_red2.parquet, observaciones_o3_red2.parquet, observaciones_o3_red2.json, estaciones_red2.parquet, satelites_estaciones_red2.parquet, regimenes_red2.json), nunca la carpeta entera, que guarda la bandera de la red original (calidad_pm25 y calidad_no2); y se rehacen, en este orden, el registro del catálogo MAIAC (T5, --registrar-catalogo-maiac, antes del armado), el derivado, el reloj, la segunda corrida del contraste, el panel y los pliegues (pliegues_v2_red2.json, que queda en la raíz v2, con --reemplazar --motivo «R8, 518») (red_ampliada_v2.CAMINO_518; cuarta revisión, menor 23, y quinta, menor 23: de paneles/ sólo los archivos de la red 2, con el registro MAIAC y los pliegues con --reemplazar)"
+  },
+  "red_resultante": {
+   "pm25": {
+    "actuales": 107,
+    "nuevas": 2,
+    "snifa": 0,
+    "total": 109
+   },
+   "no2": {
+    "actuales": 48,
+    "nuevas": 20,
+    "snifa": 3,
+    "total": 71
+   },
+   "o3": {
+    "actuales": 47,
+    "nuevas": 22,
+    "snifa": 0,
+    "total": 69
+   }
+  },
+  "regla_de_inclusion": {
+   "texto": "en la lista de R2, con coordenadas usables y celda (R8), y al menos una hora que pase R4 a R9; sin mínimo de horas, días ni años, para las 107 actuales, las 3 SNIFA y las nuevas (R3)",
+   "minimos_de_agregacion": "los del §8 (18 h, 20 días, 9 meses) no cambian: definen niveles, no qué estación entra"
+  },
+  "periodo": {
+   "desde": "2000-01-01",
+   "hasta": "2026-10-24",
+   "corte": "por día local UTC−4, como observaciones_panel",
+   "actualizacion": "parte del último día en disco, con solape; el ranking del derivado elige la fila seleccionada (R4)",
+   "sin_datos_nuevos": [
+    "222",
+    "236",
+    "549",
+    "833",
+    "904",
+    "A04",
+    "D11",
+    "D16",
+    "D29",
+    "E06"
+   ]
+  },
+  "calidad": {
+   "filas": "seleccionada del derivado (ranking afg_lib; T8: rige el sha256 del archivo afg_lib.py)",
+   "rango_despues_de_convertir": {
+    "pm25": [
+     0,
+     1500
+    ],
+    "no2": [
+     0,
+     1000
+    ],
+    "o3": [
+     0,
+     500
+    ]
+   },
+   "unidades_del_rango": {
+    "pm25": "µg/m³",
+    "no2": "ppb",
+    "o3": "ppb"
+   },
+   "duplicados_por_estacion_hora": "media, con conteo; la bandera de la hora es la peor",
+   "rachas": "≥ 24 registros idénticos, sobre el registro completo",
+   "celda": "≥ 0",
+   "derivado": {
+    "programa": "scripts_pipeline/preparar_sinca_modelado.py",
+    "sha256": "95f1ecd3c9071f3877e858e0b822b4e525b00b49ab4aced8f0490a71d0a65401",
+    "contrato": "airpollution.sinca.modelado.v1.0.0",
+    "raiz": "derived/modelado/SINCA/v1_red2",
+    "orquestador": "scripts_modelo_1km/v2/derivado_red2_v2.py (API del preparador; su main sólo admite destinos dentro de SINCA/v1)",
+    "derivado_v1": "no se toca",
+    "lectura_completa": "quien lee el derivado para escribir (el reloj, la segunda corrida del contraste y el panel) lo exige completo (derivado_red2_v2.exigir_derivado_completo): una sola raíz, la de destino_por_omision (esta raíz); su última corrida con progreso.json en «complete_for_selected_scope» y con el plan.json de derivado_red2_v2 --ejecutar, que trae la huella rastreada de derivado_red2_v2.py (exigir_plan_de_la_corrida); el conjunto estación × contaminante de red_ampliada_v2.series_esperadas_red2; las versiones que publicó esa corrida; y cada versión con inputs.since e inputs.until nulos (R4), con inputs.sources igual a sus filas en los tres manifiestos de la lista cerrada en todas sus columnas de identidad (derivado_red2_v2.CAMPOS_DE_LA_FUENTE: región, estación, contaminante, resolución, desde, hasta, bytes, filas, sha256 y la ruta relativa, leídas como texto; R2), con tantas filas publicadas (observaciones.parquet más solapamientos.parquet, por sus metadatos) como statistics.filas_en_ventana, statistics.filas_originales_leidas y la suma de la columna filas de esas filas de los manifiestos, con las filas de cada archivo que declaró el preparador (observaciones.parquet = statistics.filas_seleccionadas y solapamientos.parquet = statistics.filas_alternativas_conservadas) y con las etiquetas que deja el ranking afg, leídas sólo de ts_local (cada etiqueta válida una sola vez en observaciones.parquet y toda fila de solapamientos.parquet con una etiqueta válida que está en observaciones.parquet: derivado_red2_v2.invariante_del_ranking) (exigir_fuentes_y_ventana); en quien lee cada versión, files con los dos parquet, su sha256, sus filas y la huella de su esquema (contrato_de_la_version, sólo metadatos); y cada serie leída desde los bytes cuyo sha256 se registró al principio (reloj_sinca_v2.leer_serie). Un derivado auténtico pero parcial (grupos filtrados o until), con otro «hasta» en una fila, con el contenido recortado o con filas pasadas de observaciones.parquet a solapamientos.parquet (el total no cambia) cambiaba la elección de T4 o la fila seleccionada en los solapes y no pasa (ronda 3 de la traducción, mayor; ronda 4, menores 7 y 8; ronda 5, menor 2). Límite: una reescritura del contenido que conserve los conteos de cada archivo y las etiquetas del ranking (otras etiquetas en el mismo número, otros valores u otras columnas) sólo se detecta volviendo a derivar desde los CSV sellados; para esa auditoría el reloj registra el sha256 de cada observaciones.parquet",
+    "afg_lib": {
+     "archivo": "scripts_superficie/afg_lib.py",
+     "sha256": "4391787a739915a1a96ff04ad0b2bbaf2f952449c89d01fc1aeec1d52b9db4c2",
+     "regla": "T8: rige el sha256 del archivo, igual al de la v1 (derivado_red2_v2.verificar_afg, al derivar); quien lee el derivado (reloj, contraste y panel) exige en el manifest.json de cada versión el contrato, este sha256, el del preparador y el Python de amb_v2, y que sea la publicación del preparador (files con el sha256 del observaciones.parquet que se lee, version igual a la carpeta y a digest(inputs), y la estación y el contaminante de la carpeta), y registra por serie la sintaxis de afg_lib con su versión de Python (derivado_red2_v2.contrato_de_la_version); «el derivado corre en amb_v2» lo exige el código al derivar (derivado_red2_v2.verificar_entorno, registrado en plan.json) y al leer (cuarta revisión, menores 4 y 8)",
+     "procedencia_ast": {
+      "v1": {
+       "python": "3.14.3",
+       "ranking": "8188ae3fe92c73e57bb8b4380b03e97ae7f2e4bb26c17e504c531a15c0976eec",
+       "analizador": "3eff1519c8ed373cecde61009c0c0ee2e162cab360045829fdd5afb2e24661e0"
+      },
+      "amb_v2": {
+       "python": "3.11.16",
+       "ranking": "877fb0f5d730dc0d17dca89da6f22f59b384165fac9f627690203d58acce9b86",
+       "analizador": "04734f63b603a48f536046f2d620438e1ea44676d9de4786a14fda67c07bf582"
+      }
+     }
+    }
+   }
+  },
+  "unidades": {
+   "vm_l_mol": 24.4654,
+   "condiciones": "25 °C y 1 atm (decisión U′)",
+   "masas_molares": {
+    "no2": 46.0055,
+    "o3": 47.998,
+    "so2": 64.064,
+    "co": 28.0101
+   },
+   "masas_molares_nota": "O3: 47,998 g/mol, la literal de R6 (T12, corrección [delegada]; antes 47,9982, el valor del programa del contraste, contraste_unidades_cams.py:39, y de _features.py:40): la usan la conversión de µg/m³N a ppb (unidades_v2.MASA_MOLAR) y el contraste de la segunda corrida (contraste_unidades_v2.M, también 47,998, por T12, que no hace excepción para él: es su única diferencia con el programa de la primera corrida, que MismoProgramaTests acepta sólo a ella). La diferencia relativa entre los dos valores es de unos 4·10⁻⁶. T12 corrige la conversión de R6 y el contraste; no toca el predictor cams_o3 del panel, que sigue convirtiéndose con 47,9982 (_features.py:40 y :104, cams_o3 × M_AIRE / M_O3 × 1e9), porque el panel usa el código de la v1 con su huella (panel_red2_v2.HUELLAS_CODIGO_V1), como pide R11 («el de la v1 … con sus huellas registradas»): en el armado de la red 2 conviven las dos masas molares del O3, con un efecto numérico nulo (ronda 5 de la traducción, menor 6). CO, que R6 no da, sale del programa del contraste",
+   "regla": "rótulo de la ficha; contraste con CAMS; si es indeterminado, decide el rótulo (I): µg/m³N se convierte, sin unidad queda fuera; PM2,5 en µg/m³ sin contraste (S)",
+   "snifa": {
+    "el_penon": 0.5318,
+    "charrua": 1.0,
+    "progreso": 1.0
+   },
+   "contraste_primera_corrida": {
+    "archivo": "auditoria/20261024/sinca_al_modelo/contraste_unidades_cams.csv",
+    "repositorio": "Air-Pollution-Health-Chile",
+    "sha256": "ca0805ae0e7af3c2ff8f241600ad46327ebfd68c27c470361a210b301bc9f855"
+   },
+   "contraste_segunda_corrida": "pendiente: se corre con el derivado de la red 2 cerrado y antes de armar el panel, para que rija sobre él (T12 (a) [delegada]: es la lectura de «al cerrar el panel» de R6 y de R22, paso 3; contraste_unidades_v2.py; el panel la exige con --contraste, ver orden) y sus huellas (CSV y lateral) van al anexo; si una serie cambia de decisión, rige la segunda y el cambio queda registrado en el lateral (R6)",
+   "huella_del_contraste": "obligatoria: el armado recibe --contraste y --contraste-sha256; el CSV tiene que ser <raíz v2>/unidades_red2/contraste_unidades_cams_segunda.csv y su json lateral, contraste_unidades_cams_segunda.json junto a él (los nombres fijos de la escritura única, contraste_unidades_v2.NOMBRES_SALIDA: otro nombre o una subcarpeta no pasan), tiene que existir, con schema airpollution.modelo-1km-v2.contraste-unidades.v1, sha256_csv igual a la huella, primera_corrida con el sha256 ca0805ae… y su lista de cambios (aunque esté vacía), cams.archivos con al menos un archivo, cada uno con su ruta y su sha256 (contraste_unidades_v2.exigir_cams; quinta revisión, menor 7), y series_leidas con las mismas raíces y las mismas series de NO2 y O3 (estación, contaminante, versión y sha256) que lee el panel: la primera corrida no pasa, ni una corrida sobre otro derivado (panel_red2_v2.contraste_y_su_huella); la huella del lateral va al json del panel (unidades.segunda_corrida) y al anexo",
+   "segunda_corrida": "contraste_unidades_v2.py no lee nada antes de que la traducción esté confirmada en git; para escribir exige NO2 y O3 (los gases del derivado de la red 2) y --primera, comprobada por su sha256 (ca0805ae…); comprueba la lista cerrada antes de leer los maestros, se escribe una sola vez (si una corrida se cortó entre el CSV y el lateral, con el mismo CSV escribe el lateral; con otro, se detiene: «corrida incompleta») y registra en el lateral las series que lee (estación, contaminante, versión y sha256), los archivos CAMS con su sha256 (exigidos: sin ellos no escribe, contraste_unidades_v2.exigir_lateral_completo), los cambios frente a la primera corrida y la procedencia de la corrida (traza, red_ampliada_v2.traza_red2); lee las series nuevas y las actuales desde el derivado red 2 (filas «seleccionada» del ranking afg), no desde el CSV crudo como la primera",
+   "riesgo_declarado": "algunas series rotuladas µg/m³N pueden venir ya en ppb y quedar ≈ 1,9 veces más bajas"
+  },
+  "reloj": {
+   "regla_general": "UTC−4 fijo, etiqueta al fin: inicio UTC = etiqueta + 4 h − 1 h",
+   "verificacion": "scripts_modelo_1km/v2/reloj_sinca_v2.py (copia corregida; el original, a93a1eab…, no se toca); por estación × contaminante × año local de la etiqueta",
+   "hora_civil": "se convierte con la zona IANA de su región: ocurrencia estándar en la hora repetida, con la alternativa registrada; la inexistente se desplaza hacia adelante y se marca; dos etiquetas en la misma hora UTC se promedian con conteo y bandera (P9)",
+   "otros_veredictos": "regla general",
+   "conversion": "en reloj_sinca_v2.convertir y en el panel, no en preparar_sinca_modelado.py (T10)",
+   "politica_temporal_sha256": "41018e4c066d9e30b5ba0b1ff92d47eeb47bab1984b5b8c45a778939359ac61c",
+   "limite": "un estación-año en hora civil sin días de cambio de hora en sus datos no se detecta y queda en UTC−4 fijo (R7: «sin transiciones» sigue la regla general). Eso incluye los años sin ningún cambio de hora en su zona (reloj_sinca_v2.anios_sin_cambio_de_hora): 2015 en las tres zonas; America/Punta_Arenas (RXII: C05) de 2017 a 2026; America/Coyhaique (RXI: B03, B04 en sus tres contaminantes, B05 y B06) en 2025 y 2026. Esos años un exportador en hora civil está en −03 todo el año, así que el error es de 1 h en todas sus horas, no sólo en verano; esas unidades no votan en T4. reloj_sinca_v2.sin_transiciones_junto_a_civil cuenta las unidades sin_transiciones cuyo año anterior o siguiente da hora_civil con la convención elegida: van al resumen.json del reloj (limite_sin_transiciones), al json del panel (reloj.limite_sin_transiciones, que panel_red2_v2.reloj_y_su_huella vuelve a calcular) y al anexo (registro_de_la_red.reloj.sin_transiciones_junto_a_civil). Tratar esos años de otro modo (convertir 2015, por ejemplo) sería una regla nueva, del autor (quinta revisión, menor 4)",
+   "convencion_de_la_etiqueta": {
+    "estado": "no está documentada; la decide la regla T4 del autor (2026-10-26)",
+    "regla_T4": "una sola convención para todo SINCA, antes del paso a UTC y sólo con las etiquetas de los días de cambio de hora (sin valores de contaminante): votan las unidades del veredicto de R7, estación × contaminante × año local (T9); se cuentan las que dan hora_civil con una y no con la otra; gana la de más; empate, también en cero, inicio_mas_1h",
+    "calculo": "reloj_sinca_v2.ejecutar_reloj: para escribir exige la traducción confirmada en git, 2000-2026 y los tres contaminantes, la política temporal leída por su huella y las regiones de los maestros de R8 (no acepta regiones ni política dadas a mano), la lista cerrada antes de leer los maestros, y un derivado de la red 2 completo (derivado_red2_v2.exigir_derivado_completo: una sola raíz, la de destino_por_omision; su última corrida con progreso.json en «complete_for_selected_scope» y su plan.json con la huella rastreada de derivado_red2_v2.py; el conjunto estación × contaminante de red_ampliada_v2.series_esperadas_red2, hoy 262 series; las versiones que publicó esa corrida; y cada versión sin ventana y con exactamente sus fuentes de los tres manifiestos: red_de_monitores.calidad.derivado.lectura_completa); registra las raíces, cada serie (estación, contaminante, versión, sha256 de su observaciones.parquet y la sintaxis de afg_lib con su Python), la política leída, la región y la zona de cada serie y la base de zonas horarias; escribe los dos conteos y la elegida en verificacion_reloj_sinca_red2/resumen.json una sola vez",
+    "lectura_en_el_armado": "panel_red2_v2.reloj_y_su_huella: sólo acepta <raíz v2>/verificacion_reloj_sinca_red2/veredictos.parquet, con el schema del reloj, su sha256 y su huella de contenido; exige que el reloj corriera sobre todo SINCA, con la política que lee el panel, sobre las mismas series y la misma corrida del derivado que lee el panel (o una corrida equivalente: si el derivado se volvió a correr sin cambios después del reloj, vale la corrida nueva cuando las dos terminaron y publicaron exactamente las versiones que registra el reloj, derivado_red2_v2.corridas_equivalentes; cuarta revisión, menores 5 y 32), con la zona IANA de cada fila igual a la de su región y la misma base de zonas; vuelve a calcular la tabla con verificar_red (sólo ts_local y hora_repetida_en_fuente) y exige que sea idéntica, y vuelve a calcular la elección; --convencion-civil sólo puede confirmarla. En el armado, una serie que el reloj no registró, o un año con 720 etiquetas o más sin fila en la tabla, detiene el armado (observaciones_desde_derivado); la serie sin ningún año evaluable sigue la regla general y queda contada",
+    "zonas_horarias": "procedencia: en amb_v2 cada zona sale de la carpeta zoneinfo.TZPATH del entorno (share/zoneinfo, tzdata de conda 2026c; America/Santiago fd006953…), no del paquete tzdata (2026.3), que sólo se registra; la v1 usó la base del sistema (d020f0d7…); las 132 horas especiales de 2000-2026 son idénticas, y el código las fija: el reloj que escribe y el panel exigen 132 horas con la huella 96a7b7cb6862d58d1f38f83e986063c9cce0d2fa44cf436a9d2d7de361cd95fb (reloj_sinca_v2.HORAS_ESPECIALES y exigir_base_de_zonas); con otra base (America/Santiago copiada de America/Punta_Arenas da 112 horas) se detienen antes de leer las series. El origen de cada zona se registra con su ruta completa, sin rutas de usuario (reloj_sinca_v2.origen_portable: «<entorno amb_v2>/share/zoneinfo» o /usr/share/zoneinfo); sólo el sha256 distingue dos bases con el mismo nombre de carpeta (quinta revisión, menor 3). El paso a UTC (reloj_sinca_v2.utc_civil) pasa ZoneInfo(zona) a pandas, así que usa la misma base que el veredicto (antes pandas resolvía la zona con pytz, con su propia base 2026c); base_de_zonas registra la biblioteca de la conversión, y el panel exige que sus horas especiales, sus archivos de zona y esa biblioteca sean los del resumen del reloj",
+    "fuentes_revisadas": [
+     "config/sinca/politica_temporal.json (41018e4c…): «hora_local_civil_sinca_sin_offset» como hipótesis",
+     "config/sinca/README.md: nada sobre la etiqueta",
+     "docs/SINCA_SEMANTICA_PENDIENTE.md (2026-09-15): D.S. 61/2008 art. 2(i) etiqueta al inicio; R.E. 1449/2023 glosario «Hora» etiqueta al término; sin especificación del exportador; las dos normas suponen GMT−4 fijo"
+    ],
+    "opciones": {
+     "fin": "la etiqueta es la hora civil al terminar el intervalo: en el adelanto falta la 00:00 del domingo y en el atraso se repite la 23:00 del sábado",
+     "inicio_mas_1h": "la etiqueta es la hora civil de inicio + 1 h: falta la 01:00 del domingo y se repite la 00:00 del domingo; es lo que supone verificar_reloj_sinca.py"
+    },
+    "efecto": "con la opción equivocada, un exportador en hora civil no se detecta («reloj fijo parcial») y sus horas de verano quedan una hora corridas; en los años detectados, las dos conversiones difieren sólo en las horas contiguas a cada cambio",
+    "en_el_codigo": "reloj_sinca_v2.verificar_serie da el veredicto con las dos; el json del panel registra la elegida, los dos conteos y las huellas de los veredictos y del resumen"
+   }
+  },
+  "coordenadas": {
+   "actuales": {
+    "archivo": "sinca/estaciones_georreferenciadas.csv",
+    "sha256": "51ff693e6ac9a75eb92afc4da4995950f2b39fa4e241fd0e1f57a183cc381995"
+   },
+   "nuevas": {
+    "archivo": "sinca_ampliacion_20261024/geometria_20261025/estaciones_georreferenciadas.csv",
+    "sha256": "d5764ee2f8f6afa3a92cca609744080749254fbfb041d58783b99f31b4169308",
+    "estaciones": 106
+   },
+   "tolerancia_costera_m": 500,
+   "celda": "celda_de_lonlat y construir_enlaces sobre la grilla v1",
+   "enlaces_nuevas": "raíz v2: grilla/estaciones_enlaces_red2.parquet"
+  },
+  "duplicados": {
+   "radio_km": 2.0,
+   "coincidencia": 0.95,
+   "minimo_horas_comunes": 720,
+   "tolerancia_relativa": 1e-06,
+   "regla": "una copia por hora, la del código con más horas; los grupos de más de dos códigos se tratan como conglomerado (R9, P8)"
+  },
+  "propietarios": {
+   "registro": [
+    "propietario",
+    "operador",
+    "red",
+    "calificacion"
+   ],
+   "donde": "raíz v2: paneles/estaciones_red2.parquet, escrito por el armado con su sha256 en el json del panel",
+   "clasificacion": "pública o empresa, descriptiva; la calificación de la ficha manda cuando existe y, si no, el propietario (T1-3)",
+   "no_informado": "cuatro fichas (517, 518, 525 y 533) no traen calificación ni propietario, y las 3 estaciones SNIFA no tienen ficha SINCA: T1(3) no las alcanza, R10 no da regla para ellas y la desagregación es descriptiva, así que quedan en «no informado» en lugar de asignarles una clase (las SNIFA, con nota_tipo «SNIFA, sin ficha SINCA»; cuarta revisión, menor 17)",
+   "decision": "no entra en el §9 (R10)"
+  },
+  "insumos_de_hoy": {
+   "corte_utc": "2026-10-25T03:00:00Z",
+   "regla": "entra un archivo cuyo registro en su manifiesto es anterior al corte, con el sha256 que declara ese registro (los productos mensuales, por huella y no por tamaño); por fecha de modificación, sólo lo que autorizó T1(4): las órbitas antiguas de TROPOMI y GEOS-CF sin registro propio; lo demás sin registro queda fuera",
+   "congelado": "nada de enlaces vivos: el armado copia cada archivo que entra a la raíz v2 (insumos_red2/congelados, sólo lectura), calcula su sha256 al copiarlo y se detiene si no calza con el declarado; los lectores v1 leen esa copia. La lista, las huellas y el origen de cada archivo van en congelados.json (y el inventario completo, con lo que no entra, en inventario.json, de escritura única: al retomar se compara sólo lo que entra, panel_red2_v2.huella_de_lo_que_entra, así que un archivo nuevo que no entra no detiene el armado; quinta revisión, menor 21); el json del panel los cita por su sha256 (insumos.congelados_sha256 e insumos.inventario_sha256, con insumos.lista): lectura de R11, «con su lista y sus huellas en el json del panel», por referencia y con huella (cuarta revisión, menores 20 y 37). Si el armado se corta después de congelar, la copia se retoma sólo si congelados.json calza con el inventario de ahora y cada archivo con su sha256, vuelto a calcular (panel_red2_v2.congelar_o_retomar)",
+   "copias_de_corte": {
+    "merra2_202610": {
+     "regla": "T3: si el archivo de /Volumes cambió después del corte, se usa la copia del disco interno",
+     "carpeta": "Asesorias_Data_local/AirPollution/copias_corte_20261024/merra2_meteo",
+     "sha256": "6c32980582930e257d366508d2211e73dbe650e80fc22c30df2afde2f5aa9364",
+     "sha256_manifiesto": "367b4d365ce374def3d37f7d011534e504b80afa1219b4f807ccaef035460bde",
+     "sha256_SHA256SUMS": "167269731fa901cd001311da8e6d902c1a6578044152567c472710f2a3676f66"
+    }
+   },
+   "tropomi_por_fecha": {
+    "regla": "T1(4) y T11 [delegada, pendiente de que el autor la ratifique]: las órbitas de TROPOMI sin evento propio entran por su fecha de modificación, también las 146 de 2024 del formato antiguo (.chile.nc). Por T13 [delegada], el commit local de la traducción puede hacerse antes de la ratificación; el armado (PROPUESTA §11, paso 2) no empieza hasta que el autor ratifique T11, T12 y T13 (§11, paso 0; red_de_monitores.ratificacion_t11_t13, que la compuerta exige). Si cambia alguna, se hace otro commit de la traducción en AP y en el espejo antes del armado (PROPUESTA §9.0)",
+    "parametro": "panel_red2_v2.TROPOMI_MTIME_ANIOS = None, sin límite de año de adquisición (T11)",
+    "hoy_entran_asi": {
+     "2019": 1041,
+     "2020": 1045,
+     "2021": 1040,
+     "2022": 554,
+     "2024": 146
+    },
+    "en_el_anexo": "panel_red2_v2.resumen_inventario cuenta por año de adquisición lo que entra por fecha de modificación, con la huella de la lista de archivos (inventario.json y el json del panel: insumos.por_fecha_de_modificacion); el anexo lo copia en registro_de_la_red.tropomi_por_fecha"
+   },
+   "catalogo_maiac": {
+    "regla": "T5: las teselas del catálogo (tile=*/pixeles.parquet), sin registro por archivo, se registran antes del armado con su sha256 y entran como los demás insumos; entran sólo las de archivo anterior al corte; las demás quedan fuera, anotadas",
+    "registro": "raíz v2: insumos_red2/registro_catalogo_maiac.json (panel_red2_v2.py --registrar-catalogo-maiac, después de la confirmación en git y de la ratificación de T13, antes del armado: es el primer paso de red_de_monitores.orden después de la ratificación); se fija una vez y su sha256 va al json del panel y al anexo",
+    "en_el_armado": "el armado se detiene sin el registro; al congelar, cada tesela se copia y se compara con el sha256 registrado"
+   },
+   "espacio": "T6: ≈ 232 GB reservados en el disco interno para la copia congelada (TROPOMI 166,6; MAIAC 35,0; ERA5-Land 23,4; GEOS-CF 2,7; MERRA-2 2,2; capa límite 1,0; ACAG 0,94; CAMS 0,3)",
+   "entran_sin_variante_ni_comparacion": [
+    "TROPOMI NO2 2018-04-30 a 2018-12-31 y 2025-01-01 a 2026-10 (lo registrado antes del corte)",
+    "MERRA-2 2026-06 y lo registrado antes del corte",
+    "capa límite ERA5 2026-07 a 2026-09",
+    "GEOS-CF fuera de 2019-2024 si está registrado antes del corte"
+   ],
+   "no_entran": [
+    "NASADEM o GLO-30 como predictor",
+    "GOES ABI",
+    "lo registrado después del corte"
+   ],
+   "predictores": "las listas cerradas de 70 y 69 del §3, sin volver a elegir por cobertura",
+   "paneles": [
+    "paneles/panel_pm25_red2.parquet",
+    "paneles/panel_no2_red2.parquet"
+   ]
+  },
+  "sin_comparacion": {
+   "texto": "la especificación original no se estima ni se informa; no se informa el subconjunto de las estaciones originales; las extensiones de R11 no se comparan con su ausencia (R12)",
+   "rotulo": "cambian a la vez la red de monitores, los insumos, las unidades, el motor, la pérdida, los predictores y la meteorología"
+  },
+  "pesos": {
+   "regla": "las de la Enmienda 1 (punto 4) recalculadas sobre el panel red 2 (R14)",
+   "registro": "pliegues_v2_red2.json → pesos (peso fijo, desagrupamiento, Kish y G efectivo), con su huella_pesos",
+   "poblacion": "obligatoria para escribir: el desagrupamiento sin la población del INE no se fija",
+   "sin_e2": "--sin-e2 sólo con --no-escribir"
+  },
+  "regimenes": {
+   "regla": "R17 por contaminante (panel_red2_v2.regimenes_calculados); si PM2,5 y NO2 dan tramos distintos, los tramos comunes se cortan en todo año en que cambia la combinación de cualquiera de los dos (panel_red2_v2.regimenes_comunes)",
+   "donde": "raíz v2: paneles/regimenes_red2.json y cada panel_<pol>_red2.json; pliegues_v2_red2.json los copia (regimenes: los tramos comunes con el sha256 de regimenes_red2.json, comprobados contra los json de los paneles, bajo huella_pesos): es el «manifiesto» de R17, el mismo de R16 (cuarta revisión, menor 18)"
+  },
+  "fuente_unica_de_pliegues": {
+   "archivo": "pliegues_v2_red2.json (raíz v2), escrito sólo por pliegues_red2_v2.py",
+   "contiene": {
+    "pliegues": "contaminantes.<pol>.protocolos (huella_pliegues)",
+    "pesos": "pesos.<pol> (R14)",
+    "e2": "pesos.<pol>.evaluabilidad_e2 (R15)",
+    "bloque_mas_influyente": "bloque_mas_influyente (R16)",
+    "regimenes": "regimenes (R17): los tramos comunes de regimenes_red2.json con su sha256; pesos, bloque y regímenes, en huella_pesos"
+   },
+   "huellas": "huella_pliegues es la de pliegues_v2.huella_pliegues sobre este archivo; no es comparable con la del manifiesto de la red original (sus bloques «panel» difieren)",
+   "lectura_de_R21": "«el pliegues_v2.json de este bloque» se lee como este archivo: el manifiesto de la red original no se sobrescribe; queda intacto como pliegues_v2_reemplazado_<marca>.json",
+   "candado": "«pliegues», el mismo del manifiesto de la red original"
+  },
+  "registro_de_la_red": {
+   "evaluabilidad_e2": {
+    "pm25": null,
+    "no2": null,
+    "regla": "R15, «antes de cualquier ajuste, y se escribe en el registro de la red»: por contaminante y protocolo, {evaluable, fraccion_del_peso, grupos_con_E2, peso_E1, peso_E2} de pliegues_v2_red2.json → pesos.<pol>.evaluabilidad_e2.por_protocolo; la escribe pliegues_red2_v2.anexo_desde_artefactos (evaluabilidad_e2_del_manifiesto) y exigir_registro la compara con el manifiesto (verificar_evaluabilidad_e2). En la decisión (correr_v2.decidir, con la red 2) rige ésta, por R15 («antes de cualquier ajuste»): decision_v2 recibe, por protocolo, el «evaluable» registrado en vez del que la decisión calcula sobre sus pares, que sólo queda en decision.json (pliegues_red2_v2.evaluabilidad_e2_que_rige; evaluabilidad_E2_red2: la que rige, la de la decisión, si coinciden y la huella de la evidencia consolidada); si la registrada es evaluable y la evidencia no tiene pares E2, la decisión se detiene: es un defecto de la corrida, no una elección (ronda 5 de la traducción, mayor 1)"
+   },
+   "estado": "lo llena el anexo «Registro de la red v2» (R22, paso 4); mientras sea null, correr_v2 (también decidir) y piloto_v2 se detienen (pliegues_red2_v2.exigir_registro)",
+   "pliegues": {
+    "archivo": "pliegues_v2_red2.json",
+    "sha256": null,
+    "huella_pliegues": null,
+    "huella_pesos": null,
+    "despues_del_anexo": "sólo caben los recortes del presupuesto que el piloto anota al final de la bitácora (§10)"
+   },
+   "reloj": {
+    "veredictos_sha256": null,
+    "resumen_sha256": null,
+    "huella_series": null,
+    "conteos": null,
+    "elegida": null,
+    "sin_transiciones_junto_a_civil": null,
+    "regla": "T4 con la unidad de T9",
+    "regla_sin_transiciones": "sin_transiciones_junto_a_civil: el límite de R7 que declara el resumen del reloj (estación:contaminante:año)"
+   },
+   "tropomi_por_fecha": {
+    "entran": null,
+    "por_anio": null,
+    "huella_lista": null,
+    "regla": "T11 [delegada]: las órbitas que entran por su fecha de modificación, por año de adquisición. «El anexo lista las órbitas» se lee por referencia: el anexo trae el conteo por año y la huella de la lista (huella_lista), y la lista misma, archivo por archivo, está en insumos_red2/inventario.json, cuyo sha256 registra insumos.inventario_sha256 (PROPUESTA §8.14). Esta lectura se aparta de la letra de T11 y ninguna decisión la cubre: entra en la ratificación de T11 a T13 antes del armado (ratificacion_t11_t13, «§8.14»)"
+   },
+   "regimenes": {
+    "archivo": "paneles/regimenes_red2.json",
+    "sha256": null,
+    "regla": "R17: los tramos comunes; el anexo los escribe en criterio.valor (los de la Enmienda 1 quedan en valor_red_original) y pliegues_red2_v2.exigir_lo_calculado comprueba que sean los de este archivo, los de los json de los paneles (verificar_regimenes) y los que copió pliegues_v2_red2.json"
+   },
+   "bloque_mas_influyente": {
+    "regla": "R16: el anexo escribe el calculado en inferencia_diferencias.influencia.bloque_mas_influyente (el de la Enmienda 1 queda en bloque_mas_influyente_enmienda_2.red_original) y pliegues_red2_v2.exigir_lo_calculado lo comprueba"
+   },
+   "catalogo_maiac": {
+    "archivo": "insumos_red2/registro_catalogo_maiac.json",
+    "sha256": null,
+    "huella_teselas": null,
+    "regla": "T5"
+   },
+   "contraste_segunda_corrida": {
+    "archivo": "unidades_red2/contraste_unidades_cams_segunda.csv",
+    "sha256": null,
+    "lateral_sha256": null
+   },
+   "panel": {
+    "pm25": null,
+    "no2": null,
+    "o3": null,
+    "regla": "por contaminante, {json_sha256, sha256}: la huella del json del panel (paneles/panel_<pol>_red2.json; en O3, paneles/observaciones_o3_red2.json) y la del parquet que ese json declara"
+   },
+   "calidad": {
+    "pm25": null,
+    "no2": null,
+    "regla": "calidad_sha256 de cada json del panel; exigir_registro exige además que sea la bandera con que pliegues_v2_red2.json calculó la E2 (traza.insumos.calidad_<pol>)"
+   },
+   "duplicados": {
+    "pm25": null,
+    "no2": null,
+    "o3": null,
+    "regla": "sha256 canónico del registro qc.duplicados de cada json del panel (R9)"
+   },
+   "lista_cerrada": {
+    "huella": null,
+    "archivos": null,
+    "regla": "sha256 canónico de red_ampliada_v2.LISTA_CERRADA (R2) y su número de archivos"
+   },
+   "insumos": {
+    "inventario_sha256": null,
+    "congelados_sha256": null
+   },
+   "traduccion": {
+    "commit": null,
+    "commit_espejo": null,
+    "huella_archivos": null,
+    "regla": "§0 del contrato y R22 (quinta revisión, mayor 2): la traducción con que se escribieron todos los artefactos del armado (traza.traduccion de red_ampliada_v2.traza_red2: el último commit que tocó los archivos de la traducción en AP y en el espejo y la huella conjunta de esos archivos); pliegues_red2_v2.traduccion_comun exige que sea la misma en el reloj, la segunda corrida, el registro MAIAC, el inventario, la copia congelada, los json de los paneles y regimenes_red2.json"
+   },
+   "procedencia_descarga": {
+    "carpeta": "procedencia_descarga/ (raíz v2): las copias recuperadas del historial de versiones del Drive",
+    "versiones": null,
+    "regla": "R2 (quinta revisión, menor 22): por versión de red_de_monitores.procedencia_descarga, en_git (el programa del commit tiene la huella), recuperada (una copia con la huella en la carpeta, con su ruta) o perdida; lo arma pliegues_red2_v2.procedencia_descarga_desde_artefactos y lo compara verificar_registro_de_la_red"
+   },
+   "como_se_llena": "pliegues_red2_v2.py --anexo (no escribe nada): anexo_desde_artefactos lee los artefactos del armado (sólo json y huellas de archivos pequeños), comprueba que cada json de panel declare las mismas huellas del reloj, del contraste, del registro MAIAC y de los insumos, que regimenes_red2.json sea el de los json de los paneles y que todos los artefactos declaren la misma traducción (traduccion_comun), registra el estado de la procedencia de la descarga, y arma el bloque completo: este registro (con los pliegues y los regímenes), el bloque más influyente, los tramos comunes y la cobertura de E2 de la red ampliada; con_el_anexo los pone donde los leen los programas y exigir_registro los valida antes de mostrarlos; el autor los pega en config_v2.json (R22, paso 4), los confirma en git en AP y en el espejo, y exigir_registro los compara campo por campo con los artefactos (verificar_registro_de_la_red) y exige config_v2.json rastreado y sin cambios en los dos (red_ampliada_v2.exigir_config_confirmada; quinta revisión, menor 12)"
+  },
+  "compuerta_r22": "ningún programa de la red 2 escribe antes de que la traducción esté confirmada en git (red_ampliada_v2.exigir_traduccion_confirmada: el nodo red_de_monitores y los archivos de la traducción —el código nuevo y sus pruebas, el contrato y la configuración, cada archivo sellado de código y de pruebas que cambia CAMBIOS_AL_CODIGO_SELLADO.md, el envoltorio de geometría y su descargador con sus pruebas, descargar_sinca_meteorologia.py, que el descargador importa, con su prueba, y config/componentes_compartidos.json— rastreados y sin cambios en AP y con los mismos bytes y confirmados en el espejo APH, se lance el programa desde AP o desde el espejo (red_ampliada_v2.par_de_repositorios); en el espejo, además, los tres textos de la auditoría que cita contrato.enmiendas[2] (el bloque, las decisiones del autor y las de la traducción) rastreados, sin cambios y con su sha256 (red_ampliada_v2.ARCHIVOS_DEL_ESPEJO); y config/componentes_compartidos.json con la huella de cada archivo de la traducción (red_ampliada_v2.verificar_componentes). Entra también la carpeta propuesta_red_ampliada/ (red_ampliada_v2.ARCHIVOS_PROPUESTA). Todos los programas que la llaman son del armado, así que exige además la ratificación de T11 a T13 (ratificacion_t11_t13; T13 [delegada]). La segunda corrida del contraste tampoco lee valores antes. Lo que devuelve la compuerta va a la procedencia de cada artefacto (red_ampliada_v2.traza_red2: la traza de _traza_v2 —commit, huella del código, contrato, configuración, insumos, bibliotecas, Python e hilos— más la huella de cada módulo de la red 2 y la traducción con que se escribió, con los HEAD de AP y del espejo): el resumen.json del reloj, el lateral de la segunda corrida, el registro MAIAC, inventario.json, congelados.json, los json de los paneles y de O3, regimenes_red2.json y el plan.json del derivado (que registra además la huella de derivado_red2_v2.py); no entra en las comparaciones de escritura única (quinta revisión, mayores 1 y 2)",
+  "o3": {
+   "rama": "scripts_modelo_1km/o3_next/",
+   "observaciones": "raíz v2: paneles/observaciones_o3_red2.parquet",
+   "reglas": "la lista de R2 y las reglas R3 a R10; esquema de calidad de la v2 (entrena con todo, evalúa en E1 y E2); se ancla en su propio diseño antes de su primer ajuste (R20)"
+  },
+  "factibilidad": "R19: la regla y su medición no cambian y no se vuelven a medir con la red 2; las fechas de la medición quedan fijadas por el régimen 2019-2024 de la Enmienda 1: después del anexo, que reemplaza criterio.valor por los tramos calculados, factibilidad_v2.fechas_de_medicion las toma de criterio.valor_red_original (reemplazo de CAMBIOS_AL_CODIGO_SELLADO.md; cuarta revisión, menor 9). Con el nodo red_de_monitores, factibilidad_v2.medir y factibilidad_v2.publicar (y sus órdenes de consola) se detienen antes de leer o escribir nada («R19, la medición no se revisa»: factibilidad_v2.exigir_sin_red_ampliada, reemplazo de CAMBIOS): medir leería el panel de la red 2 y publicar rehace factibilidad_produccion.json, que decidir lee tal como quedó (quinta revisión, menores 13 y 24)",
+  "producto_meteorologico": "π^mon usa el manifiesto de pliegues de este bloque (pliegues_v2_red2.json, ver fuente_unica_de_pliegues.lectura_de_R21) y las tablas laterales de M6 el panel red 2 (R21), con su huella en el anexo",
+  "ratificacion_t11_t13": {
+   "valor": null,
+   "regla": "T13 [delegada]: el armado (PROPUESTA §11, paso 2) no empieza hasta que el autor ratifique T11, T12 y T13, con las lecturas de la traducción que ninguna decisión cubría: §8.14 (T11 por referencia), §8.15 (el límite de R7) y §8.17 (R15 en la decisión: rige la evaluabilidad de E2 registrada antes del ajuste, y la parada por defecto de la corrida) de PROPUESTA.md. Mientras «valor» sea null, la compuerta de R22 detiene todo programa del armado (red_ampliada_v2.exigir_ratificacion, dentro de exigir_traduccion_confirmada). Se llena en el commit posterior a la ratificación (PROPUESTA §9.0), igual a red_ampliada_v2.RATIFICACION_T11_T13: {fecha, decisiones_sha256 (la huella nueva del archivo de decisiones, con la ratificación anotada: la de DECISIONES_TRADUCCION y no la de antes, red_ampliada_v2.DECISIONES_SIN_RATIFICAR), T11, T12, T13, §8.14, §8.15 y §8.17, cada una «ratificada» o «cambiada»}. En ese mismo commit, los textos de T11, T12 y T13 de contrato.enmiendas[2].decisiones_de_traduccion y de red_ampliada_v2.DECISIONES_TRADUCCION dejan de decir que están pendientes y dicen «<estado> por el autor el <fecha>» (red_ampliada_v2.MARCA_DE_RATIFICACION), y la compuerta lo exige: los json de escritura única del armado copian esos textos. Cada artefacto registra con qué ratificación se escribió (traza.traduccion.ratificacion; ronda 5 de la traducción, menor 21)"
+  },
+  "orden": [
+   "anclaje del bloque en APH (hecho: f2c6cfc y 65afe8a)",
+   "traducción a AP: contrato, configuración, código y pruebas, en git en AP y en su espejo",
+   "ratificación de T11, T12 y T13 (con las lecturas §8.14, §8.15 y §8.17) por el autor (T13 [delegada]; PROPUESTA §11, paso 0): el armado no empieza antes (ratificacion_t11_t13, que la compuerta exige); el commit posterior a la ratificación la anota y, si cambia alguna, lleva también ese cambio, en AP y en el espejo, antes del armado",
+   "registro del catálogo MAIAC, antes del armado (T5): panel_red2_v2.py --registrar-catalogo-maiac, después de la ratificación (pasa por la compuerta de R22, que la exige) y antes del derivado; el panel lo exige",
+   "armado, en este orden: derivado (derivado_red2_v2), reloj (reloj_sinca_v2), segunda corrida del contraste (contraste_unidades_v2), panel con duplicados y calidad (panel_red2_v2) y pliegues (pliegues_red2_v2). R22, paso 3, nombra la segunda corrida al final de la lista y R6 la pone «al cerrar el panel»; T12 (a) [delegada] fija la lectura: la segunda corrida se hace con el derivado cerrado y antes de armar el panel, para que rija sobre él (el panel la exige con --contraste). El derivado no se vuelve a correr después del reloj; si se hace sin cambios, el armado acepta la corrida equivalente (cuarta revisión, menores 22 y 32)",
+   "anexo «Registro de la red v2», en git y sellado antes de M3-4",
+   "nueva medición del piloto de tiempos",
+   "M6",
+   "corrida larga"
+  ],
+  "anexo_registro_de_la_red": "pendiente (R22, paso 4): huellas de R2 (lista cerrada), del panel, de los pliegues, de la calidad, del reloj, de la segunda corrida del contraste (CSV y lateral), del registro MAIAC, de los insumos y de los duplicados, y las órbitas TROPOMI que entran por fecha de modificación, por año (T11); las arma pliegues_red2_v2.py --anexo (anexo_desde_artefactos, con los pliegues, los regímenes, el bloque más influyente, los tramos y la cobertura de E2), se escriben donde dice su «donde» (con_el_anexo) y exigir_registro las comprueba; la procedencia de la descarga (procedencia_descarga) se conoce hoy y queda en este nodo; su estado (en git, recuperada o perdida) lo registra el anexo en registro_de_la_red.procedencia_descarga, y la traducción común de los artefactos en registro_de_la_red.traduccion"
+ },
  "protocolos": {
   "fuente": "§1; Enmienda 1, puntos 1.1, 8 y 13; Complemento, puntos 5 y 9",
   "manifiesto": {
@@ -148,6 +887,7 @@
    "contiene": ["grupos", "k", "semillas"],
    "momento": "antes de ajustar ningún motor",
    "refijado_por_la_enmienda_1": "se vuelve a fijar, con su bitácora, por el amortiguador de BLQ-75 (punto 8), informando por bloque la distancia mínima de prueba a entrenamiento; lista también los conglomerados encadenados de LOSO-D (punto 13). La versión del piloto (sha256 5e965c22…) queda congelada.",
+   "red_ampliada": {"regla": "se vuelven a aplicar, sin cambiar ningún parámetro, las reglas del §1, de la Enmienda 1 (puntos 1.1, 8 y 13) y del Complemento (punto 5) al universo de la red 2 (R13)", "calculo": "pliegues_red2_v2.py → pliegues_v2_red2.json, la única fuente de pliegues, pesos, E2 y bloque más influyente (red_de_monitores.fuente_unica_de_pliegues); al fijarlo por primera vez, pliegues_v2.json (f001d48c…, huella 3e9f5acd…) se renombra intacto a pliegues_v2_reemplazado_<marca>.json y la bitácora del nuevo empieza con un evento «reemplazo» (regla R13) que lleva su sha256 y su bitácora", "lectores": "_rutas_v2.manifiesto_pliegues → pliegues_v2_red2.json; pliegues_v2.py se detiene bajo este contrato", "registro": "su sha256 y sus dos huellas los escribe el anexo en red_de_monitores.registro_de_la_red.pliegues", "conteos_y_ejemplos_de_la_enmienda_1": "describen la red original"},
    "congelado_del_piloto": {
     "archivo": "pliegues_v2_reemplazado_20261013T054105Z.json",
     "ubicacion": "raíz v2",
@@ -158,7 +898,8 @@
    "vigente": {
     "archivo": "pliegues_v2.json",
     "ubicacion": "raíz v2",
-    "es": "el manifiesto vigente, con el amortiguador de BLQ-75 (Enmienda 1, punto 8)",
+    "es": "el manifiesto vigente hasta la Enmienda 2, con el amortiguador de BLQ-75 (Enmienda 1, punto 8)",
+    "enmienda_2": "deja de ser el vigente cuando pliegues_red2_v2 fija pliegues_v2_red2.json: pasa intacto a pliegues_v2_reemplazado_<marca>.json (R13); el vigente es entonces pliegues_v2_red2.json (protocolos.manifiesto.red_ampliada)",
     "fuente": "Complemento de la Enmienda 1, punto 9"
    }
   },
@@ -182,7 +923,8 @@
     "radio_tierra_km": 6371.0,
     "fuente": "instrucción de la etapa; es la misma distancia de la v1 (_features.py:330-334)"
    },
-   "estaciones": "las del panel de cada contaminante, con las coordenadas de estaciones_con_celda() (qmd:1968-1970)",
+   "estaciones": "las del panel red 2 de cada contaminante, con las coordenadas de estaciones_con_celda_red2() (panel_red2_v2.py): los dos maestros de R8 y los 3 monitores SNIFA (Enmienda 2, R3 y R13)",
+   "estaciones_antes_de_la_enmienda_2": "las del panel de cada contaminante, con las coordenadas de estaciones_con_celda() (qmd:1968-1970)",
    "exclusion_adicional": "ninguna"
   },
   "LBO-10": {
@@ -234,7 +976,8 @@
   },
   "LPO": {
    "grupo_prueba": "cuatrienio del año local",
-   "anio_local": "UTC−4 fijo (columna anio del panel v1)",
+   "anio_local": "UTC−4 fijo (columna anio del panel red 2); los estación-años en hora civil se convierten antes a UTC con su zona IANA (Enmienda 2, R7)",
+   "anio_local_antes_de_la_enmienda_2": "UTC−4 fijo (columna anio del panel v1)",
    "ventanas": {
     "anio_desde": 2000,
     "anio_hasta": 2026,
@@ -621,7 +1364,11 @@
   },
   "metricas_en_log": true,
   "regla_previa": "un reemplazo de motor sólo vale si la decisión coincide con smearing_duan y con lognormal_medio_sigma2 (decision.condiciones, n = 6)",
-  "comparaciones_v2_frente_a_v1": "con la misma corrección (smearing frente a smearing, ½·σ² frente a ½·σ²), para separar el aporte del motor del de la corrección",
+  "comparaciones_v2_frente_a_v1": {
+   "estado": "sin efecto (Enmienda 2, R12): no se hacen comparaciones de la v2 con la v1",
+   "antes_de_la_enmienda_2": "con la misma corrección (smearing frente a smearing, ½·σ² frente a ½·σ²), para separar el aporte del motor del de la corrección",
+   "rotulo_si_se_mencionan_juntas": "cambian a la vez la red de monitores, los insumos, las unidades, el motor, la pérdida, los predictores y la meteorología"
+  },
   "produccion": "los residuos fuera de pliegue de LRO con el mismo N (decision.retransformacion_de_produccion)"
  },
  "perdidas": {
@@ -779,7 +1526,7 @@
     "lectura": "El peso es el de la decisión (pesos fijos por estación, punto 4) sobre los pares del nivel diario civil; los grupos son los del protocolo (regiones en LRO, bloques en BLQ-75)."
    },
    "registro": "los pliegues y las estaciones sin E2",
-   "cobertura_conocida": {"pm25": "45 de las 107 estaciones no tienen ninguna fila validada", "no2": "33 de las 54 estaciones SINCA no tienen ninguna fila validada"}
+   "cobertura_conocida": {"pm25": "45 de las 107 estaciones no tienen ninguna fila validada", "no2": "33 de las 54 estaciones SINCA no tienen ninguna fila validada", "red_original": "las dos cifras anteriores (Enmienda 1, punto 7)", "red_ampliada": {"regla": "Enmienda 2, R15: se calcula sobre el panel red 2 antes de cualquier ajuste, con los mismos umbrales, y queda en pliegues_v2_red2.json → pesos.<pol>.evaluabilidad_e2 (bajo huella_pesos); el anexo escribe aquí, por contaminante, la cifra «n de las N estaciones no tienen ninguna fila validada» (pliegues_red2_v2.texto_cobertura) y exigir_registro la compara con el manifiesto (verificar_cobertura)", "pm25": null, "no2": null}}
   },
   "comparacion_de_variantes": {
    "motor": "lightgbm",
@@ -816,6 +1563,7 @@
   "desagregaciones": {
    "macrozona": true,
    "estacion": true,
+   "propietario": {"valores": ["pública", "empresa", "no informado"], "fuente": "ficha SINCA (propietario y calificación; red_ampliada_v2.tipo_propietario)", "calculo": "estrato de las métricas: correr_v2.estratos_fila_a_fila con panel_red2_v2.estrato_propietario, desde paneles/estaciones_red2.parquet con su huella; sin ponderar; las SNIFA (sin ficha SINCA) y las fichas sin calificación ni propietario cuentan como «no informado»", "alcance": "descriptivo; no entra en el §9 (Enmienda 2, R10)"},
    "regimen_de_predictores": {
     "definicion": "con o sin GEOS-CF y TROPOMI (§8), separado por disponibilidad de predictores (Enmienda 1, punto 10)",
     "criterio": {
@@ -832,6 +1580,10 @@
      "nota": "v1: período 2019–2024 frente al resto (REGIMEN_SAT, qmd:355).",
      "cambio": "Punto 10: cinco regímenes por disponibilidad en lugar de dos.",
      "provisional_anterior": [2019, 2024]
+    },
+    "criterio_enmienda_2": {
+     "regla": "R17: tramos de años seguidos con la misma combinación de familias disponibles; una familia está disponible en un año si alguna de sus columnas es finita (acag_clim: = 1) en al menos la mitad de los días del año en el panel",
+     "lectura": "Nodo hermano de criterio (T12 c [delegada]: criterio no se vuelve regla). El código calcula los tramos sobre el panel red 2 (panel_red2_v2.regimenes_calculados) y los escribe en panel_<pol>_red2.json antes de cualquier ajuste; si PM2,5 y NO2 dan tramos distintos, rigen los comunes de regimenes_red2.json (cortes en todo año en que cambia cualquiera de los dos); pliegues_v2_red2.json los copia bajo huella_pesos. Los valores quedan en criterio, donde los leen metricas_v2.regimenes_de_config, factibilidad_v2 y pliegues_red2_v2.con_el_anexo: el anexo reemplaza criterio.valor por esos tramos y deja el actual como criterio.valor_red_original"
     },
     "sensibilidad": {
      "fila_a_fila": {
@@ -1009,6 +1761,7 @@
   },
   "influencia": {
    "bloque_mas_influyente": {"LRO": "RM", "BLQ-75": "E004N083"},
+   "bloque_mas_influyente_enmienda_2": {"regla": "el grupo de mayor peso poblacional (R14) sumado en los dos contaminantes, en la red de este bloque (R16)", "lectura": "peso del grupo = Σ peso fijo × filas de sus estaciones (el peso de sus pares en metricas_v2); se informa también con Σ pesos fijos", "calculo": "pliegues_red2_v2.bloque_mas_influyente, escrito en pliegues_v2_red2.json → bloque_mas_influyente antes de cualquier ajuste", "valor": "pendiente del anexo: el anexo escribe aquí el calculado y en bloque_mas_influyente, deja el de la Enmienda 1 (RM y E004N083) en red_original sin pisarlo aunque se aplique de nuevo, y escribe en aviso, por protocolo, el calculado, el nombrado por la Enmienda 1 y si cambia (R16, «se dice»: pliegues_red2_v2.con_el_anexo con aviso_r16, que exigir_lo_calculado compara con bloque_mas_influyente.<protocolo>.cambia de pliegues_v2_red2.json)"},
    "regla": "la superioridad debe sobrevivir a quitar el bloque más influyente; si no, se informa como no robusta",
    "lectura": "Los bloques los nombra la enmienda (son los de mayor peso poblacional en los dos contaminantes). «Sobrevivir» es volver a cumplir la superioridad (las dos pruebas, con el nivel de Holm de la decisión) sin ese bloque."
   },
@@ -1192,7 +1945,8 @@
   "efecto_estimado": "con los recortes 1 y 2, 115,65 h de máquina, y se conservan las semillas de BLQ-75 (un tiempo, no un resultado)",
   "punto_6_del_borrador": "sin efecto: el ruido de BLQ-75 no se toma de LRO",
   "registro_de_recortes": "bitácora del manifiesto (pliegues_v2.json → bitacora)",
-  "paralelizacion": "por pliegue, con puntos de control atómicos y reanudables"
+  "paralelizacion": "por pliegue, con puntos de control atómicos y reanudables",
+  "despues_de_los_cuatro_recortes": "si el plan sigue sobre unas 120 h, se corre igual y se registra en la bitácora; no hay quinto recorte (Enmienda 2, R18). El piloto de tiempos se vuelve a medir sobre el panel red 2"
  },
  "procedencia_y_sellado": {
   "fuente": "Enmienda 1, punto 14; Complemento, puntos 7 y 10",
@@ -1224,7 +1978,8 @@
    "extender GEOS-CF, TROPOMI NO2, MERRA-2 y BLH",
    "GOES ABI"
   ],
-  "predictores_dmc": "cuando termine su descarga y pase su control de calidad"
+  "predictores_dmc": "cuando termine su descarga y pase su control de calidad",
+  "entran_por_la_enmienda_2": "red_de_monitores.insumos_de_hoy (R11): las extensiones ya registradas antes del 2026-10-25 03:00 UTC entran sin variante ni comparación; NASADEM o GLO-30 como predictor y GOES ABI no entran"
  },
  "operacion": {
   "nota": "Reglas de operación de esta etapa; no son parte del contrato.",

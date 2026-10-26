@@ -711,7 +711,11 @@ class ConsolidacionEnmiendaTests(unittest.TestCase):
         self.assertEqual(b["BLQ-75"]["bloques"], bloques_75)
         self.assertEqual((b["LBO-10"]["unidad"], b["LBO-10"]["bloques"]), ("bloque", bloques_75))
         self.assertEqual(b["LPO"]["bloques"], sorted({f["grupo"] for f in self.ctx.pliegues("LPO")}))
-        self.assertEqual((b["LRO"]["bloque_mas_influyente"], b["BLQ-75"]["bloque_mas_influyente"]), ("RM", "E004N083"))
+        # el bloque que rige: el de la configuración (Enmienda 1: RM y E004N083; después del anexo de la Enmienda 2, el
+        # calculado, R16)
+        bloque = dc.regla_de_config(CFG).bloque_mas_influyente
+        self.assertEqual((b["LRO"]["bloque_mas_influyente"], b["BLQ-75"]["bloque_mas_influyente"]),
+                         (bloque["LRO"], bloque["BLQ-75"]))
         tb = self.res["LBO-10"]["bootstrap"]
         self.assertEqual(set(tb[tb["conjunto"] == mt.E1]["bloques"]), {len(bloques_75)})   # 4 bloques, no 8 conglomerados
         self.assertEqual(len(self.ctx.pliegues("LBO-10")), 8)
@@ -740,8 +744,8 @@ class ConsolidacionEnmiendaTests(unittest.TestCase):
         self.assertTrue(np.isfinite(f["p_jackknife"]))                       # el CV3 sólo informa
         self.assertEqual(f["replicas"], 200)                                  # las de la prueba (por omisión, 1.999)
         self.assertEqual(self.res["LRO"]["consolidado"]["traza"]["semillas"]["bootstrap_salvaje"], [42, 3000, 3])
-        self.assertEqual(f["bloque_influyente"], "RM")
-        self.assertTrue(pd.isna(f["robusta_sin_bloque"]))                     # el LRO sintético no tiene RM
+        self.assertEqual(f["bloque_influyente"], dc.regla_de_config(CFG).bloque_mas_influyente["LRO"])   # R16
+        self.assertTrue(pd.isna(f["robusta_sin_bloque"]))                     # el LRO sintético no tiene ese bloque
         ap = self._boot("LRO", "apilado", "lightgbm")
         self.assertEqual((ap["origen_ruido"], ap["replicas_del_par"]), ("maximo_de_las_bases", 1))
         self.assertEqual(self._boot("LRO", "xgboost~lognormal", "lightgbm~lognormal")["origen_ruido"], "replicas")
@@ -769,7 +773,7 @@ class ConsolidacionEnmiendaTests(unittest.TestCase):
         self.assertEqual((forma("lightgbm"), forma("lightgbm~lognormal")), (rt.SMEARING, rt.LOGNORMAL))
         self.assertEqual(forma("lightgbm~sens"), f"{rt.SMEARING} (OOF interno)")
         self.assertIn("regimen_fila_a_fila", set(m["desagregacion"]))
-        ids = {x["id"] for x in mt.REGIMENES}
+        ids = {x["id"] for x in mt.regimenes_de_config(CFG)}                 # los que rigen (R17, Enmienda 2)
         self.assertTrue(all(e.split(":")[0] in ids for e in m[m["desagregacion"] == "regimen"]["estrato"].unique()))
         self.assertTrue({"G", "G_efectivo", "estaciones_kish"} <= set(m.columns))
         c = self.res["LRO"]["consolidado"]
@@ -1432,6 +1436,139 @@ class ConsolaTests(unittest.TestCase):
         self.assertIn("pm25 LRO: 15 pliegues", texto)
         self.assertIn("internos lightgbm/xgboost/random_forest/mlp", texto)
         self.assertEqual(antes, sorted(p.name for p in R_REAL.raiz_v2.iterdir()))
+
+
+class EstratoPropietarioTests(unittest.TestCase):
+    """Enmienda 2, R10: el propietario de la estación de cada fila entra como estrato descriptivo de las métricas."""
+
+    def test_con_y_sin_la_red_ampliada(self):
+        from types import SimpleNamespace
+        import panel_red2_v2 as pr
+        with sx.raices_temporales("v2-estrato-") as r:
+            (r.raiz_v2 / "paneles").mkdir(parents=True)
+            ruta = r.raiz_v2 / "paneles" / pr.NOMBRE_ESTACIONES
+            pd.DataFrame({"estacion": ["A", "B"], "tipo_propietario": ["pública", "empresa"]}).to_parquet(ruta, index=False)
+            meta = r.raiz_v2 / "paneles" / pr.NOMBRE_PANEL.format(pol="no2").replace(".parquet", ".json")
+            meta.write_text(json.dumps({"estaciones": {"sha256": pr.sha256_de(ruta)}}), encoding="utf-8")
+            vec = SimpleNamespace(estaciones=np.array(["A", "B"]), js=np.array([0, 1, 1]))
+            ctx = SimpleNamespace(cfg={}, rutas=r, pol="no2", vec=vec, regimen_fila_a_fila=None)
+            self.assertEqual(cr.estratos_fila_a_fila(ctx)[0], {})                       # sin el nodo, como antes
+            estratos, info = cr.estratos_fila_a_fila(SimpleNamespace(**{**vars(ctx), "cfg": {"red_de_monitores": {}}}))
+            cod, etiquetas = estratos["propietario"]
+            self.assertEqual((cod.tolist(), etiquetas[:2]), ([0, 1, 1], ["pública", "empresa"]))
+            self.assertIn("propietario", info)
+
+
+class RedAmpliadaTests(unittest.TestCase):
+    """Enmienda 2: con el nodo red_de_monitores, Contexto.desde_disco exige el registro del anexo (R22, paso 4) y la
+    bandera de calidad; decidir exige el anexo y que el bloque de cada evidencia sea el de la configuración (R16); la
+    consola no admite --sin-calidad."""
+    CFG_RED2 = {**CFG, "red_de_monitores": {}}
+
+    def test_desde_disco_exige_el_anexo_y_la_bandera(self):
+        import hashlib
+        import calidad_v2
+        import pliegues_red2_v2
+        import pliegues_v2
+        with sx.raices_temporales("v2-red2-disco-") as r:
+            panel = sx.panel_sintetico()
+            r.panel("pm25").parent.mkdir(parents=True, exist_ok=True)
+            panel.to_parquet(r.panel("pm25"), index=False)
+            man = sx.manifiesto_sintetico(panel)
+            # el manifiesto calza con el panel en disco: la falta del registro del anexo es la única causa de la parada
+            man["contaminantes"]["pm25"]["panel"]["sha256"] = hashlib.sha256(r.panel("pm25").read_bytes()).hexdigest()
+            man["huella_pliegues"] = pliegues_v2.huella_pliegues(man)
+            r.manifiesto_pliegues.write_text(json.dumps(man), encoding="utf-8")
+            with self.assertRaises(SystemExit) as e:                         # sin el registro del anexo
+                cr.Contexto.desde_disco("pm25", r, self.CFG_RED2, hilos=1)
+            self.assertIn("anexo", str(e.exception))
+            visto = {}
+
+            def desde_tablas(pol, panel_, man_, cfg_, r_, etiqueta, h, calidad=None, vec=None, identidad_panel=None,
+                             insumos=None):
+                visto.update(calidad=calidad, insumos=insumos)
+                return "contexto"
+            with mock.patch.object(pliegues_red2_v2, "exigir_registro", lambda r_, cfg_, ruta=None: man), \
+                    mock.patch.object(cr.Vecindario, "desde_panel", lambda *a, **k: "vecindario"), \
+                    mock.patch.object(cr.Contexto, "desde_tablas", desde_tablas):
+                with self.assertRaises(SystemExit):                          # con el registro, sin la bandera
+                    cr.Contexto.desde_disco("pm25", r, self.CFG_RED2, hilos=1)
+                with self.assertRaises(SystemExit):                          # sin calidad, tampoco
+                    cr.Contexto.desde_disco("pm25", r, self.CFG_RED2, hilos=1, con_calidad=False)
+                pd.DataFrame({"estacion": panel["estacion"], "ts_utc": panel["ts_utc"], "qc": "validado",
+                              "fuente": "sinca"}).to_parquet(calidad_v2.ruta_calidad(r, "pm25"), index=False)
+                bandera = lambda pol, claves, r_: pd.DataFrame({"qc": ["validado"] * len(claves)})   # noqa: E731
+                with mock.patch.object(calidad_v2, "cargar_bandera", bandera):
+                    self.assertEqual(cr.Contexto.desde_disco("pm25", r, self.CFG_RED2, hilos=1), "contexto")
+                self.assertIn("calidad_pm25", visto["insumos"])
+                self.assertEqual(len(visto["calidad"]), len(panel))
+
+    def test_decidir_exige_el_anexo_y_el_bloque(self):
+        import pliegues_red2_v2
+        with sx.raices_temporales("v2-red2-decidir-") as r:
+            with self.assertRaises(SystemExit):                              # sin el registro del anexo
+                cr.decidir(r, self.CFG_RED2, "pm25", factibilidad={}, escribir=False)
+            regla = dc.regla_de_config(self.CFG_RED2)
+            for prot in regla.protocolos:
+                ruta = cr.ruta_evidencia(r, cr.ETIQUETA, "pm25", prot)
+                ruta.parent.mkdir(parents=True, exist_ok=True)
+                ruta.write_text(json.dumps({"bloque_mas_influyente": "otro"}), encoding="utf-8")
+            with mock.patch.object(pliegues_red2_v2, "exigir_registro", lambda r_, cfg_, ruta=None: {}):
+                with self.assertRaises(SystemExit) as e:                     # evidencia con otro bloque (R16)
+                    cr.decidir(r, self.CFG_RED2, "pm25", factibilidad={}, escribir=False)
+                self.assertIn("R16", str(e.exception))
+
+    def test_decidir_usa_la_evaluabilidad_registrada_de_e2(self):
+        """Enmienda 2, R15 («se calcula sobre el panel de R11, con los mismos umbrales, antes de cualquier ajuste»): en
+        decidir rige la evaluabilidad de E2 registrada en pliegues_v2_red2.json. Con la evidencia en «no evaluable»
+        (0,49) y la registrada en «evaluable» (0,51), decision_v2 recibe la registrada (la condición 3 se exige) y la de
+        la evidencia queda sólo en el registro de decision.json, con la huella de la evidencia consolidada; con la
+        registrada evaluable y una evidencia sin pares E2, decidir se detiene (defecto de la corrida)."""
+        import pliegues_red2_v2
+        regla = dc.regla_de_config(self.CFG_RED2)
+        registrada = {"evaluable": True, "fraccion_del_peso": 0.51, "grupos_con_E2": 5, "peso_E1": 10.0, "peso_E2": 5.1}
+        man = {"pesos": {"pm25": {"evaluabilidad_e2": {"por_protocolo": {p: dict(registrada) for p in regla.protocolos}}}}}
+        de_la_evidencia = {**registrada, "evaluable": False, "fraccion_del_peso": 0.49}
+
+        def evidencias(r, vistas):
+            for prot in regla.protocolos:
+                ruta = cr.ruta_evidencia(r, cr.ETIQUETA, "pm25", prot)
+                ruta.parent.mkdir(parents=True, exist_ok=True)
+                ruta.write_text(json.dumps({"bloque_mas_influyente": regla.bloque_mas_influyente.get(prot),
+                                            "semilla_bootstrap": 1, "semilla_salvaje": 2, "vistas": vistas,
+                                            "evaluabilidad_E2": de_la_evidencia}), encoding="utf-8")
+        recibidas = {}
+
+        def decidir_motor(ev, f, **k):
+            recibidas.update(ev)
+            return pd.DataFrame(), {"decision": "prueba"}
+        with sx.raices_temporales("v2-red2-decidir-e2-") as r, \
+                mock.patch.object(pliegues_red2_v2, "exigir_registro", lambda r_, cfg_, ruta=None: man):
+            evidencias(r, {})                                                # sin pares E2
+            with self.assertRaises(SystemExit) as e:
+                cr.decidir(r, self.CFG_RED2, "pm25", factibilidad={}, escribir=False)
+            self.assertIn("R15", str(e.exception))
+            self.assertIn("defecto de la corrida", str(e.exception))
+            evidencias(r, {dc.V_E2: {}})                                     # con pares E2
+            with mock.patch.object(dc, "decidir_motor", decidir_motor):
+                res = cr.decidir(r, self.CFG_RED2, "pm25", factibilidad={}, escribir=False)
+        self.assertEqual(sorted(recibidas), sorted(regla.protocolos))
+        e2 = res["registro"]["evaluabilidad_E2_red2"]
+        self.assertEqual(sorted(e2), sorted(regla.protocolos))
+        for prot in regla.protocolos:
+            self.assertTrue(recibidas[prot]["evaluabilidad_E2"]["evaluable"])       # la registrada, no la de la evidencia
+            self.assertEqual(recibidas[prot]["evaluabilidad_E2"]["fraccion_del_peso"], 0.51)
+            self.assertEqual((e2[prot]["rige"], e2[prot]["coinciden"]), (registrada, False))
+            self.assertEqual(e2[prot]["de_la_decision"]["fraccion_del_peso"], 0.49)
+            self.assertRegex(e2[prot]["evidencia_consolidada_sha256"], r"^[0-9a-f]{64}$")
+
+    def test_la_consola_no_admite_sin_calidad(self):
+        with sx.raices_temporales() as r, mock.patch.object(cr, "rutas_v2", lambda: r), \
+                mock.patch.object(cr, "cargar_config", lambda r_: self.CFG_RED2):
+            for accion in ("piloto", "correr", "consolidar"):
+                with self.subTest(accion), self.assertRaises(SystemExit) as e:
+                    cr.main([accion, "--sin-calidad"])
+                self.assertIn("--sin-calidad", str(e.exception))
 
 
 if __name__ == "__main__":

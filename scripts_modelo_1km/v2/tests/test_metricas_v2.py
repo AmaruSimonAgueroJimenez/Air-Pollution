@@ -275,7 +275,11 @@ class TablaTests(unittest.TestCase):
 
 class RegimenesTests(unittest.TestCase):
     def test_cinco_regimenes_iguales_a_la_configuracion(self):
-        self.assertEqual(mt.regimenes_de_config(CFG), mt._normalizar_regimenes(mt.REGIMENES))
+        sys.path.insert(0, str(V2 / "tests"))
+        from _sintetico_v2 import anexo_de_la_red
+        anexo = anexo_de_la_red(CFG)            # Enmienda 2, R17: después del anexo rigen los tramos calculados
+        self.assertEqual(mt.regimenes_de_config(CFG),
+                         mt._normalizar_regimenes(mt.REGIMENES if anexo is None else anexo["tramos"]))
         self.assertEqual([r["id"] for r in mt.REGIMENES], ["2000-2002", "2003-2018", "2019-2024", "2025", "2026"])
         anios = np.arange(1999, 2028)
         esperado = [-1, 0, 0, 0, *([1] * 16), *([2] * 6), 3, 4, -1]

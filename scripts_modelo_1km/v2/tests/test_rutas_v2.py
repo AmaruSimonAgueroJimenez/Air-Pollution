@@ -73,13 +73,17 @@ class RaicesTests(ConRaicesTemporales):
         self.assertEqual(r.raiz_v2, local / "modelado_1km_v2")
         self.assertEqual(r.raiz_v1, local / "modelado_1km")
         self.assertEqual(r.datos, Path("/Volumes/Datos/Asesorias_Data/AirPollution/data").resolve())
-        self.assertEqual(r.manifiesto_pliegues.name, "pliegues_v2.json")
+        self.assertEqual(r.manifiesto_pliegues.name, "pliegues_v2_red2.json")     # Enmienda 2, R13
 
     def test_las_variables_de_entorno_mandan(self):
         r = rv.RutasV2.desde_entorno({rv.VAR_RAIZ_V2: str(self.base / "otra"), rv.VAR_RAIZ_V1: str(self.base / "v1"),
                                       rv.VAR_DATOS: str(self.base / "datos")})
         self.assertEqual(r.raiz_v2, self.base / "otra")
-        self.assertEqual(r.panel("pm25"), self.base / "v1" / "paneles" / "panel_pm25.parquet")
+        self.assertEqual(r.panel("pm25"), self.base / "otra" / "paneles" / "panel_pm25_red2.parquet")  # R11
+        self.assertEqual(r.panel_v1("pm25"), self.base / "v1" / "paneles" / "panel_pm25.parquet")
+        derivado = (self.base / "derived" / "modelado" / "SINCA").resolve()
+        self.assertIn(derivado / "v1", r.nunca_escribibles)
+        self.assertNotIn(derivado / "v1_red2", r.nunca_escribibles)
         self.assertEqual(r.catalogo_sinca, self.base / "datos" / "sinca" / "estaciones_georreferenciadas.csv")
 
     def test_local_root_mueve_las_dos_raices(self):
@@ -333,6 +337,8 @@ class CandadoPorArtefactoTests(ConRaicesTemporales):
         casos = {
             r / "pliegues_v2.json": "pliegues",
             r / "pliegues_v2_reemplazado_20261013T050000Z.json": "pliegues",
+            r / "pliegues_v2_red2.json": "pliegues",
+            r / "pliegues_v2_red2_reemplazado_20261101T000000Z.json": "pliegues",
             s / "pliegues_v2_bloques_blq75.csv": "pliegues",
             r / "paneles" / "calidad_pm25.parquet": "calidad",
             s / "calidad_v2_tablas.json": "calidad",

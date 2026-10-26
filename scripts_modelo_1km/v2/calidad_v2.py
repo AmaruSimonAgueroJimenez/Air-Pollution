@@ -175,7 +175,10 @@ def derivado_sinca(raiz: Path) -> Path:
 
 
 def ruta_calidad(r: RutasV2, pol: str) -> Path:
-    return r.raiz_v2 / "paneles" / f"calidad_{pol}.parquet"
+    """Bandera del panel en uso, en la raíz v2: ``calidad_<pol>_red2.parquet`` para el panel de la red ampliada
+    (Enmienda 2, R5 y R11: la escribe ``panel_red2_v2`` junto al panel, alineada 1 a 1 y con estas mismas columnas) y
+    ``calidad_<pol>.parquet`` para el de la red original (``RutasRedOriginal``), que queda como estaba."""
+    return r.raiz_v2 / "paneles" / ("calidad_" + r.panel(pol).name.removeprefix("panel_"))
 
 
 def ruta_meta(r: RutasV2, pol: str) -> Path:
@@ -1015,6 +1018,11 @@ def ejecutar(r: RutasV2, cfg: dict, contaminantes=CONTAMINANTES, escribir: bool 
     """Calcula la bandera de cada contaminante y, si corresponde, la fija en la raíz v2 (con candado y escritura
     atómica). ``raiz_der`` es la raíz de los derivados (por omisión, ``raiz_derivados``). Devuelve los metadatos
     vigentes y el estado de cada uno: «fijado», «sin_cambios», «reemplazado», «republicado» o «sin_escribir»."""
+    if "red_de_monitores" in cfg:
+        raise SystemExit("Con la Enmienda 2 (red ampliada, R5 y R11) la bandera de calidad de la red 2 la escribe "
+                         "panel_red2_v2 al armar el panel (paneles/calidad_<pol>_red2.parquet, con su sha256 en el "
+                         "json del panel). Este programa reproduce la bandera de la red original y no corre bajo el "
+                         "contrato con la red ampliada, tampoco sin escribir.")
     hilos_cfg = int(cfg["operacion"]["hilos_maximos"])
     fijar_hilos(hilos_cfg)
     raiz_der = Path(raiz_der).resolve() if raiz_der is not None else raiz_derivados(r)
@@ -1156,6 +1164,12 @@ def cargar_bandera(pol: str, panel: pd.DataFrame | None = None, r: RutasV2 | Non
     """Lee ``calidad_<pol>.parquet`` y, si se pasa el panel (con ``estacion`` y ``ts_utc`` en su orden original),
     comprueba que está alineado 1 a 1 con él antes de devolverlo."""
     r = r or rutas_v2()
+    # Enmienda 2: con el panel de la red 2 la bandera tiene que ser la que declara su json (calidad_sha256)
+    declarado = (leer_json(r.panel_meta(pol)) or {}).get("calidad_sha256")
+    if declarado is None and r.panel(pol).name.endswith("_red2.parquet"):
+        raise SystemExit(f"{pol}: el json del panel de la red 2 no declara calidad_sha256")
+    if declarado is not None and sha256_archivo(ruta_calidad(r, pol)) != declarado:
+        raise SystemExit(f"{ruta_calidad(r, pol).name} no es la bandera que declara el json del panel (calidad_sha256)")
     df = pd.read_parquet(ruta_calidad(r, pol), columns=COLUMNAS)
     if panel is not None:
         iguales = (len(df) == len(panel)

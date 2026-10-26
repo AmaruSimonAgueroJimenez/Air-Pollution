@@ -314,7 +314,9 @@ class CicloCompletoTests(unittest.TestCase):
         scripts.mkdir(parents=True)
         shutil.copy2(V2 / rv.NOMBRE_CONTRATO, scripts / rv.NOMBRE_CONTRATO)
         shutil.copy2(V2 / rv.NOMBRE_CONFIG, scripts / rv.NOMBRE_CONFIG)
-        self.r = rv.RutasV2(raiz_v2=b / "v2", raiz_v1=b / "v1", datos=b / "datos", repo=self.repo, scripts_v2=scripts)
+        # la red original (Enmienda 2): panel v1 y pliegues_v2.json
+        self.r = rv.RutasRedOriginal(raiz_v2=b / "v2", raiz_v1=b / "v1", datos=b / "datos", repo=self.repo,
+                                     scripts_v2=scripts)
         # Catálogo SINCA: cinco estaciones usables y una que no.
         sinca = [("RM", "S1", 0.0, 13101), ("RM", "S2", 1.2, 13101), ("RM", "S3", 20.0, 13102),
                  ("RV", "S4", 200.0, 5101), ("RV", "S5", 205.0, 5101), ("RV", "S9", 210.0, 5101)]
@@ -358,7 +360,20 @@ class CicloCompletoTests(unittest.TestCase):
         self.r.panel_meta(pol).write_text(json.dumps(meta), encoding="utf-8")
 
     def ejecutar(self, **kw):
-        return pv.ejecutar(self.r, rv.cargar_config(self.r), **kw)
+        cfg = rv.cargar_config(self.r)
+        cfg.pop("red_de_monitores", None)          # los pliegues de la red original (Enmienda 2: ver la prueba siguiente)
+        return pv.ejecutar(self.r, cfg, **kw)
+
+    def test_con_la_red_ampliada_no_corre(self):
+        """Enmienda 2, R13: los pliegues de la red 2 los fija pliegues_red2_v2 (única fuente); este programa se
+        detiene, también sin escribir y al volver a fijar."""
+        cfg = rv.cargar_config(self.r)
+        cfg.setdefault("red_de_monitores", {})
+        for kw in ({}, {"escribir": False}, {"refijar": True}):
+            with self.subTest(**kw), self.assertRaises(SystemExit) as e:
+                pv.ejecutar(self.r, cfg, **kw)
+            self.assertIn("pliegues_red2_v2", str(e.exception))
+        self.assertFalse(self.r.raiz_v2.exists())
 
     def test_ciclo(self):
         m, estado = self.ejecutar()

@@ -786,6 +786,10 @@ def ejecutar(r: RutasV2, cfg: dict, reemplazar: bool = False, escribir: bool = T
     motivo y la bitácora anterior completa. Así los eventos de primer nivel (recortes, anotaciones) se refieren
     siempre a los pliegues vigentes. Con ``refijar``, vuelve a fijar el vigente bajo el contrato actual sin cambiar
     los pliegues (``refijar_manifiesto``)."""
+    if "red_de_monitores" in cfg:
+        raise SystemExit("Con la Enmienda 2 (red ampliada, R13 a R16) los pliegues, los pesos, la E2 y el bloque más "
+                         "influyente los fija pliegues_red2_v2.py en pliegues_v2_red2.json, la única fuente; este "
+                         "programa calcula los de la red original y no corre bajo el contrato con la red ampliada")
     if reemplazar and refijar:
         raise SystemExit("--reemplazar y --refijar no van juntos: --refijar no cambia los pliegues")
     m = construir_manifiesto(r, cfg, contaminantes, hilos=hilos)

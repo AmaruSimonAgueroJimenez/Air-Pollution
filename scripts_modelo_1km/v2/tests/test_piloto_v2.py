@@ -379,7 +379,7 @@ class ExtrapolacionTests(unittest.TestCase):
         d = pv.decidir_recortes(est([300, 290, 280, 280, 125], [200, 190, 125, 125, 100]), 120.0, orden)
         self.assertEqual((d["recorte"], d["excede_tras_recortes"], len(d["bitacora"])), (4, True, 5))
         self.assertEqual(d["aplicados"], [x["recorte"] for x in orden])
-        self.assertIn("enmienda", d["bitacora"][-1]["accion"])
+        self.assertIn("no hay quinto recorte (Enmienda 2, R18)", d["bitacora"][-1]["accion"])
         self.assertIn("4 recortes", d["bitacora"][-1]["accion"])
         self.assertEqual((d["recorte_con_menos_contencion"], d["excede_con_menos_contencion"]), (4, False))
         d = pv.decidir_recortes(est([200, 190, 150, 150, 110], [200, 190, 150, 150, 110]), 120.0, orden)
@@ -429,8 +429,10 @@ class PlanTests(unittest.TestCase):
             self.assertEqual(plan["piloto"]["mediciones"]["filas_vigentes"], plan["piloto"]["mediciones"]["filas"])
             self.assertEqual((plan["recorte_aplicado"], plan["excede_tras_recortes"]), (4, True))
             self.assertEqual([p["paso"] for p in plan["bitacora_de_recortes"]], [0, 1, 2, 3, 4])
-            self.assertIn("pendiente_del_autor", plan)
-            self.assertIn("4 recortes", plan["pendiente_del_autor"])
+            self.assertNotIn("pendiente_del_autor", plan)                   # Enmienda 2, R18: se corre igual
+            self.assertIn("4 recortes", plan["sobre_el_umbral_tras_los_recortes"])
+            self.assertIn("R18", plan["sobre_el_umbral_tras_los_recortes"])
+            self.assertIn("R18", plan["bitacora_de_recortes"][-1]["accion"])
             self.assertTrue(plan["bitacora_manifiesto"]["estado"].startswith("se anota"))
             self.assertEqual(set(plan["estimacion"]), {"0", "1", "2", "3", "4"})
             self.assertIn("todas_las_sesiones_libres", plan["piloto"]["maquina_libre"])
@@ -483,6 +485,14 @@ class PlanTests(unittest.TestCase):
             self.assertEqual(eventos[-1]["reemplaza"]["recorte"], 4)
             self.assertEqual(m["huella_pliegues"], plv.huella_pliegues(m))
             self.assertEqual(len(list(r.raiz_v2.glob("plan_corrida_v2_reemplazado_*.json"))), 2)   # un respaldo por vez
+
+    def test_con_la_red_ampliada_exige_la_bandera(self):
+        """Enmienda 2: con el nodo red_de_monitores, sin la bandera de calidad el piloto no estima el plan."""
+        with sx.raices_temporales() as r:
+            with self.assertRaises(SystemExit) as e:
+                pv.estimar_y_publicar(r, {**CFG, "red_de_monitores": {}}, 2, contaminantes=["pm25"])
+            self.assertIn("bandera de calidad", str(e.exception))
+            self.assertFalse((r.raiz_v2 / pv.NOMBRE_PLAN).exists())
 
     def test_incompleto_no_escribe_plan(self):
         with sx.raices_temporales() as r:

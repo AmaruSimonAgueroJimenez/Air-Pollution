@@ -137,11 +137,16 @@ def fila(tabla: pd.DataFrame, candidato: str, protocolo: str, forma: str = rt.SM
 class ReglaYNombresTests(unittest.TestCase):
     def test_regla_de_la_configuracion(self):
         regla = dc.regla_de_config(CFG)
-        self.assertEqual(regla, dc.ReglaDecision())
+        import dataclasses
+        sys.path.insert(0, str(V2 / "tests"))
+        from _sintetico_v2 import anexo_de_la_red
+        anexo = anexo_de_la_red(CFG)            # Enmienda 2, R16: después del anexo rige el bloque calculado
+        bloque = {"LRO": "RM", "BLQ-75": "E004N083"} if anexo is None else anexo["bloque"]
+        self.assertEqual(regla, dataclasses.replace(dc.ReglaDecision(), bloque_mas_influyente=bloque))
         self.assertEqual(dc.DIAS_PRODUCCION, 9862)
         self.assertEqual(list(dc.ORDEN_PROTOCOLOS), CFG["protocolos"]["orden"])
         self.assertEqual(regla.candidatos, tuple(CFG["decision"]["candidatos"]))
-        self.assertEqual(regla.bloque_mas_influyente, {"LRO": "RM", "BLQ-75": "E004N083"})
+        self.assertEqual(regla.bloque_mas_influyente, bloque)
         self.assertEqual((regla.alfa, regla.m_holm, regla.margen_nmb_pp), (0.05, 4, 1.0))
         # Complemento, punto 3: ≤ 5 veces LightGBM compilado y ≤ 21 días con 12 hilos, sumando pm25 y no2
         self.assertEqual((regla.umbral_dias_maquina, regla.factor_maximo_frente_a_lightgbm, regla.hilos_factibilidad,

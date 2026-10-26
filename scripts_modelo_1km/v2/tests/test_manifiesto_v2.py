@@ -122,6 +122,8 @@ class ManifiestoRealTests(unittest.TestCase):
             am = d["diagnosticos"]["blq75_amortiguador"]
             self.assertEqual(am["bloques_con_exclusion_adicional"],
                              sum(1 for f in d["protocolos"]["BLQ-75"]["pliegues"] if f["amortiguador"]["excluidas_por_amortiguador"]))
+        if "schema_red2" in M:
+            return                                  # Enmienda 2, R13: los conteos de la Enmienda 1 son de la red original
         # Lo que la Enmienda 1 constató al escribirla: 10 de 34 bloques de PM2,5 (6 de 18 en NO2) a <= 10 km.
         self.assertEqual(len(M["contaminantes"]["pm25"]["diagnosticos"]["blq75_amortiguador"]
                              ["bloques_con_entrenamiento_a_radio_o_menos_sin_amortiguador"]), 10)
@@ -133,8 +135,9 @@ class ManifiestoRealTests(unittest.TestCase):
         for pol, d in M["contaminantes"].items():
             esperados = [c["grupo"] for c in d["conglomerados_loso_d"] if c["diametro_km"] > M["parametros"]["LOSO-D"]["umbral_km"]]
             self.assertEqual([c["grupo"] for c in d["diagnosticos"]["conglomerados_encadenados"]], esperados)
-        diam = max(c["diametro_km"] for c in M["contaminantes"]["pm25"]["diagnosticos"]["conglomerados_encadenados"])
-        self.assertAlmostEqual(diam, 3.7, delta=0.05)
+        if "schema_red2" not in M:                  # Enmienda 2, R13: el ejemplo de 3,7 km es de la red original
+            diam = max(c["diametro_km"] for c in M["contaminantes"]["pm25"]["diagnosticos"]["conglomerados_encadenados"])
+            self.assertAlmostEqual(diam, 3.7, delta=0.05)
 
     def test_procedencia(self):
         t = M["traza"]
@@ -143,7 +146,8 @@ class ManifiestoRealTests(unittest.TestCase):
         self.assertEqual(t["contrato"]["sha256"], CFG["contrato"]["sha256"])
         for pol in ("pm25", "no2"):
             panel = M["contaminantes"][pol]["panel"]
-            self.assertEqual(panel["sha256"], panel["sha256_declarado_v1"])
+            # red original: «sha256_declarado_v1»; red 2 (Enmienda 2): «sha256_declarado», el del json del panel
+            self.assertEqual(panel["sha256"], panel.get("sha256_declarado_v1", panel.get("sha256_declarado")))
             self.assertEqual(t["insumos"][f"panel_{pol}"]["sha256"], panel["sha256"])
         self.assertLessEqual(t["hilos"]["configurados"], 12)
         texto = RUTA.read_text(encoding="utf-8")
@@ -204,6 +208,25 @@ class ManifiestoRealTests(unittest.TestCase):
                     self.assertTrue(b["este_min_m"] <= est[s]["utm19s_este_m"] < b["este_max_m"])
                     self.assertTrue(b["norte_min_m"] <= est[s]["utm19s_norte_m"] < b["norte_max_m"])
                     self.assertEqual(est[s]["bloque_blq75"], f["grupo"])
+
+    def test_red_ampliada_una_sola_fuente(self):
+        """Enmienda 2, R13 a R16: pliegues, pesos, E2 y bloque más influyente en un solo archivo, con sus dos huellas,
+        y la bitácora empieza con el reemplazo del manifiesto de la red original, intacto como respaldo."""
+        if "schema_red2" not in M:
+            self.skipTest("el manifiesto vigente es el de la red original")
+        import hashlib
+        import pliegues_red2_v2 as plr
+        self.assertEqual(RUTA.name, plr.NOMBRE)
+        for clave in ("pesos", "bloque_mas_influyente", "huella_pesos"):
+            self.assertIn(clave, M)
+        self.assertEqual(plr.huella_pesos(M), M["huella_pesos"])
+        for pol in ("pm25", "no2"):
+            self.assertIn("evaluabilidad_e2", M["pesos"][pol])
+        e = M["bitacora"][0]
+        self.assertEqual((e["evento"], e["regla"]), ("reemplazo", "R13"))
+        respaldo = RUTA.parent / e["respaldo"]["ruta"]
+        self.assertTrue(respaldo.name.startswith("pliegues_v2_reemplazado_"))
+        self.assertEqual(hashlib.sha256(respaldo.read_bytes()).hexdigest(), e["respaldo"]["sha256"])
 
     def test_lro_y_lpo_como_la_v1(self):
         regiones_pm25 = [f["grupo"] for f in M["contaminantes"]["pm25"]["protocolos"]["LRO"]["pliegues"]]

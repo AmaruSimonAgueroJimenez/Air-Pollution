@@ -381,6 +381,31 @@ class RegistroTests(unittest.TestCase):
                 vec.publicar_registro(base / "fuera.json", r)
 
 
+class ValidacionRed2Tests(unittest.TestCase):
+    """Enmienda 2: con la red ampliada, la reproducción (a2) de validar_vecindario_v2 lee las observaciones float64 que
+    escribió panel_red2_v2, por su sha256, y exige la configuración de su armado."""
+
+    def test_lee_las_del_armado_y_exige_su_configuracion(self):
+        import panel_red2_v2 as pr
+        import validar_vecindario_v2 as vval
+        sys.path.insert(0, str(V2 / "tests"))
+        from _sintetico_v2 import raices_temporales
+        with raices_temporales("v2-vecindario-red2-") as r:
+            (r.raiz_v2 / "paneles").mkdir(parents=True)
+            o = pd.DataFrame({"estacion": ["A"], "ts_utc": pd.to_datetime(["2020-01-01 03:00"]), "obs": [1.0000000001]})
+            ruta = r.raiz_v2 / "paneles" / pr.NOMBRE_OBS.format(pol="pm25")
+            o.to_parquet(ruta, index=False)
+            meta = {"schema": pr.SCHEMA, "desde": pr.DESDE, "hasta": pr.HASTA, "qc_racha_minima": pr.QC_RACHA,
+                    "observaciones_sha256": {"pm25": hashlib.sha256(ruta.read_bytes()).hexdigest()},
+                    "qc": {"horas_totales": 1, "horas_en_racha": 0, "estaciones_con_racha": 0}}
+            leido, info = vval.observaciones_red2_float64("pm25", r, meta)
+            self.assertEqual(leido["obs"].iloc[0], 1.0000000001)
+            self.assertIn("Enmienda 2", info["qc_nota"])
+            for clave, valor in (("hasta", "2026-09-13"), ("schema", "otro")):
+                with self.subTest(clave=clave), self.assertRaises(SystemExit):
+                    vval.observaciones_red2_float64("pm25", r, {**meta, clave: valor})
+
+
 # ---------------------------------------------------------------------------
 # Datos reales (sólo lectura)
 # ---------------------------------------------------------------------------
@@ -389,7 +414,8 @@ MANIFIESTO = rv.leer_json(R.manifiesto_pliegues) if R.manifiesto_pliegues.exists
 HAY_REAL = MANIFIESTO is not None and all(R.panel(p).exists() for p in ("pm25", "no2"))
 
 
-@unittest.skipUnless(HAY_REAL, "faltan el panel v1 o el manifiesto de pliegues")
+@unittest.skipUnless(HAY_REAL, "faltan el panel de la red 2 o su manifiesto de pliegues (pliegues_v2_red2.json): se arman "
+                           "en el paso 3 de R22")
 class PanelRealTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):

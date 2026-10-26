@@ -236,8 +236,10 @@ class RutasV2:
 
     @property
     def nunca_escribibles(self) -> tuple[Path, ...]:
-        """Raíces de sólo lectura (defensa en profundidad, con la comparación amplia)."""
-        return (self.raiz_v1, self.datos, _resolver(VOLUMEN_DATOS))
+        """Raíces de sólo lectura (defensa en profundidad, con la comparación amplia), con el derivado SINCA v1
+        (Enmienda 2, §3: la red 2 escribe su derivado en ``SINCA/v1_red2``)."""
+        return (self.raiz_v1, self.datos, _resolver(VOLUMEN_DATOS),
+                _resolver(self.datos.parent / "derived" / "modelado" / "SINCA" / "v1"))
 
     # --- Contrato y configuración -------------------------------------------
     @property
@@ -250,6 +252,12 @@ class RutasV2:
 
     # --- Insumos v1 y crudos (sólo lectura) ----------------------------------
     def panel(self, pol: str) -> Path:
+        """Panel de la red ampliada, en la raíz v2 (Enmienda 2, bloque de la red ampliada, R11): lo arma
+        ``panel_red2_v2``. Los paneles v1 (``panel_v1``) quedan intactos y la v2 ya no los lee."""
+        return self.raiz_v2 / "paneles" / f"panel_{pol}_red2.parquet"
+
+    def panel_v1(self, pol: str) -> Path:
+        """Panel v1: referencia histórica congelada (R12); la v2 no lo lee desde la Enmienda 2."""
         return self.raiz_v1 / "paneles" / f"panel_{pol}.parquet"
 
     def panel_meta(self, pol: str) -> Path:
@@ -270,7 +278,10 @@ class RutasV2:
     # --- Salidas v2 ---------------------------------------------------------
     @property
     def manifiesto_pliegues(self) -> Path:
-        return self.raiz_v2 / "pliegues_v2.json"
+        """Manifiesto de pliegues vigente. Desde la Enmienda 2 (bloque de la red ampliada, R13) es el de la red 2,
+        ``pliegues_v2_red2.json``: lo fija ``pliegues_red2_v2`` y es la única fuente de pliegues, pesos, E2 y bloque
+        más influyente. El de la red original queda intacto como ``pliegues_v2_reemplazado_<marca>.json``."""
+        return self.raiz_v2 / "pliegues_v2_red2.json"
 
     @property
     def candados(self) -> Path:
@@ -285,6 +296,18 @@ class RutasV2:
             if rel is not None:
                 return {"raiz": nombre, "ruta": rel.as_posix() or "."}
         return {"raiz": None, "ruta": r.name}
+
+
+class RutasRedOriginal(RutasV2):
+    """Rutas de la red original, las de antes de la Enmienda 2: panel v1, ``calidad_<pol>.parquet`` y
+    ``pliegues_v2.json``. Sirven para reproducir la bandera y los pliegues de la red original (``calidad_v2`` y
+    ``pliegues_v2`` con la configuración sin el nodo ``red_de_monitores``) y a sus pruebas; la v2 usa ``RutasV2``."""
+
+    def panel(self, pol: str) -> Path:
+        return self.panel_v1(pol)
+
+    manifiesto_pliegues = property(lambda self: self.raiz_v2 / "pliegues_v2.json",
+                                   doc="Manifiesto de pliegues de la red original.")
 
 
 @functools.lru_cache(maxsize=1)
@@ -325,7 +348,7 @@ def _regla(patron: str) -> re.Pattern:
 
 
 REGLAS_CANDADO: list[tuple[str, re.Pattern, str]] = [
-    ("raiz_v2", _regla(r"pliegues_v2(?:_reemplazado_[^/]+)?\.json"), "pliegues"),
+    ("raiz_v2", _regla(r"pliegues_v2(?:_red2)?(?:_reemplazado_[^/]+)?\.json"), "pliegues"),
     ("raiz_v2", _regla(r"paneles/calidad_[^/]+"), "calidad"),
     ("raiz_v2", _regla(r"vecindario/[^/]+"), "vecindario"),
     ("raiz_v2", _regla(r"piloto_tiempos/[^/]+"), "piloto_tiempos"),

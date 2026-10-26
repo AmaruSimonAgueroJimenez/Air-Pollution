@@ -211,8 +211,16 @@ def estacion_del_anio(fecha: date) -> str:
 
 def fechas_de_medicion(cfg: dict) -> dict[str, date]:
     """Las 3 fechas de la medición, fijadas por regla de calendario y sin mirar ningún dato: el día 15 del mes central
-    de cada estación (enero, abril y julio) del año del día central del régimen 2019-2024 (2022)."""
-    reg = {r["id"]: r for r in regimenes_de(cfg)}
+    de cada estación (enero, abril y julio) del año del día central del régimen 2019-2024 (2022) de la Enmienda 1.
+    Con la red ampliada (Enmienda 2), el anexo reemplaza los tramos de ``criterio`` por los calculados (R17) y deja los
+    de la Enmienda 1 en ``criterio.valor_red_original``: las fechas siguen saliendo de esos, porque la factibilidad no
+    se revisa (R19) y los regímenes no alteran el §9."""
+    crit = cfg["metricas"]["desagregaciones"]["regimen_de_predictores"]["criterio"]
+    if "valor_red_original" in crit:
+        reg = {str(r["id"]): {"id": str(r["id"]), "anios": [int(r["anios"][0]), int(r["anios"][1])]}
+               for r in crit["valor_red_original"]}
+    else:
+        reg = {r["id"]: r for r in regimenes_de(cfg)}
     if REGIMEN_MEDICION not in reg:
         raise ValueError(f"la configuración no tiene el régimen de predictores {REGIMEN_MEDICION}")
     a0, a1 = reg[REGIMEN_MEDICION]["anios"]
@@ -1120,7 +1128,9 @@ def medir(r: RutasV2, cfg: dict, contaminantes=CONTAMINANTES, hilos_ajuste: int 
           medir_en_subproceso: bool = True, epocas_mlp: int = EPOCAS_MLP, reusar_matrices: bool = False) -> dict:
     """Mide los contaminantes pedidos bajo el candado ``factibilidad``: arma las matrices con la producción v1 (o
     reutiliza las de ``temporal`` con ``reusar_matrices``), mide cada contaminante, guarda tras cada uno y borra el
-    temporal (modelos y matrices) al terminar, salvo ``conservar_temporal``."""
+    temporal (modelos y matrices) al terminar, salvo ``conservar_temporal``. Con la red ampliada (Enmienda 2) no mide:
+    la medición no se revisa (R19, ``exigir_sin_red_ampliada``)."""
+    exigir_sin_red_ampliada(cfg, "medir")
     fact = cfg["decision"]["factibilidad"]
     hilos_prediccion = int(fact["hilos"]) if hilos_prediccion is None else int(hilos_prediccion)
     fechas = fechas_de_medicion(cfg)
@@ -1419,8 +1429,20 @@ def procedencia_publicacion(r: RutasV2) -> dict:
             "mediciones": {**r.relativa(med), "sha256": sha256_archivo(med)} if med.exists() else None}
 
 
+def exigir_sin_red_ampliada(cfg: dict, accion: str) -> None:
+    """Enmienda 2, R19 («la regla y su medición no cambian»; lectura de la traducción: no se vuelve a medir con la red
+    2): con el nodo ``red_de_monitores`` la medición de la factibilidad no se revisa. ``medir`` no vuelve a medir (con la
+    red 2, ``filas_de_produccion`` leería el panel de la red 2) y ``publicar`` no rehace ``factibilidad_produccion.json``,
+    que ``correr_v2.decidir`` lee tal como quedó (Complemento, punto 3). Se detiene antes de leer o escribir nada."""
+    if "red_de_monitores" in cfg:
+        raise SystemExit(f"R19, la medición no se revisa: con la red ampliada (red_de_monitores en la configuración) "
+                         f"factibilidad_v2 no vuelve a {accion}; rige la medición del Complemento (punto 3)")
+
+
 def publicar(r: RutasV2, cfg: dict) -> dict:
-    """Escribe ``factibilidad_produccion.json`` (candado ``factibilidad``); el resumen del punto 11 se respalda."""
+    """Escribe ``factibilidad_produccion.json`` (candado ``factibilidad``); el resumen del punto 11 se respalda. Con la
+    red ampliada se detiene antes (R19, ``exigir_sin_red_ampliada``)."""
+    exigir_sin_red_ampliada(cfg, "publicar")
     with candado_escritura(CANDADO, r):
         res = pl.sin_nan(resumir(leer_mediciones(r), cfg))
         res["publicacion"] = procedencia_publicacion(r)

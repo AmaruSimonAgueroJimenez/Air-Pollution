@@ -96,7 +96,23 @@ class FechasTests(unittest.TestCase):
         crit = cfg["metricas"]["desagregaciones"]["regimen_de_predictores"]["criterio"]
         clave = "valor" if rv.estado_vigente(crit) == "ratificado" else "provisional"
         crit[clave] = [r for r in crit[clave] if r["id"] != "2019-2024"]
+        crit.pop("valor_red_original", None)            # Enmienda 2: tampoco en los de la Enmienda 1 guardados
         with self.assertRaises(ValueError):
+            fv.fechas_de_medicion(cfg)
+
+    def test_con_el_anexo_las_fechas_de_la_enmienda_1(self):
+        """Enmienda 2, R17 y R19: con el anexo, criterio trae los tramos calculados (ninguno es 2019-2024) y los de la
+        Enmienda 1 quedan en valor_red_original; las fechas de la medición no cambian."""
+        cfg = copy.deepcopy(CFG_REAL)
+        crit = cfg["metricas"]["desagregaciones"]["regimen_de_predictores"]["criterio"]
+        clave = "valor" if rv.estado_vigente(crit) == "ratificado" else "provisional"
+        crit.setdefault("valor_red_original", copy.deepcopy(crit[clave]))
+        crit[clave] = [{"id": i, "anios": a, "disponibilidad": "tramo calculado"}
+                       for i, a in (("2000-2002", [2000, 2002]), ("2003-2017", [2003, 2017]), ("2018", [2018, 2018]),
+                                    ("2019-2022", [2019, 2022]), ("2023-2026", [2023, 2026]))]
+        self.assertEqual(fv.fechas_de_medicion(cfg), FECHAS)
+        crit.pop("valor_red_original")
+        with self.assertRaises(ValueError):                 # sin los de la Enmienda 1, no hay fechas que fijar
             fv.fechas_de_medicion(cfg)
 
     def test_nombre_de_la_matriz(self):
@@ -613,8 +629,8 @@ class PuntaAPuntaTests(unittest.TestCase):
         import sklearn.metrics
         cfg = config_pequena()
         with sx.raices_temporales() as r, tempfile.TemporaryDirectory(prefix="factibilidad-temporal-") as d:
-            (r.raiz_v1 / "paneles").mkdir(parents=True, exist_ok=True)
             for pol in ("pm25", "no2"):
+                r.panel(pol).parent.mkdir(parents=True, exist_ok=True)       # panel red 2 (Enmienda 2, R11)
                 PANEL.to_parquet(r.panel(pol), index=False)
             with rv.candado_escritura(fv.CANDADO, r):                          # artefactos de la medición del punto 11
                 rv.publicar_json({"schema": fv.SCHEMAS_PUNTO_11[0], "contaminantes": {}}, fv.ruta_mediciones(r), r)
@@ -678,8 +694,11 @@ class PuntaAPuntaTests(unittest.TestCase):
         with sx.raices_temporales() as r:
             with mock.patch.object(fv, "leer_mediciones", return_value={}), \
                     mock.patch.object(fv, "resumir", return_value={"contaminantes": {"pm25": {"r2": 0.5}}}):
-                with self.assertRaises(RuntimeError):
+                with self.assertRaises(RuntimeError):           # la parada por métricas, con la red original
+                    fv.publicar(r, {k: v for k, v in copy.deepcopy(CFG_REAL).items() if k != "red_de_monitores"})
+                with self.assertRaises(SystemExit) as e:        # Enmienda 2, R19: con la red 2 se detiene antes
                     fv.publicar(r, CFG_REAL)
+                self.assertIn("R19", str(e.exception))
             self.assertFalse(fv.ruta_resumen(r).exists())
 
     def test_mediciones_del_punto_11_y_esquema_desconocido(self):
@@ -691,6 +710,31 @@ class PuntaAPuntaTests(unittest.TestCase):
                 rv.publicar_json({"schema": "otro"}, fv.ruta_mediciones(r), r)
             with self.assertRaises(SystemExit):
                 fv.leer_mediciones(r)
+
+
+class RedAmpliadaR19Tests(unittest.TestCase):
+    """Enmienda 2, R19 («la regla y su medición no cambian»): con el nodo red_de_monitores, factibilidad_v2 no vuelve a
+    medir (leería el panel de la red 2) ni a publicar factibilidad_produccion.json, que decidir lee tal como quedó; se
+    detiene antes de leer o escribir nada, también desde la consola."""
+
+    def test_con_la_red_ampliada_no_se_vuelve_a_medir(self):
+        cfg = {**config_pequena(), "red_de_monitores": {}}
+        prohibido = mock.Mock(side_effect=AssertionError("se armaron las matrices de la medición"))
+        with sx.raices_temporales("v2-factibilidad-r19-") as r:
+            with self.assertRaises(SystemExit) as e:
+                fv.medir(r, cfg, ["pm25"], hilos_ajuste=2, hilos_prediccion=2, armar=prohibido, esperar=False)
+            self.assertIn("R19", str(e.exception))
+            with self.assertRaises(SystemExit) as e:
+                fv.publicar(r, cfg)
+            self.assertIn("R19", str(e.exception))
+            with mock.patch.object(fv, "rutas_v2", lambda: r), mock.patch.object(fv, "cargar_config", lambda r_: cfg):
+                for argv in (["medir", "--hilos", "2", "--hilos-prediccion", "2", "--sin-esperar"], ["publicar"]):
+                    with self.subTest(argv=argv), self.assertRaises(SystemExit) as e:
+                        fv.main(argv)
+                    self.assertIn("R19", str(e.exception))
+            escritos = [q for q in Path(r.raiz_v2).rglob("*") if q.is_file()] if Path(r.raiz_v2).exists() else []
+            self.assertEqual(escritos, [])                      # ni el candado ni las mediciones
+        prohibido.assert_not_called()
 
 
 if __name__ == "__main__":

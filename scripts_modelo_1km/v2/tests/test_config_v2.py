@@ -23,15 +23,25 @@ CONTRATO = (V2 / rv.NOMBRE_CONTRATO).read_text(encoding="utf-8")
 ENCABEZADO_COMPLEMENTO = "### Complemento de la Enmienda 1 ("
 _INICIO_E1 = CONTRATO.find("### Enmienda 1 (")
 _INICIO_COMPLEMENTO = CONTRATO.find(ENCABEZADO_COMPLEMENTO)
-# La Enmienda 1 va desde su encabezado hasta el del Complemento; el Complemento, hasta el final del contrato.
+ENCABEZADO_BLOQUE_RED2 = "### Enmienda 2 ambiental — bloque «Red ampliada e insumos de hoy» ("
+_INICIO_BLOQUE_RED2 = CONTRATO.find(ENCABEZADO_BLOQUE_RED2)
+_FIN_COMPLEMENTO = _INICIO_BLOQUE_RED2 if _INICIO_BLOQUE_RED2 >= 0 else len(CONTRATO)
+# La Enmienda 1 va desde su encabezado hasta el del Complemento; el Complemento, hasta el bloque de la red ampliada de
+# la Enmienda 2 (o hasta el final del contrato, si no está).
 ENMIENDA_1 = CONTRATO[_INICIO_E1:_INICIO_COMPLEMENTO] if 0 <= _INICIO_E1 < _INICIO_COMPLEMENTO else ""
-COMPLEMENTO = CONTRATO[_INICIO_COMPLEMENTO:] if _INICIO_COMPLEMENTO >= 0 else ""
+COMPLEMENTO = CONTRATO[_INICIO_COMPLEMENTO:_FIN_COMPLEMENTO] if _INICIO_COMPLEMENTO >= 0 else ""
+BLOQUE_RED2 = CONTRATO[_INICIO_BLOQUE_RED2:] if _INICIO_BLOQUE_RED2 >= 0 else ""
+# Texto del contrato tal como quedó con el Complemento, antes del bloque de la red ampliada.
+TEXTO_CON_EL_COMPLEMENTO = CONTRATO[:_FIN_COMPLEMENTO].rstrip("\n") + "\n"
 # Texto del contrato tal como quedó con la Enmienda 1, antes de agregar el Complemento.
 TEXTO_CON_LA_ENMIENDA_1 = CONTRATO[:_INICIO_COMPLEMENTO].rstrip("\n") + "\n" if _INICIO_COMPLEMENTO >= 0 else CONTRATO
 RATIFICADO = "ratificado (Enmienda 1)"
 RATIFICADO_C = "ratificado (Complemento)"
 SHA_ORIGINAL = "c5b216f93c869d6e68b74d3f7d41e3b2fd8e6e9a7db5aea5691f0ff3829ae918"      # texto del commit 51d125e
 SHA_ENMIENDA_1 = "05218686b3f1808d5379b095789ada4ea69ba02362be8063330a2c2f9f5a5e17"    # texto con la Enmienda 1
+SHA_COMPLEMENTO = "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0"   # texto con el Complemento
+SHA_BLOQUE_RED2 = "274ebae06bee8eeeb7470a650ce0539af751577d292513b8198cdec7c159094b"   # bloque anclado en APH (f2c6cfc)
+SHA_DECISIONES_TRADUCCION = "fdfbfa3149dae432a392c5dbea338b933fddf6f5f15a22cf2d18ad93d7da9a60"  # T1 a T13 (T11 a T13 [delegadas])
 
 # Los 39 provisionales de la construcción, cada uno con el subpunto del punto 1 de la Enmienda 1 que lo ratifica
 # por nombre. Se enumeran a mano para que ninguno entre ni salga sin querer.
@@ -215,7 +225,8 @@ class ContratoTests(unittest.TestCase):
 
     def test_entrada_de_la_enmienda_1(self):
         enm = CFG["contrato"]["enmiendas"]
-        self.assertEqual([e["id"] for e in enm], ["Enmienda 1", "Complemento de la Enmienda 1"])
+        self.assertEqual([e["id"] for e in enm], ["Enmienda 1", "Complemento de la Enmienda 1",
+                                                  "Enmienda 2, bloque de la red ampliada"])
         e = enm[0]
         self.assertEqual((e["id"], e["fecha"], e["sha256"]), ("Enmienda 1", "2026-10-13", SHA_ENMIENDA_1))
         # su sha256 es el del texto tal como quedó con ella: el contrato vigente sin el Complemento
@@ -231,10 +242,49 @@ class ContratoTests(unittest.TestCase):
                     obtener(ruta)                                # existe
         self.assertEqual(sorted(e["puntos"][0]["config"]), sorted(RATIFICADOS))
 
+    def test_entrada_del_bloque_red_ampliada(self):
+        e = CFG["contrato"]["enmiendas"][2]
+        self.assertEqual((e["id"], e["fecha"], e["sha256"]), ("Enmienda 2, bloque de la red ampliada", "2026-10-25",
+                                                              CFG["contrato"]["sha256"]))
+        self.assertEqual(e["texto_del_bloque"]["sha256"], SHA_BLOQUE_RED2)
+        self.assertEqual(e["decisiones_de_traduccion"]["sha256"], SHA_DECISIONES_TRADUCCION)
+        self.assertIn(SHA_BLOQUE_RED2, BLOQUE_RED2)
+        self.assertIsNone(e["commit"])
+        self.assertEqual([p["punto"] for p in e["puntos"]], [f"R{k}" for k in range(2, 23)])
+        for p in e["puntos"]:
+            self.assertIn(f"##### {p['punto']}. ", BLOQUE_RED2)
+            for ruta in p["config"]:
+                with self.subTest(punto=p["punto"], ruta=ruta):
+                    obtener(ruta)                                # existe
+        self.assertEqual(CFG["red_de_monitores"]["red_resultante"]["no2"]["total"], 71)
+        reg = CFG["red_de_monitores"]["registro_de_la_red"]
+        self.assertEqual(reg["pliegues"]["archivo"], "pliegues_v2_red2.json")
+        self.assertEqual((reg["reloj"]["regla"], reg["catalogo_maiac"]["regla"]),
+                         ("T4 con la unidad de T9", "T5"))                    # los llena el anexo
+        self.assertTrue(reg["tropomi_por_fecha"]["regla"].startswith("T11 [delegada]"))
+        if reg["pliegues"]["sha256"] is None:                   # antes del anexo (R22, paso 4), todo vacío
+            self.assertIsNone(reg["regimenes"]["sha256"])
+            self.assertIsNone(reg["reloj"]["veredictos_sha256"])
+        else:                                                    # después, el anexo completo
+            self.assertTrue(reg["regimenes"]["sha256"] and reg["reloj"]["veredictos_sha256"])
+        dec = e["decisiones_de_traduccion"]
+        self.assertTrue(all(dec[k] for k in ("T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12", "T13")))
+        for k in ("T11", "T12", "T13"):                          # las delegadas, por ratificar (T13)
+            self.assertTrue(dec[k].startswith("[delegada]"))
+        # T8: la huella de afg_lib.py y su procedencia, iguales en el código y en la configuración
+        import derivado_red2_v2 as dr
+        afg = CFG["red_de_monitores"]["calidad"]["derivado"]["afg_lib"]
+        self.assertEqual(afg["sha256"], dr.SHA_AFG)
+        self.assertEqual({k: {"python": v["python"], "ranking_ast_sha256": v["ranking"],
+                              "parser_ast_sha256": v["analizador"]} for k, v in afg["procedencia_ast"].items()},
+                         dr.PROCEDENCIA_AST_AFG)
+
     def test_entrada_del_complemento(self):
         e = CFG["contrato"]["enmiendas"][1]
         self.assertEqual((e["id"], e["fecha"], e["sha256"]), ("Complemento de la Enmienda 1", "2026-10-13",
-                                                              CFG["contrato"]["sha256"]))
+                                                              SHA_COMPLEMENTO))
+        # su sha256 es el del texto tal como quedó con él: el contrato vigente sin el bloque de la red ampliada
+        self.assertEqual(hashlib.sha256(TEXTO_CON_EL_COMPLEMENTO.encode("utf-8")).hexdigest(), SHA_COMPLEMENTO)
         self.assertEqual((e["complementa_a"], e["momento"]), ("Enmienda 1", "antes de cualquier ajuste comparativo"))
         self.assertIsNone(e["commit"])
         self.assertIn("ninguna métrica de desempeño", e["conocido_al_escribirlo"]["v2"])
@@ -713,20 +763,28 @@ class MetricasTests(unittest.TestCase):
         self.assertEqual(valor(self.m["niveles"]["mensual"]["minimo_dias"]), 20)
         self.assertEqual(valor(self.m["niveles"]["anual"]["minimo_meses"]), 9)
         self.assertEqual(set(self.m["desagregaciones"]), {"macrozona", "estacion", "regimen_de_predictores",
-                                                          "estrato_de_soporte", "ponderado_por_poblacion"})
+                                                          "estrato_de_soporte", "ponderado_por_poblacion",
+                                                          "propietario"})
         self.assertEqual(self.m["desagregaciones"]["estrato_de_soporte"]["variables"], ["peso_vec", "dist_est_km"])
 
     def test_cinco_regimenes_contiguos(self):
         r = self.m["desagregaciones"]["regimen_de_predictores"]
         reg = valor(r["criterio"])
-        self.assertEqual([x["id"] for x in reg], ["2000-2002", "2003-2018", "2019-2024", "2025", "2026"])
+        sys.path.insert(0, str(V2 / "tests"))
+        from _sintetico_v2 import anexo_de_la_red
+        anexo = anexo_de_la_red(CFG)            # Enmienda 2, R17: después del anexo rigen los tramos calculados
+        if anexo is None:
+            self.assertEqual([x["id"] for x in reg], ["2000-2002", "2003-2018", "2019-2024", "2025", "2026"])
+        else:
+            self.assertEqual([(x["id"], list(x["anios"]), x["disponibilidad"]) for x in reg],
+                             [(x["id"], list(x["anios"]), x["disponibilidad"]) for x in anexo["tramos"]])
         anios = [a for x in reg for a in range(x["anios"][0], x["anios"][1] + 1)]
         self.assertEqual(anios, list(range(2000, 2027)))               # sin huecos ni solapes
         self.assertEqual(r["criterio"]["provisional_anterior"], [2019, 2024])
         self.assertIn("2024 se informa aparte de 2025-2026", r["LPO"])
         self.assertIn("no alteran el §9", r["alcance"])
         t = seccion(10)
-        for x in reg:
+        for x in (reg if anexo is None else []):                # los rótulos del §10 son los de la Enmienda 1
             self.assertIn(x["disponibilidad"], t)
 
     def test_pesos_fijos_y_desagrupamiento(self):
@@ -836,7 +894,11 @@ class RuidoInferenciaTests(unittest.TestCase):
         self.assertEqual(len(s["opciones_del_contrato"]), 2)
         self.assertTrue(self.i["regla_de_superioridad"]["la_segunda_prueba_coincide"])
         inf = self.i["influencia"]
-        self.assertEqual(inf["bloque_mas_influyente"], {"LRO": "RM", "BLQ-75": "E004N083"})
+        sys.path.insert(0, str(V2 / "tests"))
+        from _sintetico_v2 import anexo_de_la_red
+        anexo = anexo_de_la_red(CFG)            # Enmienda 2, R16: después del anexo rige el bloque calculado
+        self.assertEqual(inf["bloque_mas_influyente"],
+                         {"LRO": "RM", "BLQ-75": "E004N083"} if anexo is None else anexo["bloque"])
         self.assertIn("no robusta", inf["regla"])
         self.assertEqual(self.i["informes"], ["G", "G efectivo", "Δ sin cada bloque"])
         t = seccion(5)

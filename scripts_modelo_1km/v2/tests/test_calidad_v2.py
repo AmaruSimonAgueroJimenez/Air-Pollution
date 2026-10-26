@@ -69,7 +69,8 @@ class Mundo:
         scripts.mkdir(parents=True)
         shutil.copy2(V2 / rv.NOMBRE_CONTRATO, scripts / rv.NOMBRE_CONTRATO)
         shutil.copy2(V2 / rv.NOMBRE_CONFIG, scripts / rv.NOMBRE_CONFIG)
-        self.r = rv.RutasV2(raiz_v2=base / "v2", raiz_v1=base / "v1", datos=base / "datos", repo=self.repo,
+        # la red original (Enmienda 2): panel v1, calidad_<pol>.parquet y pliegues_v2.json
+        self.r = rv.RutasRedOriginal(raiz_v2=base / "v2", raiz_v1=base / "v1", datos=base / "datos", repo=self.repo,
                             scripts_v2=scripts)
         self.raiz_der = base / "derived"
         self.derivado = cv.derivado_sinca(self.raiz_der)
@@ -416,7 +417,43 @@ class CicloCompletoTests(unittest.TestCase):
     def ejecutar(self, **kw):
         kw.setdefault("raiz_der", self.m.raiz_der)
         kw.setdefault("auditoria", self.m.auditoria)
-        return cv.ejecutar(self.m.r, rv.cargar_config(self.m.r), **kw)
+        cfg = rv.cargar_config(self.m.r)
+        cfg.pop("red_de_monitores", None)          # la réplica de la red original (Enmienda 2: ver la prueba siguiente)
+        return cv.ejecutar(self.m.r, cfg, **kw)
+
+    def test_con_la_red_ampliada_no_corre(self):
+        """Enmienda 2: la bandera de la red 2 la escribe panel_red2_v2; este programa se detiene, también sin escribir."""
+        cfg = rv.cargar_config(self.m.r)
+        cfg.setdefault("red_de_monitores", {})
+        for escribir in (True, False):
+            with self.subTest(escribir=escribir), self.assertRaises(SystemExit) as e:
+                cv.ejecutar(self.m.r, cfg, escribir=escribir, raiz_der=self.m.raiz_der, auditoria=self.m.auditoria)
+            self.assertIn("panel_red2_v2", str(e.exception))
+            self.assertNotIn("--no-escribir", str(e.exception))
+        self.assertFalse(self.m.r.raiz_v2.exists())
+
+    def test_la_bandera_sigue_al_panel(self):
+        """Enmienda 2: con RutasV2 la bandera es la de la red 2 (calidad_<pol>_red2.parquet, junto a su panel)."""
+        red2 = rv.RutasV2(raiz_v2=self.m.r.raiz_v2, raiz_v1=self.m.r.raiz_v1, datos=self.m.r.datos,
+                          repo=self.m.r.repo, scripts_v2=self.m.r.scripts_v2)
+        self.assertEqual(cv.ruta_calidad(red2, "pm25"), red2.raiz_v2 / "paneles" / "calidad_pm25_red2.parquet")
+        self.assertEqual(cv.ruta_calidad(self.m.r, "pm25"), self.m.r.raiz_v2 / "paneles" / "calidad_pm25.parquet")
+
+    def test_la_bandera_de_la_red_2_por_su_huella(self):
+        """Enmienda 2: con el panel de la red 2, cargar_bandera exige el calidad_sha256 de su json y que calce."""
+        red2 = rv.RutasV2(raiz_v2=self.m.r.raiz_v2, raiz_v1=self.m.r.raiz_v1, datos=self.m.r.datos,
+                          repo=self.m.r.repo, scripts_v2=self.m.r.scripts_v2)
+        ruta = cv.ruta_calidad(red2, "pm25")
+        ruta.parent.mkdir(parents=True, exist_ok=True)
+        pd.DataFrame({c: ["x"] for c in cv.COLUMNAS}).to_parquet(ruta, index=False)
+        with self.assertRaises(SystemExit):                                  # el json no la declara
+            cv.cargar_bandera("pm25", r=red2)
+        red2.panel_meta("pm25").write_text(json.dumps({"calidad_sha256": "0" * 64}), encoding="utf-8")
+        with self.assertRaises(SystemExit):                                  # no calza
+            cv.cargar_bandera("pm25", r=red2)
+        sha = hashlib.sha256(ruta.read_bytes()).hexdigest()
+        red2.panel_meta("pm25").write_text(json.dumps({"calidad_sha256": sha}), encoding="utf-8")
+        self.assertEqual(len(cv.cargar_bandera("pm25", r=red2)), 1)
 
     def bandera(self, pol: str) -> pd.DataFrame:
         return pd.read_parquet(cv.ruta_calidad(self.m.r, pol))

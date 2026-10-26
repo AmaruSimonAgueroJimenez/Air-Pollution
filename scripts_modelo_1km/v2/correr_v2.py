@@ -372,9 +372,15 @@ class Contexto:
         r = rutas or rutas_v2()
         cfg = cfg if cfg is not None else cargar_config(r)
         h = int(cfg["operacion"]["hilos_maximos"]) if hilos is None else int(hilos)
+        if "red_de_monitores" in cfg and not con_calidad:   # Enmienda 2: la bandera es obligatoria, sin excepción
+            raise SystemExit(f"{pol}: con la red ampliada la bandera de calidad es obligatoria: no se corre sin "
+                             f"calidad (--sin-calidad)")
         man = leer_json(r.manifiesto_pliegues)
         if man is None:
             raise SystemExit(f"Falta el manifiesto de pliegues {r.relativa(r.manifiesto_pliegues)}")
+        if "red_de_monitores" in cfg:                     # Enmienda 2, R22 paso 4: el que registró el anexo
+            import pliegues_red2_v2
+            man = pliegues_red2_v2.exigir_registro(r, cfg, r.manifiesto_pliegues)
         vec = Vecindario.desde_panel(pol, r, manifiesto=man, cfg=cfg, hilos=h)
         feats = list(cfg["motores"]["eje_A"]["predictores"][pol])
         columnas = list(dict.fromkeys(["estacion", "ts_utc", "obs", "anio", "hora_local", "macrozona_cod", "pob_dens",
@@ -390,6 +396,9 @@ class Contexto:
             if ruta_qc.exists():
                 calidad = calidad_v2.cargar_bandera(pol, panel[["estacion", "ts_utc"]], r)["qc"].to_numpy(dtype=object)
                 insumos[f"calidad_{pol}"] = ruta_qc
+            elif "red_de_monitores" in cfg:                   # Enmienda 2: la bandera es obligatoria
+                raise SystemExit(f"{pol}: con la red ampliada la bandera de calidad es obligatoria "
+                                 f"({r.relativa(ruta_qc)['ruta']}, la escribe panel_red2_v2)")
             else:
                 log.warning("%s: no hay bandera de calidad (%s); sin variantes ni evaluación sobre validadas", pol,
                             r.relativa(ruta_qc)["ruta"])
@@ -1334,11 +1343,19 @@ def regimen_de_panel(panel: pd.DataFrame, cfg: dict) -> tuple | None:
 
 
 def estratos_fila_a_fila(ctx: Contexto) -> tuple[dict, dict]:
-    """Régimen de predictores fila a fila del contexto (``regimen_de_panel``) como estrato de las métricas."""
+    """Régimen de predictores fila a fila del contexto (``regimen_de_panel``) como estrato de las métricas y, con la
+    red ampliada (Enmienda 2, R10), el propietario de la estación de cada fila (descriptivo; no entra en el §9)."""
     if ctx.regimen_fila_a_fila is None:
-        return {}, {"estado": "el panel no trae ninguna columna de las familias del régimen fila a fila"}
-    cod, etiquetas, info = ctx.regimen_fila_a_fila
-    return {"regimen_fila_a_fila": (np.asarray(cod, dtype="int64"), etiquetas)}, info
+        estratos, info = {}, {"estado": "el panel no trae ninguna columna de las familias del régimen fila a fila"}
+    else:
+        cod, etiquetas, info = ctx.regimen_fila_a_fila
+        estratos = {"regimen_fila_a_fila": (np.asarray(cod, dtype="int64"), etiquetas)}
+    if "red_de_monitores" in ctx.cfg:
+        import panel_red2_v2
+        cod, etiquetas, info_p = panel_red2_v2.estrato_propietario(ctx.rutas, ctx.pol, ctx.vec.estaciones, ctx.vec.js)
+        estratos["propietario"] = (cod, etiquetas)
+        info = {**info, "propietario": info_p}
+    return estratos, info
 
 
 def conjuntos_de(ctx: Contexto, comunes: np.ndarray, pliegue_de_fila: np.ndarray) -> tuple[dict, dict]:
@@ -1846,12 +1863,22 @@ def decidir(r: RutasV2, cfg: dict, pol: str, etiqueta: str = ETIQUETA, factibili
     las dos decisiones (Complemento, punto 3). ``forzado`` (de ``resolver_replicas_bootstrap``: un B distinto de
     1.999 aceptado con ``--forzar``) queda en el registro como ``replicas_bootstrap_forzadas``."""
     regla = dc.regla_de_config(cfg)
+    e2_red2 = {}
+    if "red_de_monitores" in cfg:                         # Enmienda 2, R22 paso 4 (y R16 y R17): el anexo
+        import pliegues_red2_v2
+        manifiesto_red2 = pliegues_red2_v2.exigir_registro(r, cfg)
     evidencias, insumos = {}, {}
     for prot in regla.protocolos:
         ruta = ruta_evidencia(r, etiqueta, pol, prot)
         ev = leer_json(ruta)
         if ev is None:
             raise Incompleto(f"{pol} {prot}: falta {NOMBRE_EVIDENCIA}; consolida antes el protocolo")
+        if "red_de_monitores" in cfg and ev.get("bloque_mas_influyente") != regla.bloque_mas_influyente.get(prot):
+            raise SystemExit(f"{pol} {prot}: la evidencia se consolidó con el bloque más influyente "
+                             f"{ev.get('bloque_mas_influyente')!r} y la configuración dice "
+                             f"{regla.bloque_mas_influyente.get(prot)!r} (R16): consolida de nuevo")
+        if "red_de_monitores" in cfg:                     # R15: rige la E2 registrada antes del ajuste
+            ev, e2_red2[prot] = pliegues_red2_v2.evaluabilidad_e2_que_rige(ev, manifiesto_red2, pol, prot)
         evidencias[prot] = ev
         insumos[f"evidencia_{prot}"] = ruta
     tr = traza(insumos, {"bootstrap": {p: evidencias[p]["semilla_bootstrap"] for p in regla.protocolos},
@@ -1862,6 +1889,8 @@ def decidir(r: RutasV2, cfg: dict, pol: str, etiqueta: str = ETIQUETA, factibili
                                        contaminante=pol)
     if forzado is not None:
         registro["replicas_bootstrap_forzadas"] = dict(forzado)
+    if e2_red2:                                           # Enmienda 2, R15: la E2 que rige y la de la decisión (registro)
+        registro["evaluabilidad_E2_red2"] = e2_red2
     if escribir:
         nombre = f"comparacion_{etiqueta}_{pol}_decision"
         with candado_escritura(f"{CARPETA}.{etiqueta}.{pol}", rutas=r):
@@ -2135,6 +2164,9 @@ def main(argv=None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s", datefmt="%H:%M:%S")
     r = rutas_v2()
     cfg = cargar_config(r)
+    if "red_de_monitores" in cfg and args.sin_calidad:   # Enmienda 2: la bandera es obligatoria con la red 2
+        raise SystemExit("--sin-calidad no se admite con la red ampliada: la bandera de calidad es obligatoria "
+                         "(Enmienda 2, segunda revisión, menor 8)")
     recetas = mv.recetas_de(cfg, args.hilos)
     if args.accion == "piloto":
         import piloto_v2

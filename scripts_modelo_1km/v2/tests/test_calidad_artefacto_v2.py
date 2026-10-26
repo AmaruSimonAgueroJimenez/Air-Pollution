@@ -19,7 +19,7 @@ sys.path.insert(0, str(V2))
 import _rutas_v2 as rv  # noqa: E402
 import calidad_v2 as cv  # noqa: E402
 
-R = rv.RutasV2.desde_entorno()
+R = rv.RutasRedOriginal.desde_entorno()          # la bandera de la red original (Enmienda 2: queda intacta)
 METAS = {pol: rv.leer_json(cv.ruta_meta(R, pol)) for pol in cv.CONTAMINANTES}
 HAY = all(METAS.values()) and all(cv.ruta_calidad(R, pol).exists() for pol in cv.CONTAMINANTES)
 
