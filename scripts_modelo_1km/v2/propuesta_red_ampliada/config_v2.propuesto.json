@@ -129,7 +129,7 @@
     "decisiones_de_traduccion": {
      "archivo": "auditoria/20261024/sinca_al_modelo/decisiones_autor_traduccion_20261025.md",
      "repositorio": "Air-Pollution-Health-Chile",
-     "sha256": "fdfbfa3149dae432a392c5dbea338b933fddf6f5f15a22cf2d18ad93d7da9a60",
+     "sha256": "a0b970d2fbbf08a11c28d24c075ca1dd81ef2509d2093d243c1fc7a95dad3920",
      "T1": "se aceptan las cuatro lecturas de implementación: (1) peso de un bloque = peso fijo × filas de sus estaciones (R16); (2) duplicados con tolerancia relativa 1e-6 y grupos de más de dos códigos como uno (R9); (3) pública o de empresa: la calificación de la ficha y, si no la trae, el propietario (R10); (4) órbitas antiguas de TROPOMI y GEOS-CF sin registro propio, por su fecha de modificación (R11)",
      "T2": "aplicar después de una revisión independiente, en AP y en su espejo APH, ajustando las pruebas que cambian, con commit local y sin envío al remoto",
      "T3": "MERRA-2 2026-10 (publicado como parcial): copia con su huella en el disco interno",
@@ -140,9 +140,9 @@
      "T8": "R5, «la misma huella del ranking»: rige el sha256 de afg_lib.py, el de la v1 (4391787a…); las huellas del árbol de sintaxis quedan como procedencia, con la versión de Python; el derivado corre en amb_v2",
      "T9": "votan las unidades del veredicto de R7, estación × contaminante × año local; reemplaza la lectura «estación × año»",
      "T10": "la conversión a hora civil está en reloj_sinca_v2.convertir y en el panel, no en preparar_sinca_modelado.py (al preparador se le usa por su API): se acepta como diferencia con el cuadro del §3",
-     "T11": "[delegada] (decidida con la opción recomendada por delegación del autor, 2026-10-26 cerca de las 01:35, sin que la viera; pendiente de que la ratifique): las 146 órbitas TROPOMI de 2024 sin registro (138 OFFL 02.08.00 del 2 al 31 de diciembre y 8 RPRO 02.06.00 sueltas, en el formato antiguo .chile.nc, escritas el 2026-08-10) entran por su fecha de modificación, como las de 2019-2022 (T1(4)); TROPOMI_MTIME_ANIOS queda sin límite; el anexo lista por año las órbitas que entran así (3.826)",
-     "T12": "[delegada] diferencias con el cuadro del §3 y lecturas que T7 no cubría (verificaciones de la madrugada del 2026-10-26); se aceptan cinco: (a) la segunda corrida del contraste se hace con el derivado cerrado y antes de armar el panel, para que rija sobre él (la lectura de «al cerrar el panel» y de R22.3); (b) el derivado de la red 2 vuelve a derivar completas las 107 estaciones actuales desde DATOS/sinca (sellado más actualización) en una sola raíz v1_red2, que leen el reloj, el contraste y el panel (R4); (c) inferencia_diferencias.influencia.bloque_mas_influyente y …criterio no se vuelven regla y quedan con nodos hermanos; (d) las raíces del derivado de la red 2 viven en derivado_red2_v2 (raiz_derivados, destino_por_omision) y no en _rutas_v2; (e) las lecturas §8.8 a §8.13 de PROPUESTA.md (la §8.12 queda corregida), entre ellas las SNIFA como «no informado» (R10); y se corrige la sexta: la masa molar del O3 es la literal de R6, 47,998 g/mol (unidades_v2.MASA_MOLAR y contraste_unidades_v2.M), y el panel importa produccion.py con su huella fijada (panel_red2_v2.HUELLAS_CODIGO_V1, la de cada repositorio) y marca las rachas con produccion.marcar_rachas, la regla de produccion.observaciones; la función misma lee las series de la v1 y no admite las de la red 2, así que el resto se replica, con una prueba de equivalencia; pendiente de que el autor la ratifique",
-     "T13": "[delegada] el commit local de la traducción (T2) puede hacerse antes de la ratificación; el armado no: el paso 2 de §11 (armado) no empieza hasta que el autor ratifique T11, T12 y T13 (paso 0 de §11); si cambia alguna, se hace otro commit antes del armado; el commit local se puede reemplazar, la copia congelada y los json del panel, de escritura única, no; pendiente de que el autor la ratifique"
+     "T11": "[delegada] (decidida con la opción recomendada por delegación del autor, 2026-10-26 cerca de las 01:35, sin que la viera; ratificada por el autor el 2026-10-26): las 146 órbitas TROPOMI de 2024 sin registro (138 OFFL 02.08.00 del 2 al 31 de diciembre y 8 RPRO 02.06.00 sueltas, en el formato antiguo .chile.nc, escritas el 2026-08-10) entran por su fecha de modificación, como las de 2019-2022 (T1(4)); TROPOMI_MTIME_ANIOS queda sin límite; el anexo lista por año las órbitas que entran así (3.826)",
+     "T12": "[delegada] diferencias con el cuadro del §3 y lecturas que T7 no cubría (verificaciones de la madrugada del 2026-10-26); se aceptan cinco: (a) la segunda corrida del contraste se hace con el derivado cerrado y antes de armar el panel, para que rija sobre él (la lectura de «al cerrar el panel» y de R22.3); (b) el derivado de la red 2 vuelve a derivar completas las 107 estaciones actuales desde DATOS/sinca (sellado más actualización) en una sola raíz v1_red2, que leen el reloj, el contraste y el panel (R4); (c) inferencia_diferencias.influencia.bloque_mas_influyente y …criterio no se vuelven regla y quedan con nodos hermanos; (d) las raíces del derivado de la red 2 viven en derivado_red2_v2 (raiz_derivados, destino_por_omision) y no en _rutas_v2; (e) las lecturas §8.8 a §8.13 de PROPUESTA.md (la §8.12 queda corregida), entre ellas las SNIFA como «no informado» (R10); y se corrige la sexta: la masa molar del O3 es la literal de R6, 47,998 g/mol (unidades_v2.MASA_MOLAR y contraste_unidades_v2.M), y el panel importa produccion.py con su huella fijada (panel_red2_v2.HUELLAS_CODIGO_V1, la de cada repositorio) y marca las rachas con produccion.marcar_rachas, la regla de produccion.observaciones; la función misma lee las series de la v1 y no admite las de la red 2, así que el resto se replica, con una prueba de equivalencia; ratificada por el autor el 2026-10-26",
+     "T13": "[delegada] el commit local de la traducción (T2) puede hacerse antes de la ratificación; el armado no: el paso 2 de §11 (armado) no empieza hasta que el autor ratifique T11, T12 y T13 (paso 0 de §11); si cambia alguna, se hace otro commit antes del armado; el commit local se puede reemplazar, la copia congelada y los json del panel, de escritura única, no; ratificada por el autor el 2026-10-26"
     },
     "momento": "antes de cualquier ajuste comparativo, antes de M3-4 y de M6",
     "motivo": "el autor decidió bajar todo SINCA y que las estaciones nuevas entren al modelo como monitores, sin regla de completitud, con los insumos de hoy y sin contrastar con lo anterior (R1)",
@@ -362,11 +362,11 @@
    "scripts_modelo_1km/v2/unidades_v2.py": "5738943c623e3e2bf50b7b6abd7e67286fa1972dbd5543b09b04a5edcc8a354c",
    "scripts_modelo_1km/v2/contraste_unidades_v2.py": "e2e9b6d37405ce331301c44cb5a569123dd3982aa0031e122ddeef84d3b1401e",
    "scripts_modelo_1km/v2/duplicados_v2.py": "fd53bad7f7dc02822cce1ae7c1bccfc352d39f093018ca7e6772a73a172fb524",
-   "scripts_modelo_1km/v2/red_ampliada_v2.py": "85e16a9dd209994a237bb978322f7a684eab5aa0809e9809dc7e08334655b337",
+   "scripts_modelo_1km/v2/red_ampliada_v2.py": "5de85a47486748c94cbffdc4de841a9a741d9338f47d0ab0bf2ba654725c47fe",
    "scripts_modelo_1km/v2/derivado_red2_v2.py": "eeee1995d12d22b171570a6b8e3c7f87fde54852539af8b3e4b624b99888f101",
-   "scripts_modelo_1km/v2/panel_red2_v2.py": "2750d2dce3750f52a5ced3e48a8076511ccfbbaf5c42fe21e9c32324fcc4e9b5",
+   "scripts_modelo_1km/v2/panel_red2_v2.py": "18fa2b9dfc5469e95e8137139032f53597ca0586c25b9fc446eec86f46f68428",
    "scripts_modelo_1km/v2/pliegues_red2_v2.py": "aeebeac945fa1f2da92f53a291761f9c34fda0df813628fe2246319c262144d7",
-   "nota": "huellas al traducir el bloque (2026-10-26, tras la quinta revisión independiente y las rondas de verificación de la traducción: derivado completo, T12 y T13); se vuelven a fijar en el commit de la traducción, y test_red_ampliada_v2.test_huellas_del_codigo_nuevo_declaradas las compara con los archivos"
+   "nota": "huellas al traducir el bloque (2026-10-26, tras la quinta revisión independiente y las rondas de verificación de la traducción: derivado completo, T12 y T13); se vuelven a fijar en el commit de la traducción (las de red_ampliada_v2.py y panel_red2_v2.py, también en el de la ratificación de T11 a T13, 2026-10-26), y test_red_ampliada_v2.test_huellas_del_codigo_nuevo_declaradas las compara con los archivos"
   },
   "lista_cerrada": {
    "raiz": "AIR_POLLUTION_DATA_ROOT",
@@ -705,7 +705,7 @@
     }
    },
    "tropomi_por_fecha": {
-    "regla": "T1(4) y T11 [delegada, pendiente de que el autor la ratifique]: las órbitas de TROPOMI sin evento propio entran por su fecha de modificación, también las 146 de 2024 del formato antiguo (.chile.nc). Por T13 [delegada], el commit local de la traducción puede hacerse antes de la ratificación; el armado (PROPUESTA §11, paso 2) no empieza hasta que el autor ratifique T11, T12 y T13 (§11, paso 0; red_de_monitores.ratificacion_t11_t13, que la compuerta exige). Si cambia alguna, se hace otro commit de la traducción en AP y en el espejo antes del armado (PROPUESTA §9.0)",
+    "regla": "T1(4) y T11 [delegada, ratificada por el autor el 2026-10-26]: las órbitas de TROPOMI sin evento propio entran por su fecha de modificación, también las 146 de 2024 del formato antiguo (.chile.nc). Por T13 [delegada], el commit local de la traducción puede hacerse antes de la ratificación; el armado (PROPUESTA §11, paso 2) no empieza hasta que el autor ratifique T11, T12 y T13 (§11, paso 0; red_de_monitores.ratificacion_t11_t13, que la compuerta exige). Si cambia alguna, se hace otro commit de la traducción en AP y en el espejo antes del armado (PROPUESTA §9.0)",
     "parametro": "panel_red2_v2.TROPOMI_MTIME_ANIOS = None, sin límite de año de adquisición (T11)",
     "hoy_entran_asi": {
      "2019": 1041,
@@ -863,7 +863,16 @@
   "factibilidad": "R19: la regla y su medición no cambian y no se vuelven a medir con la red 2; las fechas de la medición quedan fijadas por el régimen 2019-2024 de la Enmienda 1: después del anexo, que reemplaza criterio.valor por los tramos calculados, factibilidad_v2.fechas_de_medicion las toma de criterio.valor_red_original (reemplazo de CAMBIOS_AL_CODIGO_SELLADO.md; cuarta revisión, menor 9). Con el nodo red_de_monitores, factibilidad_v2.medir y factibilidad_v2.publicar (y sus órdenes de consola) se detienen antes de leer o escribir nada («R19, la medición no se revisa»: factibilidad_v2.exigir_sin_red_ampliada, reemplazo de CAMBIOS): medir leería el panel de la red 2 y publicar rehace factibilidad_produccion.json, que decidir lee tal como quedó (quinta revisión, menores 13 y 24)",
   "producto_meteorologico": "π^mon usa el manifiesto de pliegues de este bloque (pliegues_v2_red2.json, ver fuente_unica_de_pliegues.lectura_de_R21) y las tablas laterales de M6 el panel red 2 (R21), con su huella en el anexo",
   "ratificacion_t11_t13": {
-   "valor": null,
+   "valor": {
+    "fecha": "2026-10-26",
+    "decisiones_sha256": "a0b970d2fbbf08a11c28d24c075ca1dd81ef2509d2093d243c1fc7a95dad3920",
+    "T11": "ratificada",
+    "T12": "ratificada",
+    "T13": "ratificada",
+    "§8.14": "ratificada",
+    "§8.15": "ratificada",
+    "§8.17": "ratificada"
+   },
    "regla": "T13 [delegada]: el armado (PROPUESTA §11, paso 2) no empieza hasta que el autor ratifique T11, T12 y T13, con las lecturas de la traducción que ninguna decisión cubría: §8.14 (T11 por referencia), §8.15 (el límite de R7) y §8.17 (R15 en la decisión: rige la evaluabilidad de E2 registrada antes del ajuste, y la parada por defecto de la corrida) de PROPUESTA.md. Mientras «valor» sea null, la compuerta de R22 detiene todo programa del armado (red_ampliada_v2.exigir_ratificacion, dentro de exigir_traduccion_confirmada). Se llena en el commit posterior a la ratificación (PROPUESTA §9.0), igual a red_ampliada_v2.RATIFICACION_T11_T13: {fecha, decisiones_sha256 (la huella nueva del archivo de decisiones, con la ratificación anotada: la de DECISIONES_TRADUCCION y no la de antes, red_ampliada_v2.DECISIONES_SIN_RATIFICAR), T11, T12, T13, §8.14, §8.15 y §8.17, cada una «ratificada» o «cambiada»}. En ese mismo commit, los textos de T11, T12 y T13 de contrato.enmiendas[2].decisiones_de_traduccion y de red_ampliada_v2.DECISIONES_TRADUCCION dejan de decir que están pendientes y dicen «<estado> por el autor el <fecha>» (red_ampliada_v2.MARCA_DE_RATIFICACION), y la compuerta lo exige: los json de escritura única del armado copian esos textos. Cada artefacto registra con qué ratificación se escribió (traza.traduccion.ratificacion; ronda 5 de la traducción, menor 21)"
   },
   "orden": [

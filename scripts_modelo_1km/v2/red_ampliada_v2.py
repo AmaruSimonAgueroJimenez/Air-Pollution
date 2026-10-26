@@ -32,7 +32,8 @@ en el repositorio de salud, commit f2c6cfc; texto con sha256 274ebae0…):
   llaman lo son), exige además ``RATIFICACION_T11_T13`` llena y repetida en la configuración, con T11 a T13 y las
   lecturas §8.14, §8.15 y §8.17 de la propuesta, y los textos de T11 a T13 ya sin la marca de pendiente
   (``exigir_ratificacion``): se llena en el commit posterior a la ratificación, con la huella nueva del archivo de
-  decisiones. Cada artefacto registra con qué ratificación se escribió (``traduccion_de``).
+  decisiones (el autor las ratificó todas el 2026-10-26). Cada artefacto registra con qué ratificación se escribió
+  (``traduccion_de``).
 * **Procedencia de cada artefacto (§0 del contrato, «Procedencia»).** ``traza_red2`` es la ``_traza_v2.traza`` de la
   v2 (commit, huella del código, contrato, configuración, insumos, bibliotecas, Python e hilos) más la huella de cada
   módulo de la red 2 (``MODULOS_RED2``) y la traducción con que se escribió (``traduccion_de``: el último commit que
@@ -58,7 +59,8 @@ BLOQUE = {"texto": "auditoria/20261024/sinca_al_modelo/ENMIENDA_2_BLOQUE_RED_AMP
           "sha256": "274ebae06bee8eeeb7470a650ce0539af751577d292513b8198cdec7c159094b", "commit": "f2c6cfc"}
 DECISIONES_TRADUCCION = {"texto": "auditoria/20261024/sinca_al_modelo/decisiones_autor_traduccion_20261025.md "
                                   "(repositorio de salud)",
-                         "sha256": "fdfbfa3149dae432a392c5dbea338b933fddf6f5f15a22cf2d18ad93d7da9a60",
+                         # con la ratificación de T11 a T13 anotada (2026-10-26); la de antes, DECISIONES_SIN_RATIFICAR
+                         "sha256": "a0b970d2fbbf08a11c28d24c075ca1dd81ef2509d2093d243c1fc7a95dad3920",
                          "T1": ["(1) peso de un bloque = peso fijo × filas de sus estaciones (R16)",
                                 "(2) duplicados: tolerancia relativa 1e-6; grupos de más de dos códigos como uno (R9)",
                                 "(3) pública o de empresa: la calificación de la ficha y, si no la trae, el propietario (R10)",
@@ -92,12 +94,12 @@ DECISIONES_TRADUCCION = {"texto": "auditoria/20261024/sinca_al_modelo/decisiones
                          "T10": "la conversión a hora civil está en reloj_sinca_v2.convertir y en el panel, no en "
                                 "preparar_sinca_modelado.py; se acepta como diferencia con el cuadro del §3",
                          # sección «2026-10-26, por delegación del autor»: decidida con la opción recomendada, sin que
-                         # el autor la viera; queda para que la ratifique
+                         # el autor la viera; ratificada por el autor el 2026-10-26 (sección «Ratificación del autor»)
                          "T11": "[delegada] las 146 órbitas TROPOMI de 2024 sin registro (138 OFFL 02.08.00 del 2 al 31 "
                                 "de diciembre y 8 RPRO 02.06.00 sueltas, formato antiguo .chile.nc) entran por su fecha "
                                 "de modificación, como las de 2019-2022 (T1(4)); panel_red2_v2.TROPOMI_MTIME_ANIOS sin "
                                 "límite (None); el anexo lista por año las órbitas que entran así (hoy 3.826); "
-                                "pendiente de que el autor la ratifique",
+                                "ratificada por el autor el 2026-10-26",
                          "T12": "[delegada] diferencias con el cuadro del §3 y lecturas que T7 no cubría (verificaciones "
                                 "de la madrugada del 2026-10-26); se aceptan cinco: (a) la segunda corrida del contraste "
                                 "se hace con el derivado cerrado y antes de armar el panel, para que rija sobre él (la "
@@ -113,12 +115,12 @@ DECISIONES_TRADUCCION = {"texto": "auditoria/20261024/sinca_al_modelo/decisiones
                                 "importa produccion.py con su huella fijada (HUELLAS_CODIGO_V1, la de cada repositorio) y "
                                 "marca las rachas con produccion.marcar_rachas, la regla de produccion.observaciones; la "
                                 "función misma lee las series de la v1 y no admite las de la red 2, así que el resto se "
-                                "replica, con una prueba de equivalencia; pendiente de que el autor la ratifique",
+                                "replica, con una prueba de equivalencia; ratificada por el autor el 2026-10-26",
                          "T13": "[delegada] el commit local de la traducción (T2) puede hacerse antes de la ratificación; "
                                 "el armado no: el paso 2 de §11 (armado) no empieza hasta que el autor ratifique T11, "
                                 "T12 y T13 (paso 0 de §11); si cambia alguna, se hace otro commit antes del armado; el "
                                 "commit local se puede reemplazar, la copia congelada y los json del panel, de "
-                                "escritura única, no; pendiente de que el autor la ratifique"}
+                                "escritura única, no; ratificada por el autor el 2026-10-26"}
 # T13 [delegada] (PROPUESTA §9, «Queda abierto», 0, y §11, paso 0): el armado no empieza hasta que el autor ratifique
 # T11, T12 y T13, con las lecturas de la traducción que ninguna decisión cubría: §8.14 (T11 por referencia), §8.15 (el
 # límite de R7) y §8.17 (R15 en la decisión: rige la evaluabilidad de E2 registrada antes del ajuste, y la parada por
@@ -132,7 +134,12 @@ DECISIONES_TRADUCCION = {"texto": "auditoria/20261024/sinca_al_modelo/decisiones
 # configuración) dejan de decir que están pendientes y dicen «<estado> por el autor el <fecha>» (MARCA_DE_RATIFICACION);
 # la compuerta lo exige, para que los json de escritura única del armado, que copian esos textos, no los registren como
 # pendientes.
-RATIFICACION_T11_T13 = None
+# Ratificación del autor del 2026-10-26, 11:23 hora de Chile («Ratificarlas todas»), anotada al final del archivo de
+# decisiones: las seis quedan «ratificada», sin cambios en el código ni en la configuración más allá de estas marcas.
+RATIFICACION_T11_T13 = {"fecha": "2026-10-26",
+                        "decisiones_sha256": "a0b970d2fbbf08a11c28d24c075ca1dd81ef2509d2093d243c1fc7a95dad3920",
+                        "T11": "ratificada", "T12": "ratificada", "T13": "ratificada",
+                        "§8.14": "ratificada", "§8.15": "ratificada", "§8.17": "ratificada"}
 RATIFICABLES = ("T11", "T12", "T13", "§8.14", "§8.15", "§8.17")
 ESTADOS_DE_RATIFICACION = ("ratificada", "cambiada")
 DECISIONES_DELEGADAS = ("T11", "T12", "T13")

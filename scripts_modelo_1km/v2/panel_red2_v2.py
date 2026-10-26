@@ -155,9 +155,9 @@ COPIAS_DE_CORTE = {
         "sumas": "copias_corte_20261024/merra2_meteo/SHA256SUMS.txt",
         "sha256_sumas": "167269731fa901cd001311da8e6d902c1a6578044152567c472710f2a3676f66"},
 }
-# T1(4) y T11 [delegada, por ratificar] (decisiones_autor_traduccion_20261025.md, 2026-10-26): las órbitas de TROPOMI
-# sin evento propio entran por su fecha de modificación, sin límite de año de adquisición (None), también las 146 de
-# 2024 del formato antiguo. El anexo lista por año las que entran así (``resumen_inventario``).
+# T1(4) y T11 [delegada, ratificada por el autor el 2026-10-26] (decisiones_autor_traduccion_20261025.md, 2026-10-26):
+# las órbitas de TROPOMI sin evento propio entran por su fecha de modificación, sin límite de año de adquisición
+# (None), también las 146 de 2024 del formato antiguo. El anexo lista por año las que entran así (``resumen_inventario``).
 TROPOMI_MTIME_ANIOS: tuple[int, int] | None = None
 HUELLA_EXACTA, HUELLA_PARTE, HUELLA_REGISTRAR = "sha256", "parte_de_la_huella_del_dia", "se_calcula_y_registra_T1_4"
 COLUMNAS_INVENTARIO = ["producto", "clave", "ruta", "origen", "bytes", "sha256_declarado", "verificacion",

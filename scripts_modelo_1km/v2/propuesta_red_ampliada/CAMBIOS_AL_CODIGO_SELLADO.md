@@ -1537,7 +1537,7 @@ class ValidacionRed2Tests(unittest.TestCase):
 ## `scripts_modelo_1km/v2/tests/test_config_v2.py`
 
 - **Origen:** sha256 `c7f4b4f64cd19c0e4a52620567f39353a51a794de6c46237add858d8b3523066`.
-- **Resultado:** sha256 `0e2eb6ec0a9eb98cd6d1241ed5b9ec50f078ac9ae086b1b72ee1e567c7723e24`.
+- **Resultado:** sha256 `186d590ba0d2269f492a2b8d55ba342597503075bc11766bb2f38ba69d49084e`.
 - **Motivo:** la prueba sellada supone que el Complemento llega hasta el final del contrato y que hay dos enmiendas; con el bloque, el Complemento termina donde empieza la Enmienda 2 y su huella sigue siendo 5d879a05…. Se agrega la prueba de la entrada del bloque (con las decisiones de traducción T1 a T13, T11, T12 y T13 con su marca [delegada], y T8 igual en el código y en la configuración) y la desagregación por propietario (R10). Las pruebas de los cinco regímenes y del bloque más influyente leen lo que rige después del anexo (R16 y R17; tercera revisión, mayor 7 y menor 30): con el anexo, los tramos comunes de regimenes_red2.json y el bloque de pliegues_v2_red2.json; sin él, los valores de la Enmienda 1.
 
 ### Reemplazo 1
@@ -1582,7 +1582,7 @@ Texto nuevo:
 SHA_ENMIENDA_1 = "05218686b3f1808d5379b095789ada4ea69ba02362be8063330a2c2f9f5a5e17"    # texto con la Enmienda 1
 SHA_COMPLEMENTO = "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0"   # texto con el Complemento
 SHA_BLOQUE_RED2 = "274ebae06bee8eeeb7470a650ce0539af751577d292513b8198cdec7c159094b"   # bloque anclado en APH (f2c6cfc)
-SHA_DECISIONES_TRADUCCION = "fdfbfa3149dae432a392c5dbea338b933fddf6f5f15a22cf2d18ad93d7da9a60"  # T1 a T13 (T11 a T13 [delegadas])
+SHA_DECISIONES_TRADUCCION = "a0b970d2fbbf08a11c28d24c075ca1dd81ef2509d2093d243c1fc7a95dad3920"  # T1 a T13 (T11 a T13 [delegadas], ratificadas el 2026-10-26)
 
 ```
 
@@ -1657,7 +1657,7 @@ Texto nuevo:
             self.assertTrue(reg["regimenes"]["sha256"] and reg["reloj"]["veredictos_sha256"])
         dec = e["decisiones_de_traduccion"]
         self.assertTrue(all(dec[k] for k in ("T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12", "T13")))
-        for k in ("T11", "T12", "T13"):                          # las delegadas, por ratificar (T13)
+        for k in ("T11", "T12", "T13"):                          # las delegadas, ratificadas el 2026-10-26 (T13)
             self.assertTrue(dec[k].startswith("[delegada]"))
         # T8: la huella de afg_lib.py y su procedencia, iguales en el código y en la configuración
         import derivado_red2_v2 as dr

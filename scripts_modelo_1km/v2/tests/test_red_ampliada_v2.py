@@ -77,16 +77,28 @@ def sha(p: Path) -> str:
 HUELLA_RATIFICADA = "e" * 64
 RATIFICACION = {"fecha": "2026-10-27", "decisiones_sha256": HUELLA_RATIFICADA,
                 **{k: "ratificada" for k in ra.RATIFICABLES}}
+# La marca de una ratificación ya anotada («<estado> por el autor el <fecha>», ra.MARCA_DE_RATIFICACION). Desde el paso 0
+# (2026-10-26) los textos de hoy de T11 a T13 la llevan: las pruebas de la ratificación arman sus textos, pendientes o
+# con la ratificación de juguete, a partir de los de hoy, estén o no ratificados, y no dependen de ese estado.
+MARCA_ANOTADA = __import__("re").compile(
+    "(?:" + "|".join(ra.ESTADOS_DE_RATIFICACION) + r") por el autor el \d{4}-\d{2}-\d{2}")
+
+
+def textos_pendientes(textos: dict) -> dict:
+    """T11, T12 y T13 como estaban antes de la ratificación: la marca de la ratificación, si ya la llevan, vuelve a ser
+    la de pendiente (``ra.MARCAS_DE_PENDIENTE``)."""
+    return {k: MARCA_ANOTADA.sub(ra.MARCAS_DE_PENDIENTE[0], textos[k]) for k in ra.DECISIONES_DELEGADAS}
 
 
 def textos_ratificados(textos: dict, ratificacion) -> dict:
     """T11, T12 y T13 como quedan en el commit de la ratificación (ronda 5, menor 21): sin la marca de pendiente y con
     «<estado> por el autor el <fecha>» (``ra.MARCA_DE_RATIFICACION``)."""
     rat = ratificacion if isinstance(ratificacion, dict) else {}
+    pendientes = textos_pendientes(textos)
     out = {}
     for k in ra.DECISIONES_DELEGADAS:
         marca = ra.MARCA_DE_RATIFICACION.format(estado=rat.get(k, "ratificada"), fecha=rat.get("fecha"))
-        texto = textos[k]
+        texto = pendientes[k]
         for pendiente in ra.MARCAS_DE_PENDIENTE:
             texto = texto.replace(pendiente, marca)
         out[k] = texto
@@ -95,22 +107,23 @@ def textos_ratificados(textos: dict, ratificacion) -> dict:
 
 def con_la_ratificacion(ratificacion=RATIFICACION, huella=HUELLA_RATIFICADA, textos: bool = True):
     """El código como queda después del commit posterior a la ratificación: la constante llena, la huella nueva del
-    archivo de decisiones en DECISIONES_TRADUCCION y, con ``textos``, T11 a T13 ya sin la marca de pendiente."""
+    archivo de decisiones en DECISIONES_TRADUCCION y, con ``textos``, T11 a T13 ya sin la marca de pendiente (sin
+    ``textos``, con ella)."""
     import contextlib
     from unittest import mock
     pila = contextlib.ExitStack()
     pila.enter_context(mock.patch.object(ra, "RATIFICACION_T11_T13", ratificacion))
-    nuevos = textos_ratificados(ra.DECISIONES_TRADUCCION, ratificacion) if textos else {}
+    nuevos = (textos_ratificados(ra.DECISIONES_TRADUCCION, ratificacion) if textos
+              else textos_pendientes(ra.DECISIONES_TRADUCCION))
     pila.enter_context(mock.patch.dict(ra.DECISIONES_TRADUCCION, {"sha256": huella, **nuevos}))
     return pila
 
 
 def cfg_ratificada(ratificacion=RATIFICACION, textos: bool = True) -> dict:
     """La configuración del commit posterior a la ratificación: la repite y, con ``textos``, trae T11 a T13 de
-    ``contrato.enmiendas[2].decisiones_de_traduccion`` sin la marca de pendiente."""
+    ``contrato.enmiendas[2].decisiones_de_traduccion`` sin la marca de pendiente (sin ``textos``, con ella)."""
     dec = dict(config_con_la_red()["contrato"]["enmiendas"][2]["decisiones_de_traduccion"])
-    if textos:
-        dec.update(textos_ratificados(dec, ratificacion))
+    dec.update(textos_ratificados(dec, ratificacion) if textos else textos_pendientes(dec))
     return {"red_de_monitores": {"ratificacion_t11_t13": {"valor": ratificacion}},
             "contrato": {"enmiendas": [{}, {}, {"decisiones_de_traduccion": dec}]}}
 
@@ -200,8 +213,15 @@ class GuardaR22Tests(unittest.TestCase):
         §8.17, ronda 5, menores 7 y 26), si cita el archivo de decisiones de antes de ratificar u otro que el de
         DECISIONES_TRADUCCION, si la configuración no la repite o (ronda 5, menor 21) si los textos de T11 a T13 siguen
         diciendo que están pendientes, en el código o en la configuración; con la ratificación completa, sigue. No
-        depende del valor de hoy de la constante (ronda 5, menor 25): cada caso la fija."""
+        depende del valor de hoy de la constante (ronda 5, menor 25): cada caso la fija; ni de los textos de hoy de T11
+        a T13, ratificados desde el paso 0 (2026-10-26): cada caso arma los suyos, pendientes o ratificados."""
         confirmada = self.todo("rastreado")
+        cfg_hoy = config_con_la_red()["contrato"]["enmiendas"][2]["decisiones_de_traduccion"]
+        for donde, textos in (("código", ra.DECISIONES_TRADUCCION), ("configuración", cfg_hoy)):
+            for k, texto in textos_pendientes(textos).items():                # los casos «pendientes» lo son
+                with self.subTest(pendiente=k, donde=donde):
+                    self.assertTrue(any(m in texto for m in ra.MARCAS_DE_PENDIENTE))
+                    self.assertIsNone(MARCA_ANOTADA.search(texto))
         with con_la_ratificacion(None, ra.DECISIONES_SIN_RATIFICAR, textos=False), self.assertRaises(SystemExit) as e:
             ra.exigir_traduccion_confirmada(self.r, cfg_ratificada(None, textos=False), confirmada, ratificacion=True)
         self.assertIn("T13", str(e.exception))
@@ -401,7 +421,8 @@ class GuardaR22Tests(unittest.TestCase):
         self.assertIn(rs.HORAS_ESPECIALES["sha256"], red["reloj"]["convencion_de_la_etiqueta"]["zonas_horarias"])
 
     def test_decisiones_de_la_traduccion_citadas(self):
-        """T1 a T13 (T11, T12 y T13 con su marca [delegada]; mientras no se ratifiquen, «ratifique»), con la huella del
+        """T1 a T13 (T11, T12 y T13 con su marca [delegada]; mientras no se ratifiquen, «ratifique»; ratificadas, con la
+        ratificación anotada al final del archivo y aceptada por la compuerta: paso 0, 2026-10-26), con la huella del
         archivo de decisiones que cita el código (DECISIONES_TRADUCCION), la misma en la configuración y en el espejo.
         La huella no se fija a mano aquí (ronda 4, menor 24): el commit posterior a la ratificación la cambia en el
         código y en la configuración, y esta prueba la compara con el archivo."""
@@ -414,6 +435,10 @@ class GuardaR22Tests(unittest.TestCase):
         self.assertRegex(ra.DECISIONES_TRADUCCION["sha256"], r"^[0-9a-f]{64}$")
         if ra.RATIFICACION_T11_T13 is None:                                   # antes de ratificar, la de hoy
             self.assertEqual(ra.DECISIONES_TRADUCCION["sha256"], ra.DECISIONES_SIN_RATIFICAR)
+        else:                                       # paso 0 (2026-10-26): la ratificación anotada, y la compuerta la acepta
+            self.assertNotEqual(ra.DECISIONES_TRADUCCION["sha256"], ra.DECISIONES_SIN_RATIFICAR)
+            self.assertEqual(ra.RATIFICACION_T11_T13["decisiones_sha256"], ra.DECISIONES_TRADUCCION["sha256"])
+            self.assertEqual(ra.exigir_ratificacion(config_con_la_red()), ra.RATIFICACION_T11_T13)
         self.assertIn("contaminante", ra.DECISIONES_TRADUCCION["T4"])         # la unidad de T9
         enm = config_con_la_red()["contrato"]["enmiendas"][2]
         dec = enm["decisiones_de_traduccion"]
@@ -436,6 +461,12 @@ class GuardaR22Tests(unittest.TestCase):
         for k in ("T11", "T12", "T13"):
             self.assertIn(f"| {k} |", texto)
         self.assertIn("[delegada]", texto)
+        if ra.RATIFICACION_T11_T13 is not None:                               # la ratificación, anotada en el archivo
+            seccion = texto.partition("\n## Ratificación del autor")[2]
+            self.assertTrue(seccion)
+            self.assertIn(ra.RATIFICACION_T11_T13["fecha"], seccion)
+            for k in ra.RATIFICABLES:
+                self.assertIn(k, seccion)
 
 
     def test_decisiones_iguales_en_el_codigo_y_en_la_configuracion(self):
