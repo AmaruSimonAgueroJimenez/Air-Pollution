@@ -516,6 +516,11 @@ enumerados con sus valores. No se importa nada del paquete. Los módulos van en 
 - Se regeneró otra vez con los arreglos de la revisión de la Enmienda 3 (2026-10-24): sólo cambia `constantes`
   (`indice_version`, los campos `desde` y `fragmento_anterior`, `fragmento_en` y `verificar_contra_texto(…, version)`).
   `TEXTOS_PROTOCOLO`, `VERSIONES_TEXTO` y `VERSION_VIGENTE` son datos y el AST no los lista.
+- Se regeneró con la Enmienda 5 del reloj (2026-10-26), con el mismo script. Cambian cinco firmas: entra
+  `numerico.mas_cercano` (ERR-1); `guardas.p7` recibe la serie ERA5-Land y entra `guardas.p7_con_referencia`
+  (E5-2); `red.controles_red` recibe `a3_solo_pais` y `OpcionesCorrida` suma el campo del mismo nombre (E5-1); y
+  entra `controles_era5.controles_red_c3` (los controles de red de `C3b.json`). Las constantes nuevas
+  (`numerico.EMPATE_DISTANCIA_KM`, `guardas.EMPATE_P7_C`) son datos y el AST no las lista.
 
 **Cómo se regenera** (con `~/micromamba/envs/amb_v2/bin/python -B <script> reloj_dmc <salida.md>`, desde
 `scripts_modelo_1km`; el resultado reemplaza la lista que sigue a este bloque):
@@ -704,6 +709,7 @@ print(len(salida), "líneas")
 - `media_circular(x: np.ndarray, periodo: float) -> float`
 - `media_circular_en(x: np.ndarray, intervalo: tuple[float, float]) -> float`
 - `distancia_km(lat1: float, lon1: float, lat2: np.ndarray, lon2: np.ndarray) -> np.ndarray`
+- `mas_cercano(distancias: np.ndarray, ids: np.ndarray) -> int`
 - `z_pixel(sp_medio_hpa: float) -> float`
 - `redondear_empate_hacia_cero(x: float) -> int`
 
@@ -833,7 +839,8 @@ print(len(salida), "líneas")
 **`guardas.py`**
 
 - `e3d(extracto: pd.DataFrame, serie: SerieEra5 | None, ctx: ContextoEstacion) -> pd.DataFrame`
-- `p7(extracto: pd.DataFrame, ctx: ContextoEstacion) -> pd.DataFrame`
+- `p7_con_referencia(ctx: ContextoEstacion, serie: SerieEra5 | None) -> bool`
+- `p7(extracto: pd.DataFrame, ctx: ContextoEstacion, serie: SerieEra5 | None=None) -> pd.DataFrame`
 - `tp(metricas_e3t: pd.DataFrame, filtro_e3t: pd.DataFrame | None, ctx: ContextoEstacion) -> pd.DataFrame`
 - `desfase_termico_local(metricas_e3t: pd.DataFrame, filtro_e3t: pd.DataFrame | None, ctx: ContextoEstacion) -> pd.DataFrame`
 - `e4t(metricas_e4_ts: pd.DataFrame, ctx: ContextoEstacion) -> pd.DataFrame`
@@ -857,7 +864,7 @@ print(len(salida), "líneas")
 - `a5(muestra: pd.DataFrame, umbrales: Umbrales) -> tuple[bool, dict]`
 - `muestra_calibracion_e3t(evidencias: Iterable[EvidenciaEstacion], a3_pais: bool, a3_macro: frozenset[str], umbrales: Umbrales, *, calendario=None) -> pd.DataFrame`
 - `calibrar_e3t(muestra: pd.DataFrame, a3_pais: bool, a3_macro: frozenset[str], macrozonas: Sequence[str], umbrales: Umbrales) -> tuple[dict[str, str], pd.DataFrame]`
-- `controles_red(evidencias: Sequence[EvidenciaEstacion], macrozonas: Sequence[str], umbrales: Umbrales, *, calendario=None) -> tuple[ConsecuenciasRed, dict]`
+- `controles_red(evidencias: Sequence[EvidenciaEstacion], macrozonas: Sequence[str], umbrales: Umbrales, *, calendario=None, a3_solo_pais: bool=False) -> tuple[ConsecuenciasRed, dict]`
 - `a4(decisiones_parciales: Sequence[DecisionAnio], umbrales: Umbrales) -> tuple[bool, dict]`
 - `a6(registro_documental: Sequence[Mapping], decisiones: Sequence[DecisionAnio]) -> list[tuple[str, int]]`
 - `a7(fallas: Sequence[str]) -> ResultadoControl`
@@ -898,7 +905,7 @@ print(len(salida), "líneas")
 **`orquestacion.py`**
 
 - clase `EntradaEstacion`: campos `info`, `extracto`, `meses`, `isd`
-- clase `OpcionesCorrida`: campos `lineas_activas`, `aplicar_exclusion_costera`, `remuestreo`, `comparacion_e3t_restringida`, `diagnostico_reglas_vencidas`, `conservar_etiquetas`
+- clase `OpcionesCorrida`: campos `lineas_activas`, `aplicar_exclusion_costera`, `remuestreo`, `comparacion_e3t_restringida`, `diagnostico_reglas_vencidas`, `conservar_etiquetas`, `a3_solo_pais`
 - clase `ResultadoRed`: campos `evidencias`, `consecuencias`, `controles`, `decisiones`, `decisiones_e3t_restringida`, `rachas`, `meses_con_regla`, `tramos`, `politica`, `descripcion_red`, `predicciones`, `no_normalizables`, `estaciones`, `resultados_rachas`, `estados_reglas_vencidas`, `tiempos`
 - `contexto_estacion(entrada: EntradaEstacion, tablas: object, umbrales: Umbrales, opciones: OpcionesCorrida) -> ContextoEstacion`
 - `evaluar_estacion(entrada: EntradaEstacion, serie: SerieEra5 | None, tablas: object, umbrales: Umbrales, opciones: OpcionesCorrida) -> EvidenciaEstacion`
@@ -1046,6 +1053,7 @@ print(len(salida), "líneas")
 - `senales_de_prueba(unidad: UnidadC3, serie: SerieEra5, umbrales: Umbrales) -> pd.DataFrame`
 - `caso_de_prueba(unidad: UnidadC3, info: InfoEstacion, catalogo_pixeles: pd.DataFrame) -> sintetico.CasoSintetico`
 - `entrada_de_prueba(unidad: UnidadC3, info: InfoEstacion, serie: SerieEra5, catalogo_pixeles: pd.DataFrame, umbrales: Umbrales, *, caso: sintetico.CasoSintetico | None=None)`
+- `controles_red_c3(resultado: Any) -> dict`
 - `huellas_c3(control: str)`
 - `ida_y_vuelta(politica: Mapping | None, casos: Sequence[sintetico.CasoSintetico], adaptador: ModuleType | None) -> dict`
 - `meses_era5_anomalos(controles: Mapping[str, Any]) -> list[str]`

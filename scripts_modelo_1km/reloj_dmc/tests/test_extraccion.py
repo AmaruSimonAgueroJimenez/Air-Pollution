@@ -995,5 +995,30 @@ class PruebasPixelYERA5(_Temporal):
         self.assertEqual({ll.split("/")[0] for ll in otra.llamadas}, {CODIGO_2})
 
 
+
+# Las tres celdas de la fila 1399 de catalogo_pixeles.parquet de ERA5L (49,9° S), con sus valores tal como están
+# guardados; el centro (5039262) es la estación de prueba de C3b donde se vio la errata E-1 de la Enmienda 5.
+_CAT_1399 = pd.DataFrame({
+    "pixel_id": np.array([5039261, 5039262, 5039263], dtype=np.int64),
+    "lat_index_global": [1399, 1399, 1399], "lon_index_global": [2861, 2862, 2863],
+    "latitude": [-49.9, -49.9, -49.9], "longitude": [-73.9, -73.8, -73.7],
+    "cell_west": [-73.95, -73.85, -73.75], "cell_east": [-73.85, -73.75, -73.65],
+    "cell_south": [-49.95, -49.95, -49.95], "cell_north": [-49.85, -49.85, -49.85],
+    "cod_comuna": [12401, 12401, 12401], "asignacion_comuna": ["centro"] * 3,
+    "territorio": ["continental"] * 3, "aoi_id": ["continente"] * 3})
+
+
+class PruebasEnmienda5Empate(unittest.TestCase):
+    """ERR-1 (errata E-1 de la Enmienda 5) en ``elegir_pixel`` (§3.3, el píxel de las estaciones en C4)."""
+
+    def test_err1_elegir_pixel_celda_propia_no_valida_empate_menor_pixel_id(self):
+        """§3.3: «el centro válido más cercano a ≤ 15 km, con empate por menor `pixel_id`». La celda propia
+        (5039262) no es válida y sus vecinas este y oeste están a la misma distancia: decide el oeste, 5039261.
+        El código anterior a la errata elegía 5039263, el que la coma flotante dejaba 6·10⁻¹³ km más cerca."""
+        e = extraccion.elegir_pixel(-49.9, -73.8, _CAT_1399, {5039261, 5039263}, _umbrales())
+        self.assertEqual((e.pixel_id, e.costera), (5039261, True))
+        self.assertAlmostEqual(e.distancia_km, 7.16233734, places=6)
+
+
 if __name__ == "__main__":
     unittest.main()

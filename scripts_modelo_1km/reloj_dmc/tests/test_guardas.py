@@ -11,6 +11,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
+import dataclasses  # noqa: E402
 import math  # noqa: E402
 import unittest  # noqa: E402
 from pathlib import Path  # noqa: E402
@@ -453,7 +454,10 @@ class PruebasGuardas(unittest.TestCase):
         g = guardas.guardas(anotado, serie, meses, {}, ctx)
         validar_esquema(g, ESQUEMA_GUARDAS, nombre="guardas")
         self.assertEqual(set(g["guarda"]), {"E3d", "P7", "T-P", "E4t", "G-version"})
-        self.assertEqual(set(g.loc[g["guarda"].isin(["P7", "G-version"]), "H"]), {"*"})
+        self.assertEqual(set(g.loc[g["guarda"] == "G-version", "H"]), {"*"})
+        # Enmienda 5, E5-2: la estación no es costera y cumple las condiciones de E3d en Ts, así que P7 da una fila
+        # por H de P, como E3d (lectura GU-3).
+        self.assertEqual(set(g.loc[g["guarda"] == "P7", "H"]), {h.id for h in ctx.info.P})
         # bajo el reloj verdadero (F(−4) ≡ C(Santiago) en invierno) ninguna guarda falla; bajo F(0) T-P sí ve
         # la forma de reloj (k = −4), pero decision sólo la consulta con K = {H}
         verdadero = g["H"].isin([F4, "C(Santiago)", "*"])
@@ -535,6 +539,217 @@ class PruebasMarcas(unittest.TestCase):
         # texto v1.0.2, una estación con 1 o 2 años confirmados nunca llegaba a 6 años-régimen y no podía
         # llevar la marca (la causa estructural de BAT-6); ahora la firma ya no recibe los años confirmados.
         self.assertNotIn("anios_confirmados", guardas.marca_media_horaria.__code__.co_varnames)
+
+
+
+# ---------------------------------------------------------------------------------------------
+# Enmienda 5 del reloj: errata E-2 (ERR-2) y E5-2 (P7 relativa a ERA5-Land)
+# ---------------------------------------------------------------------------------------------
+def _extracto_empate_p7():
+    """Un año (2019) de Ts horaria en F(0), todos los días iguales y en décimas: el paso de 08 a 09 h es 3,4 °C
+    y los de 07→08 y 09→10, 1,7 °C; los demás, < 1,5 °C (el caso del borrador de la Enmienda 5)."""
+    prof = np.full(24, 10.0)
+    prof[:7] = [10.0, 9.8, 9.6, 9.5, 9.4, 9.5, 9.8]
+    prof[7], prof[8], prof[9], prof[10] = 10.0, 11.7, 15.1, 16.8      # Δ = 1,7 / 3,4 / 1,7
+    prof[11:] = np.round(np.linspace(16.5, 10.3, 13), 1)
+    prof = np.round(prof, 1)
+    L = np.arange(np.datetime64("2019-01-01T00", "h"), np.datetime64("2020-01-01T00", "h"),
+                  dtype="datetime64[h]").astype("datetime64[ns]")
+    hora = pd.DatetimeIndex(L).hour.to_numpy()
+    return pd.DataFrame({"L": L, "especial": False, "regimen": "R0", "ts": prof[hora]}), prof
+
+
+def _atmosfera_civil(salto=5.0, utc_salto=12, semilla=3):
+    """t2m horaria UTC de 2019 (con márgenes) en el píxel 1: un salto de ``salto`` °C entre las ``utc_salto`` y
+    las ``utc_salto`` + 1 UTC cada día (el calentamiento matinal brusco del altiplano) y pasos chicos en las demás
+    horas, más una variación sinóptica suave. Bajo C(Santiago), el salto cae en la etiqueta 09 en verano (R0,
+    UTC−3) y en la 08 en invierno (R1, UTC−4); como 2019 tiene más días de verano, m_09 sale grande."""
+    u = np.arange(np.datetime64("2018-12-29T00", "h"), np.datetime64("2020-01-04T00", "h"), dtype="datetime64[h]")
+    hora = ((u - u.astype("datetime64[D]")) // np.timedelta64(1, "h")).astype(int)
+    paso = np.where(hora == utc_salto + 1, salto, -salto / 23)
+    base = np.cumsum(paso)
+    rng = np.random.default_rng(semilla)
+    n_dias = u.size // 24 + 2
+    diaria = _ar1(rng, n_dias, 0.6, 2.0)
+    sinoptica = np.interp(np.arange(u.size) / 24, np.arange(n_dias) + 0.5, diaria)
+    t2m = 10 + base - base.mean() + sinoptica
+    n = u.size
+    return u, _SerieMemoria(u[0], {1: {"t2m": t2m, "sp": 950 + np.zeros(n), "u10": np.zeros(n), "v10": np.zeros(n)}})
+
+
+def _estacion_civil(*, ctx_kw=None, ruido=0.1, semilla=5, info_kw=None):
+    """Una estación en C(Santiago) cuya Ts es la t2m del píxel bajo su reloj, más ruido y en décimas."""
+    u0, serie = _atmosfera_civil()
+    atm = _Atmosfera("2019-01-01", "2020-01-01", semilla=semilla)
+    anotado, ctx = _contexto(_extracto(atm, "2019-01-01", "2020-01-01", c=-4, semilla=semilla), **(ctx_kw or {}))
+    if info_kw:
+        ctx = ContextoEstacion(**{**ctx.__dict__, "info": dataclasses.replace(ctx.info, **info_kw)})
+    c = np.where((anotado["regimen"] == "R0").fillna(False).to_numpy(dtype=bool), -3, -4)
+    u = anotado["L"].to_numpy(dtype="datetime64[ns]") - c.astype("timedelta64[h]")
+    rng = np.random.default_rng(semilla + 50)
+    anotado = anotado.copy()
+    anotado["ts"] = np.round(serie.valores(1, "t2m", u) + rng.normal(0, ruido, len(u)), 1)
+    return anotado, serie, ctx
+
+
+class PruebasEnmienda5P7(unittest.TestCase):
+    def test_err2_salto_en_empate_exacto_falla(self):
+        """§4.7: «m_h ≥ 2·máx(m_{h−1}, m_{h+1}) y m_h ≥ 1,5 °C». Con m_08 = 3,4 = 2·1,7 el texto dice que P7
+        falla; el código anterior a la errata E-2 comparaba 3,4000000000000004 con 3,4000000000000021 y pasaba."""
+        extracto, prof = _extracto_empate_p7()
+        d = np.abs(np.diff(np.r_[prof, prof[0]]))
+        self.assertEqual([round(x, 1) for x in d[7:10]], [1.7, 3.4, 1.7])
+        self.assertTrue(all(round(x, 1) < 1.5 for i, x in enumerate(d) if i not in (7, 8, 9)))
+        self.assertLess(d[8], 2 * max(d[7], d[9]))              # el empate exacto, perdido en coma flotante
+        s = guardas._serie(extracto, extracto["ts"].to_numpy(np.float64))
+        res, detalle = guardas._p7_anio(s, guardas._vecino(s, 1), 2019, _U())
+        self.assertEqual(res, ResultadoGuarda.FALLA, f"m_08 = 3,4 = 2·1,7 y ≥ 1,5 °C: §4.7 dice que falla ({detalle})")
+        self.assertIn("08 h", detalle)
+        self.assertNotIn("07 h", detalle)
+        self.assertNotIn("09 h", detalle)
+        self.assertEqual(guardas.EMPATE_P7_C, 1e-9)
+        # Un poco por debajo del empate (3,3 contra 2·1,7) sigue pasando: la tolerancia es de coma flotante.
+        bajo = extracto.copy()
+        bajo["ts"] = np.where(pd.DatetimeIndex(bajo["L"]).hour >= 9, bajo["ts"] - 0.1, bajo["ts"])
+        s2 = guardas._serie(bajo, bajo["ts"].to_numpy(np.float64))
+        self.assertNotIn("08 h", guardas._p7_anio(s2, guardas._vecino(s2, 1), 2019, _U())[1])
+
+    def test_e5_2_falsa_alarma_de_reloj_civil_en_altura_desaparece(self):
+        """E5-2: bajo C(Santiago), la etiqueta 09 junta el salto matinal de los días de verano. Sin referencia, P7
+        falla («salto» en las 09 h); con la t2m del píxel bajo la misma H, que tiene el mismo rasgo, pasa. Bajo F(0),
+        con la referencia desalineada, sigue fallando (del lado conservador)."""
+        anotado, serie, ctx = _estacion_civil()
+        sin = guardas.p7(anotado, ctx)
+        fila = _una(sin, "guarda", "P7", "*", "2019")
+        self.assertEqual(fila["resultado"], ResultadoGuarda.FALLA)
+        self.assertIn("09 h (salto", fila["detalle"])
+        con = guardas.p7(anotado, ctx, serie)
+        validar_esquema(con, ESQUEMA_GUARDAS, nombre="P7")
+        self.assertEqual(set(con["H"]), {h.id for h in ctx.info.P})
+        self.assertEqual(_una(con, "guarda", "P7", "C(Santiago)", "2019")["resultado"], ResultadoGuarda.PASA)
+        self.assertEqual(_una(con, "guarda", "P7", "F(0)", "2019")["resultado"], ResultadoGuarda.FALLA)
+        self.assertTrue(guardas.p7_con_referencia(ctx, serie))
+        # guardas() pasa la serie a P7.
+        g = guardas.guardas(anotado, serie, _meses(anotado, {(2019, m): VERSION_A for m in range(1, 13)}), {},
+                            ContextoEstacion(**{**ctx.__dict__, "lineas_activas": frozenset({Linea.P7})}))
+        pd.testing.assert_frame_equal(g.reset_index(drop=True), con.reset_index(drop=True))
+
+    def test_e5_2_sin_referencia_rige_la_p7_anterior(self):
+        """La restricción: en una estación costera (también sin la exclusión costera, como en C3c), con |Δz| >
+        1.000 m, sin píxel o con coordenadas inconsistentes, P7 no usa ERA5-Land y da la fila «*» de antes."""
+        anotado, serie, ctx = _estacion_civil()
+        casos = {"costera": {"info_kw": {"costera": True}},
+                 "costera sin la exclusión": {"info_kw": {"costera": True}, "exclusion": False},
+                 "desnivel": {"ctx_kw": {"dz": 1500.0}}, "sin píxel": {"ctx_kw": {"pixel": 99}},
+                 "coordenadas inconsistentes": {"ctx_kw": {"inconsistentes": True}},
+                 "sin z_cat": {"ctx_kw": {"dz": None}}}
+        for nombre, kw in casos.items():
+            with self.subTest(nombre):
+                a, s, c = _estacion_civil(ctx_kw=kw.get("ctx_kw"), info_kw=kw.get("info_kw"))
+                if kw.get("exclusion") is False:
+                    c = ContextoEstacion(**{**c.__dict__, "aplicar_exclusion_costera": False})
+                self.assertFalse(guardas.p7_con_referencia(c, s))
+                con = guardas.p7(a, c, s)
+                pd.testing.assert_frame_equal(con, guardas.p7(a, c))
+                self.assertEqual(_una(con, "guarda", "P7", "*", "2019")["resultado"], ResultadoGuarda.FALLA)
+        self.assertFalse(guardas.p7_con_referencia(ctx, None))
+
+    def test_e5_2_nunca_falla_donde_la_anterior_pasa(self):
+        """Con s_h^x ≥ 1 y d_h^x ≥ 0 la condición nueva es más estricta: toda hora que falla con referencia falla
+        sin ella. Se comprueba sobre perfiles al azar y referencias al azar; con s = 1 y d = 0 son iguales."""
+        U = _U()
+        rng = np.random.default_rng(20261026)
+        for _ in range(400):
+            m = np.abs(rng.normal(0.6, 0.6, 24)) * rng.choice([1, 1, 1, 4], 24)
+            r = np.clip(rng.normal(0.85, 0.15, 24), -1, 1)
+            m[rng.random(24) < 0.05] = np.nan
+            r[rng.random(24) < 0.05] = np.nan
+            s_x = np.abs(rng.normal(1.0, 1.5, 24))
+            d_x = rng.normal(0.0, 0.3, 24)
+            horas = lambda f: {x.split(" ")[0] for x in f}  # noqa: E731
+            nueva, vieja = guardas._fallas_p7(m, r, U, s_x, d_x), guardas._fallas_p7(m, r, U)
+            self.assertLessEqual(horas(nueva), horas(vieja))
+            self.assertEqual(horas(guardas._fallas_p7(m, r, U, np.ones(24), np.zeros(24))), horas(vieja))
+        s_x, d_x = guardas._referencia_p7(np.array([np.nan] + [0.0] * 23), np.full(24, np.nan))
+        self.assertTrue((s_x == 1).all() and (d_x == 0).all())     # sin definir o denominador 0: 1 y 0
+
+    def test_e5_2_prueba_14_sigue_fallando_con_referencia(self):
+        """§8, prueba 14 (horas 00-03 corridas un día): con la referencia, P7 falla bajo toda H, porque ERA5-Land
+        no tiene la fecha corrida; sin la fecha corrida, pasa bajo toda H."""
+        anotado, serie, ctx = _estacion(semilla=11, corrida=True)
+        self.assertTrue(guardas.p7_con_referencia(ctx, serie))
+        g = guardas.p7(anotado, ctx, serie)
+        self.assertEqual(set(g["H"]), {h.id for h in ctx.info.P})
+        self.assertTrue((g["resultado"] == ResultadoGuarda.FALLA).all(), g)
+        anotado0, serie0, ctx0 = _estacion(semilla=11)
+        self.assertTrue((guardas.p7(anotado0, ctx0, serie0)["resultado"] == ResultadoGuarda.PASA).all())
+
+    def test_err2_minimo_de_1_5_con_tolerancia(self):
+        """ERR-2 también en «m_h ≥ 1,5 °C»: con Ts en décimas, 17,4 − 15,9 da 1,4999999999999982 en coma flotante,
+        pero es 1,5 y el texto dice que el salto cuenta (m_07 y m_09 son 0,7, así que también m_08 ≥ 2·máx). El código
+        anterior a la errata comparaba sin tolerancia y el año pasaba."""
+        prof = np.empty(24)
+        prof[:8] = np.round(14.5 + 0.1 * np.arange(8), 1)                    # 14,5 … 15,2
+        prof[8], prof[9], prof[10] = 15.9, 17.4, 18.1                         # Δ = 0,7 / 1,5 / 0,7
+        prof[11:] = np.round(np.linspace(17.85, 14.6, 13), 1)
+        self.assertLess(prof[9] - prof[8], 1.5)                               # el empate, perdido en coma flotante
+        self.assertGreaterEqual(prof[9] - prof[8], 2 * max(prof[8] - prof[7], prof[10] - prof[9]))
+        d = np.abs(np.diff(np.r_[prof, prof[0]]))
+        self.assertTrue(all(x < 1.0 for i, x in enumerate(d) if i != 8))
+        L = np.arange(np.datetime64("2019-01-01T00", "h"), np.datetime64("2020-01-01T00", "h"),
+                      dtype="datetime64[h]").astype("datetime64[ns]")
+        hora = pd.DatetimeIndex(L).hour.to_numpy()
+        extracto = pd.DataFrame({"L": L, "especial": False, "regimen": "R0", "ts": prof[hora]})
+        s = guardas._serie(extracto, extracto["ts"].to_numpy(np.float64))
+        res, detalle = guardas._p7_anio(s, guardas._vecino(s, 1), 2019, _U())
+        self.assertEqual(res, ResultadoGuarda.FALLA, f"m_08 = 1,5 °C ≥ 1,5 °C y ≥ 2·0,7: §4.7 dice que falla ({detalle})")
+        self.assertIn("08 h (salto", detalle)
+
+    def test_e5_2_no_evaluable_sigue_no_evaluable_con_referencia(self):
+        """La referencia nunca convierte un «no evaluable» en «falla»: con Ts cada 3 h no hay 22 etiquetas de presencia
+        ≥ 0,8, y con referencia cada H lleva la misma fila «no evaluable» que la P7 sin referencia."""
+        anotado, serie, ctx = _estacion_civil()
+        ralo = anotado[pd.DatetimeIndex(anotado["L"]).hour % 3 == 0].reset_index(drop=True)
+        self.assertTrue(guardas.p7_con_referencia(ctx, serie))
+        sin = guardas.p7(ralo, ctx)
+        self.assertEqual(_una(sin, "guarda", "P7", "*", "2019")["resultado"], ResultadoGuarda.NO_EVALUABLE)
+        con = guardas.p7(ralo, ctx, serie)
+        self.assertEqual(set(con["H"]), {h.id for h in ctx.info.P})
+        self.assertTrue((con["resultado"] == ResultadoGuarda.NO_EVALUABLE).all(), con)
+        self.assertEqual(set(con["detalle"]), set(sin["detalle"]))
+
+    def test_e5_2_referencia_con_x_finito_en_los_dos_extremos(self):
+        """GU-3: la referencia usa sólo los pares (L, L + 1 h) con x finito en los dos extremos. Se borra la t2m del
+        píxel a las 13 UTC en 10 días de verano y a las 12 UTC en otros 10: esos pares de la etiqueta 09 quedan fuera
+        y la referencia sigue viendo el salto matinal, así que C(Santiago) pasa. Si esos pares entraran, la mediana de
+        la referencia en las 09 h no estaría definida (s_09^x = 1) y P7 fallaría."""
+        anotado, serie, ctx = _estacion_civil()
+        t2m = serie.datos[1]["t2m"]
+        borradas = []
+        for dia, hora_utc in [(d, 13) for d in range(10, 20)] + [(d, 12) for d in range(20, 30)]:
+            k = int((np.datetime64(f"2019-01-{dia:02d}T{hora_utc:02d}", "h") - serie.t0) / np.timedelta64(1, "h"))
+            t2m[k] = np.nan
+            borradas.append(k)
+        # Esos instantes son extremos de pares de la etiqueta 09 bajo C(Santiago) (verano, UTC−3: 09 h ↔ 12 UTC).
+        L09 = anotado.loc[(pd.DatetimeIndex(anotado["L"]).hour == 9) & (anotado["regimen"] == "R0").fillna(False), "L"]
+        u = L09.to_numpy(dtype="datetime64[ns]") + np.timedelta64(3, "h")
+        x_i = serie.valores(1, "t2m", u)
+        x_j = serie.valores(1, "t2m", u + np.timedelta64(1, "h"))
+        self.assertEqual(int((~np.isfinite(x_i) | ~np.isfinite(x_j)).sum()), 20)
+        self.assertTrue(np.isnan(np.median(np.abs(x_j - x_i))))                # sin el filtro, s_09^x no existiría
+        self.assertEqual(_una(guardas.p7(anotado, ctx), "guarda", "P7", "*", "2019")["resultado"],
+                         ResultadoGuarda.FALLA)
+        con = guardas.p7(anotado, ctx, serie)
+        self.assertEqual(_una(con, "guarda", "P7", "C(Santiago)", "2019")["resultado"], ResultadoGuarda.PASA)
+
+    def test_e5_lecturas_gu3_y_err2(self):
+        """Las lecturas GU-3 (E5-2, con la restricción) y ERR-2 (errata E-2) del encabezado del módulo."""
+        doc = " ".join(guardas.__doc__.split())
+        gu3 = doc.split("- GU-3 ")[1].split("- GU-4.")[0]
+        self.assertIn("[Enmienda 5, E5-2]", gu3)
+        self.assertIn("no costera por §3.3, también en C3c", gu3)
+        self.assertIn("una sola fila con H = «*»", gu3)
+        self.assertIn("- ERR-2 [errata E-2 de la Enmienda 5]", doc)
 
 
 if __name__ == "__main__":

@@ -427,5 +427,29 @@ class PruebasArmonicos(unittest.TestCase):
             numerico.redondear_empate_hacia_cero(float("nan"))
 
 
+
+class PruebasEnmienda5Empate(unittest.TestCase):
+    """ERR-1 (errata E-1 de la Enmienda 5): «empate por menor pixel_id» con tolerancia de coma flotante."""
+
+    def test_err1_mas_cercano_empate_con_tolerancia(self):
+        """Los vecinos este y oeste a la misma latitud de la rejilla quedan a la misma distancia geométrica, pero
+        en coma flotante el este sale 6,3·10⁻¹³ km más cerca: decide el menor id, no el redondeo."""
+        d = numerico.distancia_km(-49.9, -73.8, np.array([-49.9, -49.9]), np.array([-73.9, -73.7]))
+        self.assertNotEqual(d[0], d[1])
+        self.assertLess(abs(d[0] - d[1]), 1e-9)
+        self.assertEqual(numerico.mas_cercano(d, np.array([5039261, 5039263])), 0)
+        self.assertEqual(numerico.mas_cercano(d[::-1], np.array([5039263, 5039261])), 1)
+        # Fuera de la tolerancia gana el más cercano, aunque tenga el id mayor.
+        self.assertEqual(numerico.mas_cercano(np.array([1.0, 1.0 - 2 * numerico.EMPATE_DISTANCIA_KM]),
+                                              np.array([1, 2])), 1)
+        self.assertEqual(numerico.mas_cercano(np.array([1.0, 1.0 - 0.5 * numerico.EMPATE_DISTANCIA_KM]),
+                                              np.array([1, 2])), 0)
+        self.assertEqual(numerico.EMPATE_DISTANCIA_KM, 1e-6)
+        for malo in ((np.array([]), np.array([], dtype=np.int64)), (np.array([1.0, np.nan]), np.array([1, 2])),
+                     (np.array([1.0]), np.array([1, 2]))):
+            with self.assertRaises(ValueError):
+                numerico.mas_cercano(*malo)
+
+
 if __name__ == "__main__":
     unittest.main()

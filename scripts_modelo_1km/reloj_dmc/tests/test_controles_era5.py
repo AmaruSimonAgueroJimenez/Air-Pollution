@@ -1325,5 +1325,135 @@ class PruebasRedReal(unittest.TestCase):
         self.assertTrue(C3.ida_y_vuelta(mala, [caso], self.adaptador)["fallas"])
 
 
+
+# Las tres celdas de la fila 1399 de catalogo_pixeles.parquet de ERA5L (49,9° S), con sus valores tal como están
+# guardados; el centro (5039262) es la estación de prueba de C3b donde se vio la errata E-1 de la Enmienda 5.
+_CAT_1399 = pd.DataFrame({
+    "pixel_id": np.array([5039261, 5039262, 5039263], dtype=np.int64),
+    "lat_index_global": [1399, 1399, 1399], "lon_index_global": [2861, 2862, 2863],
+    "latitude": [-49.9, -49.9, -49.9], "longitude": [-73.9, -73.8, -73.7],
+    "cell_west": [-73.95, -73.85, -73.75], "cell_east": [-73.85, -73.75, -73.65],
+    "cell_south": [-49.95, -49.95, -49.95], "cell_north": [-49.85, -49.85, -49.85],
+    "cod_comuna": [12401, 12401, 12401], "asignacion_comuna": ["centro"] * 3,
+    "territorio": ["continental"] * 3, "aoi_id": ["continente"] * 3})
+
+
+def _catalogo_empate_c3c():
+    """Dos filas (49,8° y 49,9° S) × nueve columnas (71,0° a 70,2° O); sin dato en (−49,8; −70,6). El costero
+    (−49,9; −70,6) tiene dos interiores a 10-15 km, al oeste y al este, a la misma distancia geométrica; en coma
+    flotante el este sale 8·10⁻¹³ km más cerca."""
+    filas, validos = [], set()
+    for lat in (-49.8, -49.9):
+        for j in range(9):
+            lon = round(-71.0 + 0.1 * j, 1)
+            p = _pid(lat, lon)
+            filas.append({"pixel_id": p, "latitude": lat, "longitude": lon, "cell_west": lon - 0.05,
+                          "cell_south": lat - 0.05, "cell_east": lon + 0.05, "cell_north": lat + 0.05,
+                          "cod_comuna": 12101, "territorio": "continental",
+                          "lat_index_global": p // 3600, "lon_index_global": p % 3600})
+            if (lat, lon) != (-49.8, -70.6):
+                validos.add(p)
+    return pd.DataFrame(filas).sort_values("pixel_id").reset_index(drop=True), validos
+
+
+class PruebasEnmienda5Empate(unittest.TestCase):
+    """ERR-1 (errata E-1 de la Enmienda 5) en C3b (lectura C3-6) y C3c (lectura C3-9)."""
+
+    def test_err1_estacion_de_prueba_c3b_empate_este_oeste_menor_pixel_id(self):
+        """C3-6: «el píxel válido más cercano al elegido (distinto de él; empate, menor pixel_id)». Para 5039262
+        (49,9° S, la unidad que no recuperaba F(0)) el oeste y el este empatan: decide 5039261. El código anterior
+        a la errata daba 5039263."""
+        elegido = C3.pixel_valido_mas_cercano(_CAT_1399, {5039261, 5039262, 5039263}, 5039262)
+        self.assertEqual(elegido, 5039261)
+
+    def test_err1_pareja_c3c_empate_menor_pixel_id(self):
+        """C3-9: «Pareja: el interior más cercano (empate, menor pixel_id)». El código anterior a la errata daba el
+        interior del este, de pixel_id mayor."""
+        cat, validos = _catalogo_empate_c3c()
+        costero, oeste, este = _pid(-49.9, -70.6), _pid(-49.9, -70.8), _pid(-49.9, -70.4)
+        d = numerico.distancia_km(-49.9, -70.6, np.array([-49.9, -49.9]), np.array([-70.8, -70.4]))
+        self.assertTrue(10.0 <= d[0] <= 15.0 and d[0] != d[1] and abs(d[0] - d[1]) < 1e-9)
+        self.assertLess(oeste, este)
+        parejas = C3.parejas_c3c(cat, validos, {p: 100.0 for p in validos}, _umbrales())
+        self.assertIn(costero, parejas)
+        self.assertEqual(parejas[costero][0], oeste)
+        self.assertAlmostEqual(parejas[costero][1], float(d[0]), places=9)
+
+
+
+class _RedConControles(_RedFalsa):
+    """_RedFalsa que además trae los controles de red, como orquestacion.ResultadoRed."""
+
+    def __call__(self, *args, **kwargs):
+        r = super().__call__(*args, **kwargs)
+        r.controles = {
+            "A3": {"pais": {"n": 444, "falla": False}, "macrozonas": {"norte_chico": {"n": 444, "mediana_D": -0.329,
+                                                                                       "falla": True}},
+                   "falla_pais": False, "fallan_macrozonas": ["norte_chico"], "rige": "pais",
+                   "fallan_macrozonas_sin_consecuencia": ["norte_chico"]},
+            "A5": {"alto": False, "m": float("nan")},
+            "calibracion_e3t": {"modos": {"norte_chico": "completo"}, "por_macrozona": {"norte_chico": {"n": 40}},
+                                "umbrales": {"min_estacion_anios": 30.0}},
+            "A4": {"restringe_e3t": False}}
+        return r
+
+
+class PruebasEnmienda5Controles(unittest.TestCase):
+    """Enmienda 5, E5-1 (lecturas C3-8 y C3-17)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.U = _umbrales()
+        cls.plan = C3.plan_c3b(CAT, VALIDOS, cls.U)
+
+    def test_e5_1_c3b_a3_solo_en_el_pais_y_controles_en_el_json(self):
+        """La red de C3b recibe ``a3_solo_pais=True``; C3b.json guarda A3, A5 y la calibración de E3t."""
+        red = _RedConControles(decisiones=lambda vistas: _decisiones_correctas(self.plan))
+        r = C3.c3b(Path("/nada/ERA5L"), CAT, VALIDOS, self.U, macrozona_region=MACROZONA_REGION,
+                   serie=_SerieAnalitica(COORDS), controles_era5=CONTROLES_OK, evaluar_red=red,
+                   tablas_calendario=object(), adaptador=ADAPTADOR)
+        self.assertTrue(red.llamadas[0].opciones.a3_solo_pais)
+        self.assertTrue(red.llamadas[0].opciones.aplicar_exclusion_costera)
+        cr = r.detalle["controles_red"]
+        self.assertEqual(set(cr), {"A3", "A5", "calibracion_e3t"})
+        self.assertEqual(cr["A3"]["rige"], "pais")
+        self.assertEqual(cr["calibracion_e3t"]["modos"], {"norte_chico": "completo"})
+        with tempfile.TemporaryDirectory() as tmp:
+            C3.escribir_c3([r], Path(tmp))
+            escrito = json.loads((Path(tmp) / "C3b.json").read_text(encoding="utf-8"))
+        self.assertEqual(escrito["detalle"]["controles_red"]["A3"]["fallan_macrozonas_sin_consecuencia"],
+                         ["norte_chico"])
+        self.assertIsNone(escrito["detalle"]["controles_red"]["A5"]["m"])          # sin NaN en el JSON
+        # Una red que no trae controles (las pruebas que la simulan) deja la clave vacía.
+        sin = C3.c3b(Path("/nada/ERA5L"), CAT, VALIDOS, self.U, macrozona_region=MACROZONA_REGION,
+                     serie=_SerieAnalitica(COORDS), controles_era5=CONTROLES_OK,
+                     evaluar_red=_RedFalsa(decisiones=lambda vistas: _decisiones_correctas(self.plan)),
+                     tablas_calendario=object(), adaptador=ADAPTADOR)
+        self.assertEqual(sin.detalle["controles_red"], {})
+
+    def test_e5_1_c3c_no_usa_la_opcion(self):
+        """C3c no cambia: sus dos redes llevan A3 como en §5.4 y van sin la exclusión costera."""
+        z = {p: 100.0 + 10.0 * (p % 13) for p in VALIDOS}
+        red = _RedFalsa()
+        C3.c3c(Path("/nada/ERA5L"), CAT, VALIDOS, self.U, macrozona_region=MACROZONA_REGION, z_pix=z,
+               serie=_SerieAnalitica(COORDS), controles_era5=CONTROLES_OK, evaluar_red=red, tablas_calendario=object(),
+               adaptador=ADAPTADOR)
+        self.assertEqual(len(red.llamadas), 2)
+        for llamada in red.llamadas:
+            self.assertFalse(llamada.opciones.a3_solo_pais)
+            self.assertFalse(llamada.opciones.aplicar_exclusion_costera)
+
+    def test_e5_lecturas_de_c3(self):
+        """E5-1 y la errata E-1 en las lecturas del módulo: C3-6, C3-8, C3-9, C3-17 y ERR-1."""
+        doc = " ".join(C3.__doc__.split())
+        c3_8 = doc.split("- C3-8 ")[1].split("- C3-9.")[0]
+        self.assertIn("[Enmienda 5, E5-1]", c3_8)
+        self.assertIn("A3 rige sólo con su resultado en el país", c3_8)
+        for lectura in ("- C3-6.", "- C3-9."):
+            self.assertIn("con la tolerancia de ERR-1", doc.split(lectura)[1][:400], lectura)
+        self.assertIn("- C3-17 [Enmienda 5, E5-1]", doc)
+        self.assertIn("- ERR-1 [errata E-1 de la Enmienda 5]", doc)
+
+
 if __name__ == "__main__":
     unittest.main()

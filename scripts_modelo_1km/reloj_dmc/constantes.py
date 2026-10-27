@@ -37,7 +37,10 @@ from typing import Any, Iterator
 # da enmienda4/generar_v1_0_4.py y cita enmienda4/ENMIENDA_4.md (su anclaje, un commit local y su sello, está
 # pendiente: si el texto cambia antes, las pruebas fallan y hay que revisar los fragmentos antes de poner la
 # huella nueva). La Enmienda 4 no cambia ningún fragmento de CONSTANTES ni de bateria.CONSTANTES_BATERIA; la
-# frase que cambia la lee bateria.FRAGMENTO_INDECIDIBLE. La última versión es la vigente.
+# frase que cambia la lee bateria.FRAGMENTO_INDECIDIBLE. La del v1.0.5 (Enmienda 5 del reloj, adoptada el
+# 2026-10-26 después de C3 y antes de mirar la DMC: E5-1 en §8.E, E5-2 en §4.7 y E5-3 en §5.4 y §6), la que da
+# enmienda5/generar_v1_0_5.py y cita enmienda5/ENMIENDA_5.md; tampoco cambia ningún fragmento (el de
+# P7_PRESENCIA sigue tal cual en la viñeta de P7). La última versión es la vigente.
 TEXTOS_PROTOCOLO = (
     ("v1", "auditoria/20261023/reloj_dmc/PROTOCOLO_RELOJ_DMC_v1_propuesta.md",
      "5fff072783e932843d210561a46f5344351a39b7dd85f5775ac884eaf96e4d85"),
@@ -49,14 +52,18 @@ TEXTOS_PROTOCOLO = (
      "7a019348b8ff6e26cef81c86881265a3392172acbf175b118a8682e9cd345f97"),
     ("v1.0.4", "auditoria/20261023/reloj_dmc/enmienda4/PROTOCOLO_RELOJ_DMC_v1.0.4.md",
      "d8f61cfc1ab01da17fd97b8e5e871b55d4557a66ff2599a585b362689475b54d"),
+    ("v1.0.5", "auditoria/20261023/reloj_dmc/enmienda5/PROTOCOLO_RELOJ_DMC_v1.0.5.md",
+     "21f1b4699dea7106b0e6065e0f232e8aeb97ca618b812b2dee4a2d3b9b803c89"),
 )
 VERSIONES_TEXTO = tuple(v for v, _, _ in TEXTOS_PROTOCOLO)
 VERSION_VIGENTE = VERSIONES_TEXTO[-1]
-# El texto consolidado de C1 (§10, v1.1): el v1.0.4 con el cierre de C1, sin cambiar ningún fragmento (lo comprueba
-# generar_v1_1.py con verificar_contra_texto(v1.1, version=VERSION_C1)). Va después de la vigente y lleva sus
-# fragmentos. Su sha256 no puede estar aquí: el v1.1 cita la salida de la corrida de C1, que corre este código, así
-# que su huella la fija el addendum de C1 («texto_v1_1»). PEN-9 de C1.
-VERSION_C1 = "v1.1"
+# El texto consolidado de C1 (§10). El primer cierre de C1 dio el v1.1 (el v1.0.4 con el cierre); la Enmienda 5 lo
+# reemplaza, y el cierre nuevo da el v1.2: el v1.0.5 con el cierre de C1, sin cambiar ningún fragmento (lo comprueba
+# enmienda5/generar_v1_2.py con verificar_contra_texto(v1.2, version=VERSION_C1)). Va después de la vigente y lleva
+# sus fragmentos. Su sha256 no puede estar aquí: el v1.2 cita la salida de la corrida de C1, que corre este código,
+# así que su huella la fija el addendum de C1 («texto_v1_1», el nombre de la clave en el esquema
+# dmc-reloj-addendum-c1/1). PEN-9 de C1; el v1.1 ya no es una versión de este código.
+VERSION_C1 = "v1.2"
 
 
 def indice_version(version: str) -> int:

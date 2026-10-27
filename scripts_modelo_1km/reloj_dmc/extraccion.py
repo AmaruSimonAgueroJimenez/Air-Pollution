@@ -46,7 +46,8 @@ Lecturas de implementación de este módulo (para el addendum de C1, junto con l
 8. Huella agregada (§7.4): líneas «sha256␣␣ruta\\n» (formato de sha256sum, con salto final en cada línea),
    ordenadas por la ruta escrita por alias, sobre todos los manifiestos listados, entren o no.
 9. Píxel (§3.3): sólo se enlaza una estación con coordenadas válidas (interpretables y en rango). Sin píxel,
-   ``costera`` es False, porque no hay píxel enlazado. ``distancia_km`` es al centro del píxel enlazado.
+   ``costera`` es False, porque no hay píxel enlazado. ``distancia_km`` es al centro del píxel enlazado. El
+   empate por menor pixel_id lleva la tolerancia de ERR-1 (numerico.mas_cercano; errata E-1 de la Enmienda 5).
 10. ERA5-Land (§3.4): el eje es correcto si todas las horas son HH:00 enteras, van de 1 h en 1 h desde el
     inicio del mes, quedan dentro del mes y llegan al fin del mes (o a 2026-09-15T23Z). Un mes sin archivo
     queda con sha256 vacío y eje anómalo (A1). Las medianas de unidades son sobre todos los píxeles y horas
@@ -1183,8 +1184,8 @@ def elegir_pixel(lat: float, lon: float, catalogo_pixeles: pd.DataFrame, validos
     if not cerca.any():
         return EleccionPixel(None, None, False)
     ids_c, d_c = ids[candidatos][cerca], d[cerca]
-    orden = np.lexsort((ids_c, d_c))           # distancia y, en empate, menor pixel_id
-    return EleccionPixel(int(ids_c[orden[0]]), float(d_c[orden[0]]), True)
+    k = numerico.mas_cercano(d_c, ids_c)       # distancia y, en empate, menor pixel_id (ERR-1)
+    return EleccionPixel(int(ids_c[k]), float(d_c[k]), True)
 
 
 class SerieEra5Mapeada:

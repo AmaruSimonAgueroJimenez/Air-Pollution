@@ -16,10 +16,11 @@ Depende de: tipos, numerico, umbrales, constantes, tablas, lineas_fisicas (e3p_a
 (clase de E2, id de evento y resultado de E1b, para §1.13).
 
 Lecturas propias de este módulo (van al addendum de C1):
-- RED-1. A3 con menos de A3_MIN_REGIMENES años-régimen, en el país o en una macrozona, no se evalúa y
-  no falla. Con la otra lectura, Magallanes (sin muestra, porque |lat| > A3_LAT_MAX) perdería E4p
-  siempre, contra §6 («F(0) puede confirmarse con E3p y E4p»). En E3t no cambia nada: una macrozona
-  con menos de CAL_E3T_MIN estación-años queda restringida igual.
+- RED-1 [Enmienda 5, E5-3]. A3 con menos de A3_MIN_REGIMENES años-régimen, en el país o en una macrozona, no
+  se evalúa y no falla. Con la otra lectura, una macrozona sin muestra suficiente perdería siempre E4p, la regla
+  fina y E3t completo sin que nada haya fallado. (La parte de Magallanes al sur de 50° S no entra a la muestra de
+  A3, porque |lat| > A3_LAT_MAX, pero su macrozona, la austral, sí tiene muestra al norte de ese corte.) En E3t
+  no cambia nada: una macrozona con menos de CAL_E3T_MIN estación-años queda restringida igual.
 - RED-2. «E3p filtrada evaluable» (A3 y A5) = año-régimen de QFE con ĉ^f_cont definido, ≥
   E3_PARES_REGIMEN pares y máx r^f ≥ E3_RMAX (R-41). «E4p evaluable» = la fila de E4p del año-régimen
   no es «sin información» para alguna H (compatible, incompatible o dudosa; LF-11) y ψ2 es finito.
@@ -87,6 +88,13 @@ Lecturas propias de este módulo (van al addendum de C1):
   - regla fina: años-régimen finos con ĉ^f definido, donde la fina rige (A3 y apagado de estación);
   - sin porcentaje en el texto (E1b, la E2 civil y la fina), la predicción es universal: se cumple si la
     cumplen todas las unidades evaluables. Sin unidades evaluables queda «sin_datos», sin juicio.
+- RED-11 [Enmienda 5, E5-1]. ``controles_red(..., a3_solo_pais=True)``, que sólo pide C3b
+  (orquestacion.OpcionesCorrida.a3_solo_pais, desde controles_era5._opciones): A3 se calcula como siempre, en el
+  país y por macrozona, y su detalle lo informa entero; agrega «rige» = «pais» y
+  «fallan_macrozonas_sin_consecuencia», la lista de las que fallan. Las consecuencias (ConsecuenciasRed), la
+  muestra de la calibración de E3t (la fina de E3p apagada donde falla A3) y el modo de E3t reciben una lista
+  vacía de macrozonas que fallan; la falla en el país rige igual. Sin la opción (C4, la batería, C3c) no cambia
+  nada.
 """
 from __future__ import annotations
 
@@ -539,13 +547,21 @@ def calibrar_e3t(muestra: pd.DataFrame, a3_pais: bool, a3_macro: frozenset[str],
 
 
 def controles_red(evidencias: Sequence[EvidenciaEstacion], macrozonas: Sequence[str],
-                  umbrales: Umbrales, *, calendario=None) -> tuple[ConsecuenciasRed, dict]:
+                  umbrales: Umbrales, *, calendario=None, a3_solo_pais: bool = False) -> tuple[ConsecuenciasRed, dict]:
     """Nombre de §9: A3, A5 y calibración de E3t, en ese orden; devuelve las consecuencias (sin A4) y el
     detalle. ``detalle["tablas"]`` trae las muestras de A3 y A5 y la distribución de δt (DataFrames,
-    para calibracion_e3t.csv); el resto es JSON para controles_red.json."""
+    para calibracion_e3t.csv); el resto es JSON para controles_red.json.
+
+    ``a3_solo_pais`` (sólo C3b; Enmienda 5, E5-1, RED-11): A3 se calcula igual, en el país y por macrozona, y se
+    informa, pero rige sólo con su resultado en el país. Ninguna macrozona pierde por A3 la exclusión ni la Q de
+    E4p, la regla fina ni E3t completo, y la calibración de E3t de cada macrozona sale sólo de su muestra. En C4
+    y en la batería es False: A3 rige como dice §5.4."""
     evidencias = list(evidencias)
     m3 = muestra_a3(evidencias, umbrales)
     falla_pais, fallan, det3 = a3(m3, umbrales)
+    if a3_solo_pais:
+        det3 = {**det3, "rige": "pais", "fallan_macrozonas_sin_consecuencia": sorted(fallan)}
+        fallan = frozenset()
     m5 = muestra_a5(evidencias, umbrales)
     alto, det5 = a5(m5, umbrales)
     todas = sorted({str(z) for z in macrozonas} | {e.info.macrozona for e in evidencias})

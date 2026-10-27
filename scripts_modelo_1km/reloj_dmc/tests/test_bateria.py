@@ -132,6 +132,18 @@ def _textos_del_protocolo() -> dict[str, str]:
     return textos
 
 
+# Enmienda 5 (v1.0.5): comparaciones de las líneas nuevas que repiten un umbral que ya está (no son fijos nuevos del
+# cuerpo), en el orden del texto: (frase, valor, «anexo_b» o «cuerpo», nombre). Lo comprueba
+# test_fijos_nuevos_del_cuerpo_en_cada_version.
+REPETICIONES_V1_0_5 = (
+    ("con z_cat legible y |Δz| ≤ 1.000 m", 1000, "anexo_b", "E3D_DZ_TS_M"),       # E5-2, referencia de P7
+    ("m_h ≥ 2·máx(1, s_h^x)", 2, "anexo_b", "P7_FACTOR"),                          # E5-2, salto
+    ("y m_h ≥ 1,5 °C", 1.5, "anexo_b", "P7_SALTO_C"),                              # E5-2, salto
+    ("no tiene regla fina (|lat| > 50°)", 50, "cuerpo", "FINA_LAT_MAX"),            # E5-3, §6
+    ("con |Δz| > 400 m", 400, "anexo_b", "E3T_DZ_M"),                               # E5-3, §6
+)
+
+
 def _comparaciones_sin_constante(previo: str, nuevo: str, version: str) -> tuple[int, list[str]]:
     """Comparaciones numéricas (≥, ≤, <, > o «menos de» seguidos de un número; no las de un «…») de las
     líneas del cuerpo de ``nuevo`` que no están en ``previo``, y las que no caen dentro del fragmento, en
@@ -157,7 +169,7 @@ def _comparaciones_sin_constante(previo: str, nuevo: str, version: str) -> tuple
 class PruebasConstantesDelCuerpo(unittest.TestCase):
     def test_constantes_de_la_bateria_citadas_literalmente(self):
         """BAT-12: CONSTANTES_BATERIA con su fragmento, dentro de §8.D y con sus números, en cada versión del
-        texto (C0, v1.0.1, v1.0.2, v1.0.3 y el vigente v1.0.4), con la misma regla que
+        texto (C0, v1.0.1, v1.0.2, v1.0.3, v1.0.4 y el vigente v1.0.5), con la misma regla que
         constantes.verificar_contra_texto. BATERIA_CORRECTA_LAT_S nace en el v1.0.3 (E3-6) y cita el 90 % de
         BAT_CORRECTA_PCT."""
         for version, texto in _textos_del_protocolo().items():
@@ -174,16 +186,30 @@ class PruebasConstantesDelCuerpo(unittest.TestCase):
         versión. Con la Enmienda 3 (v1.0.2 → v1.0.3) son, además de las que ya estaban, el patrón de regla
         vencida (§4.1.1), ρ (§4.3.5), la fila de §5.5, §6, §8.16 y §8.D; los nombres de reglas entre «…»
         («octubre, domingo ≥ 9») no cuentan. La Enmienda 4 (v1.0.3 → v1.0.4) no agrega ninguna: cambia el
-        encabezado, el Estado, la frase de lo indecidible de §8.D y el registro de revisión, sin números."""
+        encabezado, el Estado, la frase de lo indecidible de §8.D y el registro de revisión, sin números.
+
+        La Enmienda 5 (v1.0.4 → v1.0.5) reescribe la viñeta de P7 (E5-2) y la de Magallanes (E5-3). Sus 7
+        comparaciones no traen umbrales nuevos: las dos de la primera línea de P7 caen en el fragmento de
+        P7_PRESENCIA y las otras cinco repiten un umbral que ya está, cada una con su valor (REPETICIONES_V1_0_5):
+        cuatro del Anexo B y la latitud de la regla fina. Toda otra comparación sin constante hace fallar la
+        prueba, igual que antes."""
         textos = _textos_del_protocolo()
         versiones = list(textos)
+        U = _U()
         nuevas_por_version = {}
         for previa, nueva in zip(versiones, versiones[1:]):
             n, faltan = _comparaciones_sin_constante(textos[previa], textos[nueva], nueva)
-            self.assertEqual(faltan, [], f"{previa} → {nueva}: comparaciones sin constante del cuerpo")
+            if nueva == "v1.0.5":
+                self.assertEqual(len(faltan), len(REPETICIONES_V1_0_5), faltan)
+                for contexto, (frase, valor, origen, nombre) in zip(faltan, REPETICIONES_V1_0_5):
+                    self.assertIn(frase, contexto)
+                    self.assertEqual(U.f(nombre) if origen == "anexo_b" else constantes.valor(nombre), valor, nombre)
+            else:
+                self.assertEqual(faltan, [], f"{previa} → {nueva}: comparaciones sin constante del cuerpo")
             nuevas_por_version[nueva] = n
         self.assertGreaterEqual(nuevas_por_version["v1.0.3"], 10)
         self.assertEqual(nuevas_por_version["v1.0.4"], 0)
+        self.assertEqual(nuevas_por_version["v1.0.5"], 7)
         # El detector ve una comparación nueva fuera de toda constante.
         vigente = textos[constantes.VERSION_VIGENTE]
         cambiado = vigente.replace("a ≤ 50° S", "a ≤ 50° S y a ≤ 45° de longitud")
@@ -638,7 +664,7 @@ class PruebasBateria(unittest.TestCase):
                 self.assertEqual(c.criterios["indecidible_sin_confirmar"]["indecidible_estrecho"], estrecho)
 
     def test_d_lo_indecidible_es_la_frase_de_8D(self):
-        """BAT-7: FRAGMENTO_INDECIDIBLE está una vez en §8.D del texto vigente (v1.0.4) y nombra sólo los tipos de
+        """BAT-7: FRAGMENTO_INDECIDIBLE está una vez en §8.D del texto vigente (desde el v1.0.4) y nombra sólo los tipos de
         TIPOS_INDECIDIBLES; los textos anteriores (C0 a v1.0.3) traen la frase «tipos e y f», sin el fragmento.
         Si una enmienda vuelve a cambiar la frase, la prueba falla y obliga a revisar la lista."""
         textos = _textos_del_protocolo()

@@ -957,5 +957,42 @@ class PruebasReglaAnualDeCv(unittest.TestCase):
                                                                     "907201"))[0], "compatible")
 
 
+
+class PruebasEnmienda5Opciones(unittest.TestCase):
+    """Enmienda 5, E5-1: ``OpcionesCorrida.a3_solo_pais`` llega a red.controles_red; por omisión es False, y sólo
+    controles_era5 (C3b) lo activa."""
+
+    class _Alto(Exception):
+        pass
+
+    def test_e5_1_evaluar_red_pasa_a3_solo_pais(self):
+        self.assertFalse(O.OpcionesCorrida().a3_solo_pais)
+        for valor in (False, True):
+            vistos = []
+
+            def espia(*args, **kwargs):
+                vistos.append(kwargs.get("a3_solo_pais"))
+                raise self._Alto
+
+            with self.subTest(a3_solo_pais=valor), mock.patch.object(red, "controles_red", side_effect=espia):
+                with self.assertRaises(self._Alto):
+                    O.evaluar_red(lambda: [], None, object(), _ESTADO["U"], O.OpcionesCorrida(a3_solo_pais=valor))
+                self.assertEqual(vistos, [valor])
+
+    def test_e5_1_solo_c3b_activa_la_opcion(self):
+        """En el código del paquete (por AST, sin docstrings), sólo controles_era5 (la red de C3b) pasa
+        ``a3_solo_pais=True`` a una llamada."""
+        import ast
+        paquete = Path(O.__file__).resolve().parent
+        con = []
+        for p in sorted(paquete.glob("*.py")):
+            for nodo in ast.walk(ast.parse(p.read_text(encoding="utf-8"))):
+                if isinstance(nodo, ast.Call) and any(
+                        k.arg == "a3_solo_pais" and isinstance(k.value, ast.Constant) and k.value.value is True
+                        for k in nodo.keywords):
+                    con.append(p.name)
+        self.assertEqual(con, ["controles_era5.py"])
+
+
 if __name__ == "__main__":
     unittest.main()

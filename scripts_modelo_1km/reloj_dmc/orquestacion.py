@@ -177,6 +177,9 @@ class OpcionesCorrida:
     # Guarda en memoria las etiquetas de cada estación (datetime64[h]) en la fase 4, para no volver a
     # recorrer la fábrica por los tramos. Útil con entradas en memoria (batería); en --aplicar, False.
     conservar_etiquetas: bool = False
+    # Enmienda 5, E5-1 (§8.E, C3b): A3 rige sólo con su resultado en el país; por macrozona se calcula y se informa
+    # sin consecuencias (red.controles_red). Sólo C3b lo activa (controles_era5._opciones); C4 y la batería, nunca.
+    a3_solo_pais: bool = False
 
 
 @dataclass
@@ -846,7 +849,8 @@ def evaluar_red(entradas: Callable[[], Iterable[EntradaEstacion]], serie: SerieE
     # Fase 5: A3, A5 y calibración de E3t.
     t = time.perf_counter()
     macrozonas = sorted({ev.info.macrozona for ev in evidencias})
-    consecuencias, controles = red.controles_red(evidencias, macrozonas, U, calendario=tablas)
+    consecuencias, controles = red.controles_red(evidencias, macrozonas, U, calendario=tablas,
+                                                 a3_solo_pais=bool(opciones.a3_solo_pais))
     _llamar(avance, "controles_red", 1, 1)
     tiempos["controles_red"] = time.perf_counter() - t
 

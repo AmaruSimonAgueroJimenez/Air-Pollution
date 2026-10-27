@@ -51,8 +51,8 @@ Lecturas propias de este módulo (van al addendum de C1):
   pixel_id ascendente. C3c crea otro generador con la misma semilla y llama una vez, sobre los costeros
   que tienen pareja (lectura C3-9).
 - C3-6. C3b, estación de prueba: sus valores son la serie del píxel válido más cercano al elegido (distinto
-  de él; empate, menor pixel_id; sin tope de distancia) más ruido gaussiano de σ = 0,3 °C y 0,3 hPa, una
-  realización por píxel fuente y variable (la comparten sus cuatro relojes), con semilla
+  de él; empate, menor pixel_id, con la tolerancia de ERR-1; sin tope de distancia) más ruido gaussiano de
+  σ = 0,3 °C y 0,3 hPa, una realización por píxel fuente y variable (la comparten sus cuatro relojes), con semilla
   sha256("20261022|C3b|ruido|<píxel>|<variable>")[:8]. Se ubica en el centro del píxel elegido, que es su
   celda propia y su píxel enlazado (no costera), y su z_cat es el z_pix del píxel fuente.
 - C3-7. Etiquetas de C3b y C3c: las fabrica sintetico por su camino propio (§8, reglas comunes), tipo a,
@@ -61,14 +61,17 @@ Lecturas propias de este módulo (van al addendum de C1):
   C3c no los fija y usa los mismos). Valores a 0,1, como el portal; se aplica el control propio de §3.2
   (extraccion.control_propio) y se recalcula p_v del mes. Un valor fuera del rango del control se deja
   NaN antes del generador, que no los acepta (el control lo habría descartado igual).
-- C3-8. C3b corre una sola red con las 120 unidades (A3, A5 y la calibración de E3t se calculan dentro
-  de ella), con LINEAS_C3B y la exclusión costera aplicada. La comparación con E3t restringida y el
-  diagnóstico de reglas vencidas no entran en los criterios y no se calculan. G-versión, que también es
-  guarda, no está en LINEAS_C3B; no cambia nada, porque cada estación de prueba tiene una sola versión.
+- C3-8 [Enmienda 5, E5-1]. C3b corre una sola red con las 120 unidades (A3, A5 y la calibración de E3t se
+  calculan dentro de ella), con LINEAS_C3B y la exclusión costera aplicada. Por E5-1, A3 rige sólo con su
+  resultado en el país; A3 por macrozona se calcula y se informa, pero no entra en las consecuencias de la red
+  ni en la calibración de E3t (``_opciones(True, a3_solo_pais=True)``; red, RED-11). La comparación con E3t
+  restringida y el diagnóstico de reglas vencidas no entran en los criterios y no se calculan. G-versión, que
+  también es guarda, no está en LINEAS_C3B; no cambia nada, porque cada estación de prueba tiene una sola
+  versión. C3c no usa E5-1: sus dos redes llevan A3 como en §5.4.
 - C3-9. C3c: un píxel es costero si es válido y tiene algún vecino del catálogo (8 contiguos por índice
   global, R-39) que no es válido; es interior si es válido y no tiene ninguno así (un vecino que no está en
-  el catálogo no cuenta). Pareja: el interior más cercano (empate, menor pixel_id) entre los que están a
-  10-15 km (bordes incluidos) y a |Δz| ≤ 1.000 m. Los costeros sin pareja no entran al sorteo. z_pix usa
+  el catálogo no cuenta). Pareja: el interior más cercano (empate, menor pixel_id, con la tolerancia de
+  ERR-1) entre los que están a 10-15 km (bordes incluidos) y a |Δz| ≤ 1.000 m. Los costeros sin pareja no entran al sorteo. z_pix usa
   sp̄ de todas las horas 2000-01 … 2026-09 (R-20), con el mismo redondeo float32 de la serie mapeada.
 - C3-10. C3c, estación: valores del píxel costero (t2m → Ts; sp → QFE en la variante con QFE), sin ruido
   (el texto no lo pide), en F(0); se ubica en el centro del costero y se enlaza al interior (costera =
@@ -116,6 +119,16 @@ Lecturas propias de este módulo (van al addendum de C1):
 - C3-16. Con una ``serie`` ya extraída, ``controles_era5`` es obligatorio (ValueError si falta): el A1 no se
   salta nunca. Un mes de 2000-01 … 2026-09 sin control cuenta como anómalo («sin control»), igual que uno
   con el eje o las unidades fuera de rango o sin archivo.
+- C3-17 [Enmienda 5, E5-1]. ``C3b.json`` guarda, en «controles_red», los controles de red de su red
+  (``controles_red_c3``): A3 entero (país, cada macrozona, lo que rige y las macrozonas que fallan sin
+  consecuencia), A5 y la calibración de E3t (modo y resumen de cada macrozona, y sus umbrales), sin las tablas.
+  Antes no se guardaban, y por eso la falla de A3 en norte_chico de la primera corrida de C3 no se veía en la
+  salida.
+- ERR-1 [errata E-1 de la Enmienda 5]. «Empate, menor pixel_id» (§3.3; C3-6 y C3-9): dos distancias que
+  difieren en ≤ numerico.EMPATE_DISTANCIA_KM (1e-6 km) son un empate, y decide el menor pixel_id
+  (``numerico.mas_cercano``, que usan pixel_valido_mas_cercano, parejas_c3c y extraccion.elegir_pixel). Antes,
+  np.lexsort sobre distancias en coma flotante elegía al vecino que el redondeo dejaba más cerca: en C3b, el
+  vecino este en 19 de las 30 fuentes.
 """
 from __future__ import annotations
 
@@ -306,8 +319,7 @@ def pixel_valido_mas_cercano(catalogo_pixeles: pd.DataFrame, validos: Iterable[i
     if cat.empty:
         raise ErrorC3(f"no hay otro píxel válido para la estación de prueba del píxel {pixel_id}")
     ids = cat["pixel_id"].to_numpy(dtype=np.int64)
-    orden = np.lexsort((ids, _distancias(lat, lon, cat)))
-    return int(ids[orden[0]])
+    return int(ids[numerico.mas_cercano(_distancias(lat, lon, cat), ids)])     # empate: menor pixel_id (ERR-1)
 
 
 # ---------------------------------------------------------------------------------------------
@@ -355,8 +367,8 @@ def parejas_c3c(catalogo_pixeles: pd.DataFrame, validos: set[int],
             ok = (d >= desde) & (d <= hasta) & np.isfinite(z_i) & (np.abs(z_i - z_c) <= dz_max)
         if not ok.any():
             continue
-        orden = np.lexsort((ids_i[ok], d[ok]))
-        salida[int(fila.pixel_id)] = (int(ids_i[ok][orden[0]]), float(d[ok][orden[0]]))
+        k = numerico.mas_cercano(d[ok], ids_i[ok])                                # empate: menor pixel_id (ERR-1)
+        salida[int(fila.pixel_id)] = (int(ids_i[ok][k]), float(d[ok][k]))
     return salida
 
 
@@ -905,10 +917,29 @@ def entrada_de_prueba(unidad: UnidadC3, info: InfoEstacion, serie: SerieEra5, ca
     return orq.EntradaEstacion(info=info, extracto=extracto, meses=_pasos_del_mes(extracto, meses), isd=None)
 
 
-def _opciones(exclusion_costera: bool):
+def _opciones(exclusion_costera: bool, *, a3_solo_pais: bool = False):
+    """Opciones de las redes de C3: LINEAS_C3B; C3b con la exclusión costera y, por E5-1 (lectura C3-8), A3 sólo
+    en el país; C3c sin la exclusión y con A3 como en §5.4."""
     orq = _orquestacion()
     return orq.OpcionesCorrida(lineas_activas=orq.LINEAS_C3B, aplicar_exclusion_costera=exclusion_costera,
-                               remuestreo=True, comparacion_e3t_restringida=False, diagnostico_reglas_vencidas=False)
+                               remuestreo=True, comparacion_e3t_restringida=False, diagnostico_reglas_vencidas=False,
+                               a3_solo_pais=a3_solo_pais)
+
+
+def controles_red_c3(resultado: Any) -> dict:
+    """Los controles de red de una red de C3 para su JSON (Enmienda 5, E5-1; lectura C3-17): A3 en el país y por
+    macrozona (con lo que rige), A5 y la calibración de E3t con el modo de cada macrozona. Sin las tablas, que
+    son DataFrames; vacío si la red no los trae (pruebas que simulan la red)."""
+    controles = getattr(resultado, "controles", None) or {}
+    salida = {}
+    if "A3" in controles:
+        salida["A3"] = controles["A3"]
+    if "A5" in controles:
+        salida["A5"] = controles["A5"]
+    cal = controles.get("calibracion_e3t")
+    if cal is not None:
+        salida["calibracion_e3t"] = {k: cal[k] for k in ("modos", "por_macrozona", "umbrales") if k in cal}
+    return salida
 
 
 def huellas_c3(control: str):
@@ -1171,9 +1202,9 @@ def c3b(raiz_era5l: Path, catalogo_pixeles: pd.DataFrame, validos: set[int], umb
     medias = {p: serie.media(p, "sp") for p in pixeles}
     infos = infos_de_prueba(unidades, catalogo_pixeles, medias, macrozona_region, U)
     calendario = tablas_calendario if tablas_calendario is not None else mod_tablas.cargar_tablas()
-    resultado, ida = _correr_red(unidades, infos, serie, catalogo_pixeles, calendario, U, _opciones(True),
-                                 evaluar_red, avance, huellas=huellas if huellas is not None else huellas_c3("C3b"),
-                                 adaptador=adaptador)
+    resultado, ida = _correr_red(unidades, infos, serie, catalogo_pixeles, calendario, U,
+                                 _opciones(True, a3_solo_pais=True), evaluar_red, avance,
+                                 huellas=huellas if huellas is not None else huellas_c3("C3b"), adaptador=adaptador)
     decisiones = list(resultado.decisiones)
     tabla = tabla_unidades(decisiones, unidades, U)
     criterios = criterios_c3b(tabla, U)
@@ -1188,7 +1219,7 @@ def c3b(raiz_era5l: Path, catalogo_pixeles: pd.DataFrame, validos: set[int], umb
     if not criterios["sur_ok"]:
         motivos.append("no recuperan todas las unidades F(0) del sur")
     motivos += _motivos_ida(ida)
-    detalle.update(criterios=criterios, ida_y_vuelta=ida, motivos=motivos,
+    detalle.update(criterios=criterios, ida_y_vuelta=ida, motivos=motivos, controles_red=controles_red_c3(resultado),
                    tablas={"anios": tabla_anios(decisiones, unidades)})
     return ResultadoC3("C3b", bool(criterios["pasa"] and ida["pasa"]), detalle, tabla)
 

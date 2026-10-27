@@ -10,7 +10,8 @@ ajustes_e4, e3, diagnostico_subhorario) y lineas_registro (e2, para el j* de G-v
 
 Convenciones que lee decision.py (COORDINACION_C1.md, «Ola 2 cerrada»):
 - ``guarda`` = valor de Linea («E3d», «P7», «T-P», «E4t», «G-version»); ``H`` = id de hipótesis, o «*»
-  si la guarda no depende de H (P7, G-versión); ``unidad`` = «AAAA» (E3d, P7, G-versión) o «R0»/«R1»
+  si la guarda no depende de H (G-versión, y P7 en una estación sin referencia; con referencia, P7 va por H
+  desde la Enmienda 5, E5-2, GU-3); ``unidad`` = «AAAA» (E3d, P7, G-versión) o «R0»/«R1»
   (T-P, E4t); ``resultado`` ∈ {pasa, falla, no_evaluable}; ``detalle`` = texto corto con el motivo.
 - Marcas: ``marca`` = «G-HR» (H = «*»), «G-viento» (por H) y «desfase_termico_local» (por H, valor = δt en
   horas o None); ``valor`` de G-HR y G-viento = True (reloj no verificado), False (evaluada, sin marca) o
@@ -32,10 +33,17 @@ Lecturas propias de este módulo (van al addendum de C1):
   Ts exige z_cat legible y |Δz| ≤ E3D_DZ_TS_M; ambas variables, coordenadas válidas y consistentes y
   píxel. Resultado del año: falla si falla algún bloque informativo de Ts o de QFE; pasa si hay alguno
   informativo y ninguno falla; si no, no_evaluable.
-- GU-3. P7: la presencia de la etiqueta h es la fracción de los días del año con algún Ts que traen Ts en
-  h. m_h y r_h usan todos los pares (L, L + 1 h) con L a la hora h (el texto no fija un mínimo de pares;
-  r_h exige 3, como numerico.pearson). Si un vecino no tiene pares se usa el otro; sin ninguno, esa h no
-  se juzga.
+- GU-3 [Enmienda 5, E5-2]. P7: la presencia de la etiqueta h es la fracción de los días del año con algún Ts
+  que traen Ts en h. m_h y r_h usan todos los pares (L, L + 1 h) con L a la hora h (el texto no fija un mínimo
+  de pares; r_h exige 3, como numerico.pearson). Si un vecino no tiene pares se usa el otro; sin ninguno, esa h
+  no se juzga. Por E5-2, en una estación con referencia (``p7_con_referencia``: no costera por §3.3, también en
+  C3c, y con las condiciones de E3d en Ts) P7 da una fila por H de P, como E3d; la referencia x(L) =
+  t2m(u_H(L)) del píxel enlazado usa los mismos pares, con x finito en los dos extremos; s_h^x vale 1 si su
+  denominador es 0, y s_h^x = 1 y d_h^x = 0 si no están definidos. Sin referencia, P7 da una sola fila con
+  H = «*», la de antes de la Enmienda 5, que vale para todas las H. La referencia sólo se calcula en los años
+  en que la P7 sin referencia falla: con s_h^x ≥ 1 y d_h^x ≥ 0, la de E5-2 no puede fallar donde aquélla pasa
+  o no es evaluable, y allí cada H lleva esa misma fila. Las condiciones son las de la estación, no si E3d
+  está entre las líneas activas: en C4, en C3 y en la batería, P7 y E3d van siempre juntas.
 - GU-4. T-P: un año-régimen es evaluable con el filtro de §4.3.3 aprobado (tabla del filtro o, sin ella,
   la columna ``filtro_e3t`` de las métricas), ≥ E3_PARES_REGIMEN pares y ĉt_cont definido (R-46). Un
   r_t(c) fuera de la ventana no cuenta. δt es la mediana de los δt_R de los años-régimen evaluables.
@@ -82,6 +90,10 @@ Lecturas propias de este módulo (van al addendum de C1):
   referencia y a ≤ 50° S: el desfase físico de −2,5 h queda fuera. Lo fijan
   test_guardas.test_tp_falla_en_f0_con_fase_termica_corrida_2_5h_texto_anclado y
   test_guardas.test_tp_banda_de_f0_llega_a_k_menos4_texto_anclado.
+- ERR-2 [errata E-2 de la Enmienda 5]. Los dos «≥» del salto de P7 (m_h ≥ 2·máx(…) y m_h ≥ 1,5 °C, §4.7) se
+  comparan con la tolerancia EMPATE_P7_C (1e-9 °C), también en la P7 de E5-2. Con Ts en décimas, la coma
+  flotante resolvía contra el «≥» los empates exactos: m_08 = 3,4 = 2·1,7 se comparaba como 3,4000000000000004
+  contra 3,4000000000000021, y el año pasaba. La caída (r_h < …) es estricta y no lleva tolerancia.
 """
 from __future__ import annotations
 
@@ -123,6 +135,9 @@ _SIN_COORDENADAS = str(MotivoSinInfo.COORDENADAS)
 _SIN_PIXEL = str(MotivoSinInfo.SIN_PIXEL)
 _SIN_DESNIVEL = str(MotivoSinInfo.SIN_DESNIVEL)
 _DESNIVEL = "desnivel"
+# ERR-2 (errata E-2 de la Enmienda 5): los «≥» del salto de P7 se cumplen en los empates exactos de Ts en décimas
+# (3,4 = 2·1,7 se calculaba 3,4000000000000004 < 3,4000000000000021).
+EMPATE_P7_C = 1e-9  # no-umbral: tolerancia de coma flotante para el «≥» de §4.7, en °C
 
 # E3d: (variable, columna del extracto, variable ERA5-Land).
 _VARIABLES_E3D = (("Ts", "ts", "t2m"), ("QFE", "qfe", "sp"))
@@ -404,7 +419,68 @@ def e3d(extracto: pd.DataFrame, serie: SerieEra5 | None, ctx: ContextoEstacion) 
 # ---------------------------------------------------------------------------------------------
 # P7, continuidad (§4.7)
 # ---------------------------------------------------------------------------------------------
+def _vecinos_p7(h: int) -> list[int]:
+    return [(h - 1) % _HORAS_DIA, (h + 1) % _HORAS_DIA]
+
+
+def _perfil_p7(y: np.ndarray, i: np.ndarray, j: np.ndarray, hora: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """m_h (mediana de |y(L + 1 h) − y(L)|) y r_h (Pearson de y(L) con y(L + 1 h)) de los pares (i, j) con L a la
+    hora h; NaN donde no hay pares (r_h exige PEARSON_MIN_PARES)."""
+    m = np.full(_HORAS_DIA, np.nan)
+    r = np.full(_HORAS_DIA, np.nan)
+    for h in range(_HORAS_DIA):
+        sel = hora == h
+        if sel.any():
+            a, b = y[i[sel]], y[j[sel]]
+            m[h] = float(np.median(np.abs(b - a)))
+            r[h] = numerico.pearson(a, b)
+    return m, r
+
+
+def _referencia_p7(mx: np.ndarray, rx: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """E5-2 (GU-3): s_h^x = m_h^x / máx(m_{h−1}^x, m_{h+1}^x) y d_h^x = mín(r_{h−1}^x, r_{h+1}^x) − r_h^x. Si no
+    están definidos, o si el denominador de s_h^x es 0, valen 1 y 0: la P7 anterior a la Enmienda 5."""
+    s_x = np.ones(_HORAS_DIA)
+    d_x = np.zeros(_HORAS_DIA)
+    for h in range(_HORAS_DIA):
+        mv, rv = mx[_vecinos_p7(h)], rx[_vecinos_p7(h)]
+        if np.isfinite(mx[h]) and np.isfinite(mv).any() and np.nanmax(mv) > 0:
+            s_x[h] = mx[h] / np.nanmax(mv)
+        if np.isfinite(rx[h]) and np.isfinite(rv).any():
+            d_x[h] = np.nanmin(rv) - rx[h]
+    return s_x, d_x
+
+
+def _fallas_p7(m: np.ndarray, r: np.ndarray, U, s_x: np.ndarray | None = None,
+               d_x: np.ndarray | None = None) -> list[str]:
+    """§4.7: la h falla con m_h ≥ 2·máx(1, s_h^x)·máx(m_{h−1}, m_{h+1}) y m_h ≥ 1,5 °C, o con r_h < mín(r_{h−1},
+    r_{h+1}) − 0,20 − máx(0, d_h^x). Sin referencia, s_h^x = 1 y d_h^x = 0. Los «≥» del salto se cumplen también en
+    los empates exactos de valores en décimas (ERR-2): se comparan con la tolerancia EMPATE_P7_C."""
+    con_referencia = s_x is not None
+    s_x = np.ones(_HORAS_DIA) if s_x is None else s_x
+    d_x = np.zeros(_HORAS_DIA) if d_x is None else d_x
+    fallas = []
+    for h in range(_HORAS_DIA):
+        mv, rv = m[_vecinos_p7(h)], r[_vecinos_p7(h)]
+        factor = U.f("P7_FACTOR") * max(1.0, float(s_x[h]))
+        salto = bool(np.isfinite(m[h]) and np.isfinite(mv).any()
+                     and m[h] >= factor * np.nanmax(mv) - EMPATE_P7_C and m[h] >= U.f("P7_SALTO_C") - EMPATE_P7_C)
+        caida = bool(np.isfinite(r[h]) and np.isfinite(rv).any()
+                     and r[h] < np.nanmin(rv) - U.f("P7_CAIDA") - max(0.0, float(d_x[h])))
+        if salto or caida:
+            ref = f", s^x={s_x[h]:.2f}, d^x={d_x[h]:+.3f}" if con_referencia else ""
+            fallas.append(f"{h:02d} h ({'salto' if salto else ''}{'+' if salto and caida else ''}"
+                          f"{'caída' if caida else ''}: m={m[h]:.2f}, r={r[h]:.3f}{ref})")
+    return fallas
+
+
+def _pares_p7(s: _Serie, j_sig: np.ndarray, anio: int) -> tuple[np.ndarray, np.ndarray]:
+    i = np.flatnonzero((s.anio == anio) & (j_sig >= 0))
+    return i, j_sig[i]
+
+
 def _p7_anio(s: _Serie, j_sig: np.ndarray, anio: int, U) -> tuple[ResultadoGuarda, str]:
+    """P7 sin referencia (la anterior a la Enmienda 5, con ERR-2): presencia y m_h, r_h del año."""
     en = s.anio == anio
     dias = s.L[en].astype("datetime64[D]")
     n_dias = int(np.unique(dias).size)
@@ -415,42 +491,73 @@ def _p7_anio(s: _Serie, j_sig: np.ndarray, anio: int, U) -> tuple[ResultadoGuard
     n_etiquetas = int((presencia >= _c("P7_PRESENCIA")).sum())
     if n_etiquetas < U.f("P7_ETIQUETAS"):
         return ResultadoGuarda.NO_EVALUABLE, f"{n_etiquetas} etiquetas con presencia ≥ {_c('P7_PRESENCIA')}"
-    i = np.flatnonzero(en & (j_sig >= 0))
-    j = j_sig[i]
-    m = np.full(_HORAS_DIA, np.nan)
-    r = np.full(_HORAS_DIA, np.nan)
-    for h in range(_HORAS_DIA):
-        sel = s.hora[i] == h
-        if sel.any():
-            a, b = s.y[i[sel]], s.y[j[sel]]
-            m[h] = float(np.median(np.abs(b - a)))
-            r[h] = numerico.pearson(a, b)
-    fallas = []
-    for h in range(_HORAS_DIA):
-        vecinos = [(h - 1) % _HORAS_DIA, (h + 1) % _HORAS_DIA]
-        mv, rv = m[vecinos], r[vecinos]
-        salto = bool(np.isfinite(m[h]) and np.isfinite(mv).any() and m[h] >= U.f("P7_FACTOR") * np.nanmax(mv)
-                     and m[h] >= U.f("P7_SALTO_C"))
-        caida = bool(np.isfinite(r[h]) and np.isfinite(rv).any() and r[h] < np.nanmin(rv) - U.f("P7_CAIDA"))
-        if salto or caida:
-            fallas.append(f"{h:02d} h ({'salto' if salto else ''}{'+' if salto and caida else ''}"
-                          f"{'caída' if caida else ''}: m={m[h]:.2f}, r={r[h]:.3f})")
+    i, j = _pares_p7(s, j_sig, anio)
+    fallas = _fallas_p7(*_perfil_p7(s.y, i, j, s.hora[i]), U)
     if fallas:
         return ResultadoGuarda.FALLA, "; ".join(fallas)
     return ResultadoGuarda.PASA, f"{n_etiquetas} etiquetas con presencia suficiente"
 
 
-def p7(extracto: pd.DataFrame, ctx: ContextoEstacion) -> pd.DataFrame:
-    """Continuidad, por año (no depende de H): estaciones con ≥ 22 etiquetas de presencia ≥ 0,8;
-    m_h y r_h circulares (23 h contra 00 h del día siguiente); falla por salto o por caída (GU-1, GU-3)."""
+def p7_con_referencia(ctx: ContextoEstacion, serie: SerieEra5 | None) -> bool:
+    """E5-2: P7 se compara con ERA5-Land sólo en una estación no costera que cumple las condiciones de E3d en Ts
+    (coordenadas válidas y consistentes, píxel con serie, z_cat legible y |Δz| ≤ E3D_DZ_TS_M). La condición
+    «no costera» es la de §3.3 (``info.costera``), también donde no se aplica la exclusión de E3t y T-P (C3c)."""
+    return serie is not None and not bool(ctx.info.costera) and _motivo_e3d(ctx, serie, "Ts") is None
+
+
+def _p7_relativa(s: _Serie, j_sig: np.ndarray, anio: int, h: Hipotesis, des: _Desfases, serie: SerieEra5,
+                 pixel: int, U) -> list[str]:
+    """E5-2: las fallas de P7 bajo H, con la referencia x(L) = t2m(u_H(L)) del píxel en los mismos pares (L, L + 1 h),
+    con x finito en los dos extremos (GU-3)."""
+    i, j = _pares_p7(s, j_sig, anio)
+    m, r = _perfil_p7(s.y, i, j, s.hora[i])
+    filas = np.unique(np.concatenate([i, j]))
+    x = np.full(len(s.y), np.nan)
+    if len(filas):
+        u = s.L[filas] - _horas_td(des.por_fila(h, anio, s.regimen[filas]))
+        x[filas] = np.asarray(serie.valores(pixel, "t2m", u), dtype=np.float64)
+    ok = np.isfinite(x[i]) & np.isfinite(x[j])
+    s_x, d_x = _referencia_p7(*_perfil_p7(x, i[ok], j[ok], s.hora[i][ok]))
+    return _fallas_p7(m, r, U, s_x, d_x)
+
+
+def p7(extracto: pd.DataFrame, ctx: ContextoEstacion, serie: SerieEra5 | None = None) -> pd.DataFrame:
+    """Continuidad, por año: estaciones con ≥ 22 etiquetas de presencia ≥ 0,8; m_h y r_h circulares (23 h contra
+    00 h del día siguiente); falla por salto o por caída (GU-1, GU-3, ERR-2).
+
+    Enmienda 5, E5-2: con ``serie`` y en una estación con referencia (``p7_con_referencia``), una fila por H de P,
+    con el salto y la caída relativos a los de ERA5-Land bajo esa H. Sin referencia, una sola fila con H = «*»,
+    la P7 anterior a la Enmienda 5, que vale para todas las H. La referencia sólo se calcula en los años en que
+    la P7 sin referencia falla: con s_h^x ≥ 1 y d_h^x ≥ 0 la de E5-2 no puede fallar donde aquélla pasa o no es
+    evaluable, y allí la fila de cada H es la suya (GU-3)."""
     _exigir(extracto, ("L", "especial", "regimen", "ts"), "P7")
     U = ctx.umbrales
     s = _serie(extracto, _columna(extracto, "ts"))
     j_sig = _vecino(s, 1)
+    referencia = p7_con_referencia(ctx, serie)
+    hipotesis = _hipotesis(ctx) if referencia else ()
+    referencia = bool(hipotesis)
+    des = _Desfases(ctx) if referencia else None
+    pixel = int(ctx.info.pixel_id) if referencia else None
     filas = []
     for anio in ctx.anios:
+        unidad = f"{int(anio):04d}"
         resultado, detalle = _p7_anio(s, j_sig, int(anio), U)
-        filas.append(_fila_guarda(ctx, anio, Linea.P7, H_TODAS, f"{int(anio):04d}", resultado, detalle))
+        if not referencia:
+            filas.append(_fila_guarda(ctx, anio, Linea.P7, H_TODAS, unidad, resultado, detalle))
+            continue
+        memoria: dict[tuple, tuple[ResultadoGuarda, str]] = {}
+        for h in hipotesis:
+            if resultado != ResultadoGuarda.FALLA:
+                filas.append(_fila_guarda(ctx, anio, Linea.P7, h.id, unidad, resultado, detalle))
+                continue
+            regs = des.regimenes(int(anio))
+            clave = tuple(sorted((reg, des.de(h, int(anio), reg)) for reg in regs))
+            if clave not in memoria:
+                fallas = _p7_relativa(s, j_sig, int(anio), h, des, serie, pixel, U)
+                memoria[clave] = ((ResultadoGuarda.FALLA, "relativa a ERA5-Land: " + "; ".join(fallas)) if fallas
+                                  else (ResultadoGuarda.PASA, f"relativa a ERA5-Land: pasa (sin referencia: {detalle})"))
+            filas.append(_fila_guarda(ctx, anio, Linea.P7, h.id, unidad, *memoria[clave]))
     return _tabla(filas, ESQUEMA_GUARDAS, "guardas P7")
 
 
@@ -882,7 +989,7 @@ def guardas(extracto: pd.DataFrame, serie: SerieEra5 | None, meses: pd.DataFrame
     if Linea.E3D in activas:
         marcos.append(e3d(extracto, serie, ctx))
     if Linea.P7 in activas:
-        marcos.append(p7(extracto, ctx))
+        marcos.append(p7(extracto, ctx, serie))
     if Linea.TP in activas:
         marcos.append(tp(_metricas_e3_ts(metricas, extracto, serie, ctx), (metricas or {}).get(FILTRO_E3T), ctx))
     if Linea.E4T in activas:

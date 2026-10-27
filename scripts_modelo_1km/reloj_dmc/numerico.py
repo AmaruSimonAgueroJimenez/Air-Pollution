@@ -40,6 +40,8 @@ _RESULTANTE_MIN = 1e-12
 # Mínimo de pares de la correlación de Pearson. El texto no lo fija: con 2 pares r vale siempre ±1 y no informa, así
 # que es parte de la definición, no un umbral (PEN-4 de C1; antes era un literal tolerado en test_umbrales).
 PEARSON_MIN_PARES = 3  # no-umbral: definición de la correlación (con 2 pares, r = ±1 siempre)
+# ERR-1 (errata E-1 de la Enmienda 5): dos distancias que difieren en ≤ 1 mm son la misma (mas_cercano).
+EMPATE_DISTANCIA_KM = 1e-6  # no-umbral: tolerancia de coma flotante para el empate por menor pixel_id
 
 VARIABLES_SEMILLA = ("Ts", "QFE")                              # R-13
 _UNIDAD_PARTE = re.compile(r"(\d{4})-(\d{2})-([1-9]\d*)")      # «AAAA-MM-n»
@@ -452,6 +454,23 @@ def distancia_km(lat1: float, lon1: float, lat2: np.ndarray, lon2: np.ndarray) -
     p2 = _xyz(lat2, lon2)
     cuerda = np.linalg.norm(p2 - p1, axis=-1)
     return 2 * np.arcsin(np.clip(cuerda / 2, 0, 1)) * R_TIERRA_KM
+
+
+def mas_cercano(distancias: np.ndarray, ids: np.ndarray) -> int:
+    """Posición del más cercano, con empate por menor id (§3.3; lecturas C3-6 y C3-9; ERR-1).
+
+    Dos distancias que difieren en ≤ EMPATE_DISTANCIA_KM son un empate. Los centros vecinos a la misma latitud
+    de la rejilla quedan a la misma distancia geométrica, pero en coma flotante sus distancias difieren en 1e-15
+    a 1e-12 km; ordenar sin tolerancia elegía al que el redondeo dejaba más cerca, no al de menor id (errata
+    E-1 de la Enmienda 5 del reloj)."""
+    d = np.asarray(distancias, dtype=np.float64)
+    i = np.asarray(ids, dtype=np.int64)
+    if d.ndim != 1 or d.shape != i.shape or not d.size:
+        raise ValueError("mas_cercano: distancias e ids deben ser vectores no vacíos del mismo largo")
+    if not np.isfinite(d).all():
+        raise ValueError("mas_cercano: distancias no finitas")
+    empatadas = np.flatnonzero(d <= d.min() + EMPATE_DISTANCIA_KM)
+    return int(empatadas[np.argmin(i[empatadas])])
 
 
 def z_pixel(sp_medio_hpa: float) -> float:

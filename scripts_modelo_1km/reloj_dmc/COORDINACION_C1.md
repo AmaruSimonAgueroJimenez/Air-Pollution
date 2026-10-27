@@ -803,3 +803,139 @@ intactas. La próxima corrida (`--sintetico --bateria`, sin `--salida`) escribe 
 `scripts_modelo_1km`, un hilo numérico): **438 pruebas, OK**, en 311 s, sin fallas, sin fallas esperadas y sin omitidas.
 Son las 433 de antes y 5 nuevas: 3 de test_umbrales y 2 de test_reloj_dmc. El detector de literales sigue en verde, sin
 entradas «PENDIENTE» en TOLERADOS.
+
+## Enmienda 5 (2026-10-26)
+
+C3 corrió el 2026-10-26 con AP `4b50b0d` y C3b no pasó: el norte recuperó 84 de 96 unidades, con cero confirmaciones
+erróneas. El autor adoptó la Enmienda 5 del reloj, «Opción 2 (Recomendado)»
+(`APH/auditoria/20261026/reloj_dmc_c3/decisiones_autor_20261026.md`): las erratas E-1 y E-2, E5-1, E5-2 con la
+restricción de la revisión y E5-3, y que `C3b.json` guarde los controles de red. El texto es el v1.0.5
+(`APH/auditoria/20261023/reloj_dmc/enmienda5/`, `ENMIENDA_5.md`, `generar_v1_0_5.py`). E5-4 no se adoptó. Nada se hizo
+con datos DMC, con la red ni con git que escriba; nada se escribió en /Volumes ni quedó `__pycache__`.
+
+**1. Erratas (§10; no cambian el texto).**
+- **E-1, lectura ERR-1 (desempate por menor `pixel_id`).** `numerico.mas_cercano(distancias, ids)`: dos distancias que
+  difieren en ≤ `numerico.EMPATE_DISTANCIA_KM` (1e-6 km, «no-umbral») empatan y decide el menor id. La usan
+  `controles_era5.pixel_valido_mas_cercano` (C3-6), `controles_era5.parejas_c3c` (C3-9) y `extraccion.elegir_pixel`
+  (§3.3, C4; lectura EXT-9). Antes, `np.lexsort` sobre distancias en coma flotante: los vecinos este y oeste a la misma
+  latitud difieren en 1e-15 a 1e-12 km.
+- **E-2, lectura ERR-2 (empates exactos del salto de P7).** `guardas.EMPATE_P7_C` (1e-9 °C, «no-umbral») en los dos «≥»
+  del salto (`guardas._fallas_p7`), también en la P7 de E5-2. La caída sigue estricta.
+
+**2. E5-1 (§8.E, C3b; lecturas C3-8, RED-11 y C3-17).**
+- `orquestacion.OpcionesCorrida.a3_solo_pais` (False por omisión) llega a `red.controles_red(..., a3_solo_pais=…)` desde
+  `evaluar_red`. Con True, A3 se calcula e informa entero («rige» = «pais» y «fallan_macrozonas_sin_consecuencia»), y las
+  consecuencias, la muestra de la calibración de E3t y el modo de E3t reciben una lista vacía de macrozonas que fallan.
+  La falla en el país rige igual.
+- Sólo C3b la activa: `controles_era5._opciones(True, a3_solo_pais=True)`. C3c, C4 y la batería, no (lo comprueba
+  `test_orquestacion.PruebasEnmienda5Opciones` por AST).
+- `controles_era5.controles_red_c3(resultado)`: `C3b.json` guarda en «controles_red» A3, A5 y la calibración de E3t (modo y
+  resumen por macrozona, y sus umbrales), sin las tablas. Con una red simulada que no los trae, la clave queda vacía.
+
+**3. E5-2 (§4.7; lectura GU-3, con la restricción).**
+- `guardas.p7(extracto, ctx, serie=None)`; `guardas.guardas` le pasa la serie. `guardas.p7_con_referencia(ctx, serie)`:
+  no costera por §3.3 (`info.costera`, también en C3c, donde no se aplica la exclusión de E3t y T-P) y con las
+  condiciones de E3d en Ts (`_motivo_e3d(ctx, serie, "Ts") is None`: coordenadas válidas y consistentes, píxel con
+  serie, z_cat legible y |Δz| ≤ E3D_DZ_TS_M).
+- Con referencia, una fila por H de P (como E3d); sin ella, la fila «*» de siempre (la P7 anterior). Por eso cambió la
+  aserción de `test_guardas_reune_las_activas`, que esperaba «*» en P7.
+- La referencia, x(L) = t2m(u_H(L)) del píxel en los mismos pares (L, L + 1 h) con x finito en los dos extremos
+  (`_p7_relativa`, `_perfil_p7`, `_referencia_p7`), se calcula sólo en los años en que la P7 sin referencia falla: con
+  s_h^x ≥ 1 y d_h^x ≥ 0 la de E5-2 no puede fallar donde aquélla pasa o no es evaluable (lo comprueba
+  `test_e5_2_nunca_falla_donde_la_anterior_pasa`). Dos H con el mismo c_H(R) en todos los regímenes del año comparten el
+  cálculo; así, en una clase fusionada sus miembros dan la misma fila (`decision._guarda_de_clase`).
+- s_h^x vale 1 si su denominador es 0 o no está definido (el borrador lo midió como «no limita»; difieren sólo con una
+  serie constante).
+
+**4. E5-3.** Las lecturas RED-1 (`red.py`) y C3-8, C3-6 y C3-9 (`controles_era5.py`), EXT-9 (`extraccion.py`) y GU-3
+(`guardas.py`) se reescribieron; son nuevas ERR-1, ERR-2, RED-11 y C3-17. La lista para el addendum está en
+`APH/auditoria/20261023/reloj_dmc/enmienda5/lecturas_enmienda5.md` (reemplaza 6 de `lecturas_c1.md` y agrega 4).
+
+**5. Versiones del texto (`constantes.py`).** El v1.0.5 entra en `TEXTOS_PROTOCOLO` con `21f1b469…` y es el vigente.
+`VERSION_C1 = "v1.2"`: el cierre nuevo de C1 da el v1.2 (`enmienda5/generar_v1_2.py`); el v1.1 deja de ser una versión
+del código. Ningún fragmento de `CONSTANTES` ni de `CONSTANTES_BATERIA` cambia.
+
+**6. Pruebas.**
+- **Nuevas (20), que fallan con el código anclado y pasan con el nuevo** (comprobado sobre una copia de AP `4b50b0d` con
+  las pruebas nuevas: 6 fallan por aserción y 14 por error, porque la función, el argumento o el campo no existen):
+  - E-1: `test_numerico.PruebasEnmienda5Empate.test_err1_mas_cercano_empate_con_tolerancia`,
+    `test_extraccion.PruebasEnmienda5Empate.test_err1_elegir_pixel_celda_propia_no_valida_empate_menor_pixel_id`,
+    `test_controles_era5.PruebasEnmienda5Empate.test_err1_estacion_de_prueba_c3b_empate_este_oeste_menor_pixel_id` y
+    `test_err1_pareja_c3c_empate_menor_pixel_id`. Las dos primeras del borrador corren sobre las tres celdas reales de la
+    fila 1399 del catálogo (49,9° S).
+  - E-2: `test_guardas.PruebasEnmienda5P7.test_err2_salto_en_empate_exacto_falla` (la del borrador).
+  - E5-1: `test_red.PruebasEnmienda5A3.test_e5_1_a3_rige_solo_en_el_pais` y `test_e5_1_la_falla_en_el_pais_rige_igual`;
+    `test_orquestacion.PruebasEnmienda5Opciones.test_e5_1_evaluar_red_pasa_a3_solo_pais` y
+    `test_e5_1_solo_c3b_activa_la_opcion`; `test_controles_era5.PruebasEnmienda5Controles.test_e5_1_c3b_a3_solo_en_el_pais_y_controles_en_el_json`
+    y `test_e5_1_c3c_no_usa_la_opcion`.
+  - E5-2: `test_guardas.PruebasEnmienda5P7.test_e5_2_falsa_alarma_de_reloj_civil_en_altura_desaparece`,
+    `test_e5_2_sin_referencia_rige_la_p7_anterior` (costera, costera sin la exclusión, |Δz| > 1.000 m, sin píxel,
+    coordenadas inconsistentes y sin z_cat), `test_e5_2_nunca_falla_donde_la_anterior_pasa` y
+    `test_e5_2_prueba_14_sigue_fallando_con_referencia`.
+  - E5-3 y lecturas: `test_red.PruebasEnmienda5A3.test_e5_3_lectura_red_1`,
+    `test_controles_era5.PruebasEnmienda5Controles.test_e5_lecturas_de_c3` y
+    `test_guardas.PruebasEnmienda5P7.test_e5_lecturas_gu3_y_err2`.
+  - Texto: `test_umbrales.PruebasConstantesPorVersion.test_e5_texto_vigente` y `test_version_de_c1_v1_2` (antes
+    `test_version_de_c1_v1_1`).
+- **Que fijaban el texto anterior:** `test_guardas_reune_las_activas` (P7 por H), `test_fijos_nuevos_del_cuerpo_en_cada_version`
+  (las 7 comparaciones de las líneas nuevas: 2 dentro de P7_PRESENCIA y 5 que repiten un umbral, declaradas en
+  `REPETICIONES_V1_0_5` con su valor), `test_versiones_del_texto_con_su_huella` y `test_constantes_detecta_desvios`
+  (la versión desconocida pasa a «v1.3»), y `test_constantes_contra_cada_version_y_la_vigente` (seis versiones; ningún
+  fragmento cambia del v1.0.4 al v1.0.5).
+- **Suite completa** (`~/micromamba/envs/amb_v2/bin/python -B -m unittest discover -s reloj_dmc/tests -t .`, desde
+  `scripts_modelo_1km`, un hilo numérico): **457 pruebas, OK**, en 280 s, sin fallas, sin fallas esperadas y sin omitidas.
+
+**7. Anexo F:** se regeneró con su script. Cambian cinco firmas: `numerico.mas_cercano`, `guardas.p7` y
+`guardas.p7_con_referencia`, `red.controles_red` y el campo `OpcionesCorrida.a3_solo_pais`, y `controles_era5.controles_red_c3`.
+
+**8. C3b con el código nuevo** (copia temporal del paquete, sobre los extractos de C3 en sólo lectura, con las 19
+columnas de las fuentes nuevas de E-1 extraídas de ERA5L a la carpeta temporal por `extraccion.extraer_era5land`, y los
+umbrales de C0, huella `fad90d75…`; 0 accesos bajo la DMC): **pasa**. Norte 96 de 96, sur F(0) 6 de 6, 0
+confirmaciones erróneas en el paso 9 y en los veredictos finales, ida y vuelta aprobada (1.039 reglas en 102
+estaciones). A3 falla en norte_chico sólo por la mediana (−0,329 h) y no tiene consecuencia; E3t queda en modo completo
+en las cinco macrozonas. `C3b.csv` y `C3b_anios.csv` (120 y 2.280 filas) son iguales a los de la variante `op1_pais` del
+borrador.
+
+**9. Submuestra de la batería** (sintética, desde las copias temporales del paquete, bajo un registro en bloqueo sobre
+/Volumes, 0 accesos; unos 10 min). Las seis redes chicas completas `s+1.0_r01`, `s+2.5_r01`, `s-2.0_r01`, `s+1.0_r02`,
+`s+2.5_r02` y `s-2.0_r02` (72 estaciones, 1.368 estación-años, con la ida y vuelta) dan, con el código nuevo, el mismo
+`resultados` que la corrida aprobada de `LOCAL/…/v1/c1/` (`pandas.testing.assert_frame_equal`, 0 filas distintas). Una
+subred de `s+0.0_r11` (una de cada cuatro estaciones: 60 y 1.140 estación-años) da la misma huella de resultados con el
+código anclado y con el nuevo (`6e836533…`). En todas, 0 erróneas, 0 años con motivo «guarda P7» y 0 fallas de ida y
+vuelta. No reemplaza la batería completa.
+
+**10. Efecto fuera del reloj (no se tocó).** `constantes.py` es uno de los siete archivos de la clausura del reloj que fija
+el producto meteorológico combinado (`meteo_combinada/fijados.py`, `HUELLAS_RELOJ_4B50B0D`): su huella pasa de
+`10354281…` a la nueva; los otros seis no cambian. Las pruebas de M1 que cargan el validador del reloj con esas huellas
+fallarán hasta que M1 recalcule la clausura con el commit de AP de esta enmienda (su lectura FIJ-1 lo prevé).
+
+**Pendientes:**
+- Commit en APH (la Enmienda 5 y la carpeta de C3) y en AP (este código), su sello y el envío de APH (E5-C).
+- Pasar `LOCAL/…/v1/c1/` a `c1_corrida3_20261025/` y relanzar la batería completa sin `--salida` (unas 9,7 h).
+- El cierre nuevo: `enmienda5/generar_v1_2.py` y `enmienda5/armar_addendum_c1_e5.py`, en
+  `APH/auditoria/<fecha del cierre>/reloj_dmc/`; después C3 completo con el addendum nuevo.
+
+## Revisión de la Enmienda 5: arreglos (2026-10-27)
+
+Una revisión independiente concluyó «con cambios». En el código del paquete sólo pidió pruebas; el resto fue de los
+textos y los generadores de APH (`enmienda5/`). El autor resolvió además la segunda tanda (E5-D a E5-G,
+`APH/auditoria/20261026/reloj_dmc_c3/decisiones_autor_20261027.md`): nombres v1.0.5 y v1.2, traslado de las corridas
+anteriores, la clausura de M1 tras el cierre nuevo de C1 y las tres lecturas de implementación de E5-2 (GU-3), que
+entran al addendum como clase (ii).
+
+**Pruebas nuevas (3), en `test_guardas.PruebasEnmienda5P7`,** que fallan con el código anclado (1 por aserción y 2 por
+error) y pasan con el nuevo:
+- `test_err2_minimo_de_1_5_con_tolerancia`: la tolerancia de ERR-2 vale también en «m_h ≥ 1,5 °C» (17,4 − 15,9 da
+  1,4999999999999982 en coma flotante);
+- `test_e5_2_no_evaluable_sigue_no_evaluable_con_referencia`: con Ts cada 3 h la P7 no es evaluable, y con referencia
+  cada H lleva esa misma fila (la referencia nunca convierte un «no evaluable» en «falla»);
+- `test_e5_2_referencia_con_x_finito_en_los_dos_extremos`: con la t2m del píxel borrada en 20 extremos de pares de la
+  etiqueta 09, la referencia sigue viendo el salto y C(Santiago) pasa. Con una implementación que no filtra esos pares
+  la prueba falla (comprobado con un reemplazo en memoria de `_p7_relativa`).
+
+**Suite completa:** 460 pruebas (457 + 3), OK. Ningún archivo del paquete cambió fuera de `tests/test_guardas.py` y
+este documento.
+
+**Lo del procedimiento de la batería** (antes, `git status` vacío en el paquete y las huellas de los `.py` guardadas; al
+terminar, las mismas huellas) está en `APH/auditoria/20261023/reloj_dmc/enmienda5/ENMIENDA_5.md`, §8;
+`armar_addendum_c1_e5.py --final` lo comprueba contra el commit de AP y contra esas huellas.

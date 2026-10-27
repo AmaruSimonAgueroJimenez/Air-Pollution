@@ -679,5 +679,57 @@ def _evento(codigo, linea, zona, anio, clase, fecha, resultado):
             "delta_s": None, "delta_e": None, "delta": None, "casillas": None, "esperadas": None}
 
 
+
+class PruebasEnmienda5A3(unittest.TestCase):
+    """Enmienda 5, E5-1 (lectura RED-11): ``controles_red(..., a3_solo_pais=True)``, que sólo pide C3b."""
+
+    def _red(self):
+        bien = lambda i: 0.1 * np.sin(i)  # noqa: E731
+        evs = [_evidencia_a3(f"10{k:04d}", range(2001, 2021), bien) for k in range(15)]      # 600 años-régimen
+        evs.append(_evidencia_a3("200001", range(2001, 2016), lambda i: 2.0 if i < 4 else 0.0, macrozona="sur"))
+        return evs, ["centro", "sur"]
+
+    def test_e5_1_a3_rige_solo_en_el_pais(self):
+        """A3 falla en «sur» (26/30 < 0,90). Con la opción, se informa igual, pero ninguna macrozona pierde E4p, la
+        fina ni E3t completo por A3, y la calibración de E3t de «sur» sale de su propia muestra; sin la opción, como
+        antes (§5.4)."""
+        evs, mzs = self._red()
+        cons0, det0 = red.controles_red(evs, mzs, U, calendario=CAL)
+        self.assertEqual(cons0.a3_fallan_macrozonas, frozenset({"sur"}))
+        self.assertNotIn("rige", det0["A3"])
+        self.assertEqual(det0["calibracion_e3t"]["por_macrozona"]["sur"]["motivo"], "falla A3")
+        cons, det = red.controles_red(evs, mzs, U, calendario=CAL, a3_solo_pais=True)
+        self.assertEqual(cons.a3_fallan_macrozonas, frozenset())
+        self.assertFalse(cons.a3_falla_pais)
+        self.assertTrue(cons.e4p_activa("sur") and cons.fina_activa("sur"))
+        self.assertEqual(det["A3"]["fallan_macrozonas"], ["sur"])                    # A3 se calcula e informa
+        self.assertTrue(det["A3"]["macrozonas"]["sur"]["falla"])
+        self.assertEqual(det["A3"]["rige"], "pais")
+        self.assertEqual(det["A3"]["fallan_macrozonas_sin_consecuencia"], ["sur"])
+        self.assertNotEqual(det["calibracion_e3t"]["por_macrozona"]["sur"]["motivo"], "falla A3")
+        self.assertEqual({k: v for k, v in det["A3"].items() if k not in ("rige", "fallan_macrozonas_sin_consecuencia")},
+                         det0["A3"])
+        json.dumps({k: v for k, v in det.items() if k != "tablas"}, allow_nan=False)
+
+    def test_e5_1_la_falla_en_el_pais_rige_igual(self):
+        """Con la opción, una falla de A3 en el país sigue apagando E4p, la fina y E3t completo en todo el país."""
+        evs = [_evidencia_a3(f"10{k:04d}", range(2001, 2021), lambda i: 2.0 if i % 10 == 0 else 0.0)
+               for k in range(15)]
+        cons, det = red.controles_red(evs, ["centro"], U, calendario=CAL, a3_solo_pais=True)
+        self.assertTrue(cons.a3_falla_pais)
+        self.assertFalse(cons.e4p_activa("centro") or cons.fina_activa("centro"))
+        self.assertEqual(cons.modo_e3t_en("centro"), ModoE3t.RESTRINGIDO)
+        self.assertEqual(det["calibracion_e3t"]["por_macrozona"]["centro"]["motivo"], "falla A3")
+
+    def test_e5_3_lectura_red_1(self):
+        """E5-3: la lectura RED-1 ya no dice que Magallanes confirma F(0) con E3p y E4p (§6 enmendado)."""
+        red_1 = " ".join(red.__doc__.split()).split("- RED-1 ")[1].split("- RED-2.")[0]
+        self.assertIn("[Enmienda 5, E5-3]", red_1)
+        self.assertNotIn("F(0) puede confirmarse con E3p y E4p", red_1)
+        self.assertIn("la austral, sí tiene muestra al norte de ese corte", red_1)
+        red_11 = " ".join(red.__doc__.split()).split("- RED-11 ")[1]
+        self.assertIn("[Enmienda 5, E5-1]", red_11)
+
+
 if __name__ == "__main__":
     unittest.main()

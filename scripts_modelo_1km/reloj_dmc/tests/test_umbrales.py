@@ -237,7 +237,7 @@ class PruebasC1Umbrales(_ConC0):
         with mock.patch.object(constantes, "CONSTANTES", (base, base)):
             self.assertTrue(any("repetido" in p for p in constantes.verificar_contra_texto(self.texto, version="v1")))
         with self.assertRaises(ValueError):
-            constantes.verificar_contra_texto(self.texto, version="v1.2")
+            constantes.verificar_contra_texto(self.texto, version="v1.3")
 
     def test_numeros_del_fragmento(self):
         f = constantes.numeros_del_fragmento
@@ -296,8 +296,8 @@ class PruebasC1Umbrales(_ConC0):
 
 class PruebasConstantesPorVersion(_ConC0):
     """Anexo B, «Fijos del cuerpo» [Enmienda 1, E1-5]: cada fragmento debe estar tal cual en el texto VIGENTE
-    (constantes.VERSION_VIGENTE, hoy el v1.0.4 de la Enmienda 4), no sólo en el de C0. Se leen, sin escribir,
-    las cinco versiones de constantes.TEXTOS_PROTOCOLO, cada una con su sha256; si falta alguna, se omite
+    (constantes.VERSION_VIGENTE, hoy el v1.0.5 de la Enmienda 5), no sólo en el de C0. Se leen, sin escribir,
+    las seis versiones de constantes.TEXTOS_PROTOCOLO, cada una con su sha256; si falta alguna, se omite
     y no se da por aprobada."""
 
     @classmethod
@@ -321,19 +321,23 @@ class PruebasConstantesPorVersion(_ConC0):
         for c in constantes.CONSTANTES:
             constantes.indice_version(c.desde)
         with self.assertRaises(ValueError):
-            constantes.indice_version("v1.2")
+            constantes.indice_version("v1.3")
 
-    def test_version_de_c1_v1_1(self):
-        """PEN-9 de C1: el texto consolidado de C1 (v1.1, §10) es una versión conocida, posterior a la vigente y
-        con sus mismos fragmentos (la Enmienda de C1 no cambia ninguno). Su sha256 no está aquí: el v1.1 cita la
-        salida de la corrida de C1, que corre este código, así que su huella la fija el addendum de C1."""
-        self.assertEqual(constantes.VERSION_C1, "v1.1")
+    def test_version_de_c1_v1_2(self):
+        """PEN-9 de C1, con la Enmienda 5: el texto consolidado de C1 (§10) es ahora el v1.2 (el v1.0.5 con el
+        cierre nuevo de C1), una versión conocida, posterior a la vigente y con sus mismos fragmentos. El v1.1, el
+        del primer cierre, ya no es una versión de este código. Su sha256 no está aquí: el v1.2 cita la salida de
+        la corrida de C1, que corre este código, así que su huella la fija el addendum de C1."""
+        self.assertEqual(constantes.VERSION_VIGENTE, "v1.0.5")
+        self.assertEqual(constantes.VERSION_C1, "v1.2")
         self.assertNotIn(constantes.VERSION_C1, constantes.VERSIONES_TEXTO)
-        self.assertEqual(constantes.indice_version("v1.1"), constantes.indice_version(constantes.VERSION_VIGENTE) + 1)
+        self.assertEqual(constantes.indice_version("v1.2"), constantes.indice_version(constantes.VERSION_VIGENTE) + 1)
+        with self.assertRaises(ValueError):
+            constantes.indice_version("v1.1")
         for c in constantes.CONSTANTES:
-            self.assertEqual(c.fragmento_en("v1.1"), c.fragmento_en(constantes.VERSION_VIGENTE), c.nombre)
+            self.assertEqual(c.fragmento_en("v1.2"), c.fragmento_en(constantes.VERSION_VIGENTE), c.nombre)
         vigente = self.textos[constantes.VERSION_VIGENTE][1]
-        self.assertEqual(constantes.verificar_contra_texto(vigente, version="v1.1"), [])
+        self.assertEqual(constantes.verificar_contra_texto(vigente, version="v1.2"), [])
 
     def test_c1_regenerar_desde_textos_con_fijos_del_cuerpo(self):
         """PEN-1 de C1: desde la Enmienda 1 (E1-5) el Anexo B cierra con «**Fijos del cuerpo** …», que no es una
@@ -369,9 +373,10 @@ class PruebasConstantesPorVersion(_ConC0):
                 umbrales.regenerar_desde_texto(malo, nombre)
 
     def test_constantes_contra_cada_version_y_la_vigente(self):
-        """verificar_contra_texto(texto, version) == [] en las cinco versiones; en cada una los fragmentos
-        son del cuerpo. Con el fragmento de C0, SUBH_LAT_MAX no está en el v1.0.3 ni en el v1.0.4 (E3-5
-        reescribió la frase). La Enmienda 4 no cambia ningún fragmento: los del v1.0.3 son los del v1.0.4."""
+        """verificar_contra_texto(texto, version) == [] en las seis versiones; en cada una los fragmentos
+        son del cuerpo. Con el fragmento de C0, SUBH_LAT_MAX no está en el v1.0.3 ni después (E3-5
+        reescribió la frase). Las Enmiendas 4 y 5 no cambian ningún fragmento: los del v1.0.3 son los del v1.0.4
+        y los del v1.0.5."""
         for version, (_, texto) in self.textos.items():
             self.assertEqual(constantes.verificar_contra_texto(texto, version=version), [], version)
             cuerpo = texto[:texto.index("## Anexo A.")]
@@ -387,10 +392,31 @@ class PruebasConstantesPorVersion(_ConC0):
         self.assertEqual(subh.fragmento_en("v1.0.3"),
                          "en todos los años-régimen de la estación con |lat| ≤ 50° y ĉ^f_cont definido")
         self.assertIsNone(constantes.POR_NOMBRE["DIURNOS_DIA_MIN_VALORES"].fragmento_en("v1.0.2"))
-        # Enmienda 4: ningún fragmento cambia ni nace en el v1.0.4.
-        self.assertEqual([c.nombre for c in constantes.CONSTANTES
-                          if c.fragmento_en("v1.0.3") != c.fragmento_en("v1.0.4")], [])
-        self.assertFalse([c.nombre for c in constantes.CONSTANTES if c.desde == "v1.0.4"])
+        # Enmiendas 4 y 5: ningún fragmento cambia ni nace en el v1.0.4 ni en el v1.0.5.
+        for previa, nueva in (("v1.0.3", "v1.0.4"), ("v1.0.4", "v1.0.5")):
+            self.assertEqual([c.nombre for c in constantes.CONSTANTES
+                              if c.fragmento_en(previa) != c.fragmento_en(nueva)], [], nueva)
+            self.assertFalse([c.nombre for c in constantes.CONSTANTES if c.desde == nueva], nueva)
+        # E5-2 reescribe la viñeta de P7, pero el fragmento de P7_PRESENCIA sigue tal cual en ella.
+        p7 = next(l for l in vigente.splitlines() if l.startswith("- **P7, continuidad**"))
+        self.assertIn("[Enmienda 5, E5-2]", p7)
+        self.assertIn(constantes.POR_NOMBRE["P7_PRESENCIA"].fragmento, p7)
+
+    def test_e5_texto_vigente(self):
+        """Enmienda 5 en el texto vigente (v1.0.5): E5-1 en §8.E (C3b), E5-2 en §4.7 (P7), E5-3 en §5.4 y §6; el
+        Anexo B es el del v1.0.4, byte a byte."""
+        vigente = self.textos["v1.0.5"][1]
+        anterior = self.textos["v1.0.4"][1]
+        self.assertEqual(set(re.findall(r"\[Enmienda 5, (E5-\d)", vigente)), {"E5-1", "E5-2", "E5-3"})
+        self.assertIn("- **Magallanes** [Enmienda 5, E5-3]. Al sur de 50° S no tiene regla fina", vigente)
+        self.assertNotIn("F(0) puede confirmarse con E3p y E4p", vigente)
+        self.assertIn("    - **Se espera** [Enmienda 5, E5-3;", vigente)
+        self.assertIn("  - **Controles de red** [Enmienda 5, E5-1]. La red de C3b calcula A3", vigente)
+        self.assertIn("  - **Referencia.** En una estación no costera que cumple las condiciones de E3d en Ts", vigente)
+
+        def anexo_b(t):
+            return t[t.index("## Anexo B."):t.index("## Anexo C.")]
+        self.assertEqual(anexo_b(vigente), anexo_b(anterior))
 
     def test_repeticiones_de_umbrales_coinciden(self):
         """Las frases que la Enmienda 3 reescribió repiten umbrales de otras secciones; los módulos leen los
