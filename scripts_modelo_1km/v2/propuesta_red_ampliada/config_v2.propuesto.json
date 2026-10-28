@@ -362,8 +362,8 @@
    "scripts_modelo_1km/v2/unidades_v2.py": "5738943c623e3e2bf50b7b6abd7e67286fa1972dbd5543b09b04a5edcc8a354c",
    "scripts_modelo_1km/v2/contraste_unidades_v2.py": "e2e9b6d37405ce331301c44cb5a569123dd3982aa0031e122ddeef84d3b1401e",
    "scripts_modelo_1km/v2/duplicados_v2.py": "fd53bad7f7dc02822cce1ae7c1bccfc352d39f093018ca7e6772a73a172fb524",
-   "scripts_modelo_1km/v2/red_ampliada_v2.py": "5de85a47486748c94cbffdc4de841a9a741d9338f47d0ab0bf2ba654725c47fe",
-   "scripts_modelo_1km/v2/derivado_red2_v2.py": "eeee1995d12d22b171570a6b8e3c7f87fde54852539af8b3e4b624b99888f101",
+   "scripts_modelo_1km/v2/red_ampliada_v2.py": "b34d78cf810d2597d0f6ba6b1eb1080fe928884a7db5e1a9ab21f8bcfeff10a4",
+   "scripts_modelo_1km/v2/derivado_red2_v2.py": "6001c12fdf7d5332576513e0b59422a5e65cc61530fc572b3799f6ffa38e89b7",
    "scripts_modelo_1km/v2/panel_red2_v2.py": "18fa2b9dfc5469e95e8137139032f53597ca0586c25b9fc446eec86f46f68428",
    "scripts_modelo_1km/v2/pliegues_red2_v2.py": "aeebeac945fa1f2da92f53a291761f9c34fda0df813628fe2246319c262144d7",
    "nota": "huellas al traducir el bloque (2026-10-26, tras la quinta revisión independiente y las rondas de verificación de la traducción: derivado completo, T12 y T13); se vuelven a fijar en el commit de la traducción (las de red_ampliada_v2.py y panel_red2_v2.py, también en el de la ratificación de T11 a T13, 2026-10-26), y test_red_ampliada_v2.test_huellas_del_codigo_nuevo_declaradas las compara con los archivos"
@@ -579,11 +579,33 @@
    "rachas": "≥ 24 registros idénticos, sobre el registro completo",
    "celda": "≥ 0",
    "derivado": {
-    "programa": "scripts_pipeline/preparar_sinca_modelado.py",
-    "sha256": "95f1ecd3c9071f3877e858e0b822b4e525b00b49ab4aced8f0490a71d0a65401",
+    "programa": "scripts_pipeline/preparar_sinca_modelado_red2.py",
+    "sha256": "b1d134da9e447124f6c643c36346feb2ae4fb93a1db5a65fea17b106ff2b470a",
+    "preparador_original": {
+     "programa": "scripts_pipeline/preparar_sinca_modelado.py",
+     "sha256": "95f1ecd3c9071f3877e858e0b822b4e525b00b49ab4aced8f0490a71d0a65401"
+    },
+    "politica_espacio": {
+     "reserva_gib_por_omision": 1,
+     "reserva_gib_minima": 1,
+     "presupuesto_inicio_corrida_bytes": "bytes UTF-8 serializados de plan.json, incluido salto de línea final, + 1 MiB para directorios, candado, temporales y progreso; se comprueba antes de la primera escritura",
+     "overhead_inicio_bytes": 1048576,
+     "publicacion_cli_preparador": "prohibida: --ejecutar directo se rechaza antes de cargar insumos; usar derivado_red2_v2 --ejecutar con R22",
+     "destino_escritura": "sólo la raíz canónica registrada destino_por_omision(datos), derived/modelado/SINCA/v1_red2; cualquier alternativa se rechaza antes de escribir",
+     "presupuesto_inicial_bytes": "12 × suma de bytes de las fuentes de la serie + 1 MiB",
+     "presupuesto_por_tabla_bytes": "máximo(2 × table.nbytes, 1 MiB)",
+     "presupuesto_prepublicacion_bytes": 1048576,
+     "regla": "libre >= reserva + presupuesto pendiente; se conserva cada comprobación dinámica antes de escribir y de publicar",
+     "nota": "Cambio operativo autorizado el 2026-10-28: sustituye el mínimo rígido de 100 GiB. El margen de 1 GiB es una elección técnica de implementación, no una cifra literal del autor. Parser, ranking, calidad, marcas temporales, selección, montaje, UUID, integridad y publicación sin reemplazo no cambian; la raíz red 2 tampoco. No prueba el pico final real ni permite llenar el disco.",
+     "autoridad": {
+      "archivo": "auditoria/20261028/sinca_espacio/DECISION_ESPACIO.md",
+      "repositorio": "Air-Pollution-Health-Chile",
+      "sha256": "99e2970fc0339411fbe6cc814e594cc67d1eaedc25d71c5339994b569b27fdd0"
+     }
+    },
     "contrato": "airpollution.sinca.modelado.v1.0.0",
     "raiz": "derived/modelado/SINCA/v1_red2",
-    "orquestador": "scripts_modelo_1km/v2/derivado_red2_v2.py (API del preparador; su main sólo admite destinos dentro de SINCA/v1)",
+    "orquestador": "scripts_modelo_1km/v2/derivado_red2_v2.py (API de la variante red 2 fijada por su propia huella; CLI del preparador sólo para plan, publicación por el orquestador con R22 y raíz canónica SINCA/v1_red2)",
     "derivado_v1": "no se toca",
     "lectura_completa": "quien lee el derivado para escribir (el reloj, la segunda corrida del contraste y el panel) lo exige completo (derivado_red2_v2.exigir_derivado_completo): una sola raíz, la de destino_por_omision (esta raíz); su última corrida con progreso.json en «complete_for_selected_scope» y con el plan.json de derivado_red2_v2 --ejecutar, que trae la huella rastreada de derivado_red2_v2.py (exigir_plan_de_la_corrida); el conjunto estación × contaminante de red_ampliada_v2.series_esperadas_red2; las versiones que publicó esa corrida; y cada versión con inputs.since e inputs.until nulos (R4), con inputs.sources igual a sus filas en los tres manifiestos de la lista cerrada en todas sus columnas de identidad (derivado_red2_v2.CAMPOS_DE_LA_FUENTE: región, estación, contaminante, resolución, desde, hasta, bytes, filas, sha256 y la ruta relativa, leídas como texto; R2), con tantas filas publicadas (observaciones.parquet más solapamientos.parquet, por sus metadatos) como statistics.filas_en_ventana, statistics.filas_originales_leidas y la suma de la columna filas de esas filas de los manifiestos, con las filas de cada archivo que declaró el preparador (observaciones.parquet = statistics.filas_seleccionadas y solapamientos.parquet = statistics.filas_alternativas_conservadas) y con las etiquetas que deja el ranking afg, leídas sólo de ts_local (cada etiqueta válida una sola vez en observaciones.parquet y toda fila de solapamientos.parquet con una etiqueta válida que está en observaciones.parquet: derivado_red2_v2.invariante_del_ranking) (exigir_fuentes_y_ventana); en quien lee cada versión, files con los dos parquet, su sha256, sus filas y la huella de su esquema (contrato_de_la_version, sólo metadatos); y cada serie leída desde los bytes cuyo sha256 se registró al principio (reloj_sinca_v2.leer_serie). Un derivado auténtico pero parcial (grupos filtrados o until), con otro «hasta» en una fila, con el contenido recortado o con filas pasadas de observaciones.parquet a solapamientos.parquet (el total no cambia) cambiaba la elección de T4 o la fila seleccionada en los solapes y no pasa (ronda 3 de la traducción, mayor; ronda 4, menores 7 y 8; ronda 5, menor 2). Límite: una reescritura del contenido que conserve los conteos de cada archivo y las etiquetas del ranking (otras etiquetas en el mismo número, otros valores u otras columnas) sólo se detecta volviendo a derivar desde los CSV sellados; para esa auditoría el reloj registra el sha256 de cada observaciones.parquet",
     "afg_lib": {

@@ -1,8 +1,9 @@
 """Pruebas de ``derivado_red2_v2`` (R5) y del recorrido derivado → reloj → observaciones, con un árbol SINCA sintético.
 
 El árbol imita la raíz de datos: el maestro sellado, la actualización de las configuradas (con solape) y la ampliación
-con su maestro del 2026-10-24 (que no se usa) y el corregido de ``geometria_20261025``. El preparador sellado
-(``preparar_sinca_modelado.py``) se carga por su huella y publica en una carpeta temporal. Sin red ni datos reales.
+con su maestro del 2026-10-24 (que no se usa) y el corregido de ``geometria_20261025``. La variante explícita
+(``preparar_sinca_modelado_red2.py``) se carga por su propia huella y publica en una carpeta temporal. El original
+sellado queda intacto como procedencia. Sin red ni datos reales.
 """
 from __future__ import annotations
 
@@ -147,14 +148,28 @@ class DerivadoTests(unittest.TestCase):
             cfg = json.loads((V2 / "propuesta_red_ampliada" / "config_v2.propuesto.json").read_text(encoding="utf-8"))
         d = cfg["red_de_monitores"]["calidad"]["derivado"]
         self.assertEqual((d["sha256"], d["contrato"]), (dr.SHA_PREPARADOR, dr.CONTRATO))
+        self.assertEqual(d["programa"], str(dr.RUTA_PREPARADOR.relative_to(dr.REPO)))
+        self.assertEqual(d["preparador_original"],
+                         {"programa": str(dr.RUTA_PREPARADOR_ORIGINAL.relative_to(dr.REPO)),
+                          "sha256": dr.SHA_PREPARADOR_ORIGINAL})
+        self.assertEqual(d["politica_espacio"]["reserva_gib_por_omision"], dr.RESERVA_GIB)
+        self.assertEqual(d["politica_espacio"]["autoridad"], ra.DECISION_ESPACIO)
         self.assertEqual(d["afg_lib"]["sha256"], dr.SHA_AFG)
         self.assertEqual({k: {"python": v["python"], "ranking_ast_sha256": v["ranking"], "parser_ast_sha256": v["analizador"]}
                           for k, v in d["afg_lib"]["procedencia_ast"].items()}, dr.PROCEDENCIA_AST_AFG)
 
     def test_preparador_con_su_huella(self):
+        import inspect
         self.assertEqual(self.prep.CONTRACT, "airpollution.sinca.modelado.v1.0.0")
+        self.assertEqual(dr.RUTA_PREPARADOR.name, "preparar_sinca_modelado_red2.py")
+        self.assertEqual(self.prep.sha256(dr.RUTA_PREPARADOR), dr.SHA_PREPARADOR)
+        self.assertEqual(self.prep.sha256(dr.RUTA_PREPARADOR_ORIGINAL), dr.SHA_PREPARADOR_ORIGINAL)
+        self.assertNotEqual(dr.SHA_PREPARADOR, dr.SHA_PREPARADOR_ORIGINAL)
+        self.assertEqual(inspect.signature(dr.ejecutar).parameters["reserva_gib"].default, 1)
         with self.assertRaises(SystemExit):
             dr.cargar_preparador(sha256="0" * 64)
+        with self.assertRaises(SystemExit):
+            dr.cargar_preparador(dr.RUTA_PREPARADOR_ORIGINAL)
 
     def test_grupos_y_excluidas(self):
         p = dr.plan(self.ins)
@@ -194,6 +209,62 @@ class DerivadoTests(unittest.TestCase):
                             estado=lambda repo, rutas: {k: "modificado" for k in rutas})
         self.assertFalse(salida.exists())
 
+    def test_salida_alternativa_rechazada_sin_efectos(self):
+        sys.path.insert(0, str(V2 / 'tests'))
+        from _sintetico_v2 import raices_temporales
+        confirmada = lambda repo, rutas: {k: 'rastreado' for k in rutas}
+        alternatives = [Path(self.tmp.name) / 'salida-alternativa', dr.destino_por_omision(self.datos) / 'hija']
+        with raices_temporales('v2-destino-canonico-') as r:
+            for output in alternatives:
+                with self.subTest(salida=output.name), self.assertRaisesRegex(SystemExit, 'raíz registrada'):
+                    dr.ejecutar(self.prep, self.ins, output, self.datos, r=r, cfg={'red_de_monitores': {}},
+                                estado=confirmada)
+                self.assertFalse(output.exists())
+            self.assertFalse(dr.destino_por_omision(self.datos).exists())
+
+    def test_inicio_con_exactamente_un_gib_no_escribe_nada(self):
+        from types import SimpleNamespace
+        from unittest import mock
+        sys.path.insert(0, str(V2 / 'tests'))
+        from _sintetico_v2 import raices_temporales
+        output = dr.destino_por_omision(self.datos)
+        confirmada = lambda repo, rutas: {k: 'rastreado' for k in rutas}
+        real_check = self.prep.check_disk
+        def local_check(salida, reserve_gib, pending_bytes=0, volume_uuid=None):
+            # Sólo se aísla el montaje: la aritmética de la política es la real, sobre archivos sintéticos.
+            return real_check(salida, reserve_gib, pending_bytes, volume_uuid=None)
+        with raices_temporales('v2-sin-presupuesto-inicial-') as r, \
+                mock.patch.object(self.prep, 'check_disk', side_effect=local_check) as checked, \
+                mock.patch.object(self.prep.shutil, 'disk_usage', return_value=SimpleNamespace(free=self.prep.GIB)), \
+                self.assertRaises(self.prep.SafeLimit):
+            dr.ejecutar(self.prep, self.ins, output, self.datos, r=r, cfg={'red_de_monitores': {}}, estado=confirmada)
+        self.assertGreater(checked.call_args.kwargs['pending_bytes'], dr.OVERHEAD_INICIO_BYTES)
+        self.assertFalse(output.exists())
+        self.assertFalse(output.parent.exists())
+
+    def test_presupuesto_inicio_serializado_y_frontera_inclusiva(self):
+        from types import SimpleNamespace
+        from unittest import mock
+        plan = {'mensaje': 'reserva técnica: ñ', 'contador': 3}
+        archived = Path(self.tmp.name) / 'plan-sintetico.json'
+        self.prep.json_atomic(archived, plan)
+        pending = dr.presupuesto_inicio_corrida(plan)
+        self.assertEqual(pending, archived.stat().st_size + dr.OVERHEAD_INICIO_BYTES)
+        large = {'mensaje': 'ñ' * 2**20}
+        exact = len((json.dumps(large, sort_keys=True, ensure_ascii=False, allow_nan=False) + '\n').encode('utf-8'))
+        self.assertEqual(dr.presupuesto_inicio_corrida(large), exact + dr.OVERHEAD_INICIO_BYTES)
+        output = dr.destino_por_omision(self.datos)
+        required = self.prep.GIB + pending
+        for free in (required - 1, required):
+            with self.subTest(libre=free), mock.patch.object(self.prep.shutil, 'disk_usage',
+                                                          return_value=SimpleNamespace(free=free)):
+                if free < required:
+                    with self.assertRaises(self.prep.SafeLimit):
+                        self.prep.check_disk(output, pending_bytes=pending, volume_uuid=None)
+                else:
+                    self.assertEqual(self.prep.check_disk(output, pending_bytes=pending, volume_uuid=None), free)
+        self.assertFalse(output.exists())
+
     def test_el_plan_registra_su_codigo_y_su_procedencia(self):
         """Quinta revisión, mayor 1: plan.json de cada corrida registra la huella de derivado_red2_v2.py (que reemplaza la
         geometría de load_inputs) y la procedencia de la corrida (commit, código, bibliotecas, hilos y traducción)."""
@@ -203,8 +274,12 @@ class DerivadoTests(unittest.TestCase):
         confirmada = lambda repo, rutas: {k: "rastreado" for k in rutas}      # noqa: E731
         salida = Path(self.tmp.name) / "derived" / "modelado" / "SINCA" / "v1_red2"
         # el preparador sólo publica en el disco externo (check_disk): aquí se simula la publicación de cada serie
-        publicar = lambda filas, ins, s, reserve_gib, code_bytes: {"status": "published", "path": "x"}  # noqa: E731
-        with raices_temporales("v2-derivado-") as r, mock.patch.object(self.prep, "check_disk", lambda *a, **k: None), \
+        def publicar(filas, ins, s, reserve_gib, code_bytes):
+            self.assertEqual(reserve_gib, 1)
+            self.assertEqual(hashlib.sha256(code_bytes).hexdigest(), dr.SHA_PREPARADOR)
+            return {"status": "published", "path": "x"}
+        with raices_temporales("v2-derivado-") as r, \
+                mock.patch.object(self.prep, "check_disk", return_value=66*self.prep.GIB) as checked, \
                 mock.patch.object(self.prep, "process_series", publicar):
             res = dr.ejecutar(self.prep, self.ins, salida, self.datos, r=r, cfg={"red_de_monitores": {}},
                               estado=confirmada)
@@ -217,6 +292,13 @@ class DerivadoTests(unittest.TestCase):
             self.assertIn(clave, plan["traza"])
         self.assertEqual(plan["traza"]["insumos"]["afg_lib"]["sha256"], dr.SHA_AFG)
         self.assertEqual(plan["ranking_afg"]["esta_corrida"]["entorno"], "amb_v2")              # T8
+        self.assertEqual(plan["codigo"]["preparador_sha256"], dr.SHA_PREPARADOR)
+        self.assertEqual(plan["codigo"]["preparador_original"]["sha256"], dr.SHA_PREPARADOR_ORIGINAL)
+        self.assertEqual(plan["codigo"]["politica_espacio"]["reserva_gib_por_omision"], 1)
+        self.assertEqual(plan["codigo"]["politica_espacio"]["autoridad"], ra.DECISION_ESPACIO)
+        self.assertEqual(plan["codigo"]["politica_espacio"]["overhead_inicio_bytes"], dr.OVERHEAD_INICIO_BYTES)
+        self.assertEqual(checked.call_args.kwargs["pending_bytes"],
+                         (salida / "_runs" / res["corrida"] / "plan.json").stat().st_size + dr.OVERHEAD_INICIO_BYTES)
         self.assertEqual(json.loads((salida / "_runs" / res["corrida"] / "progreso.json").read_text(
             encoding="utf-8"))["status"], dr.ESTADO_COMPLETO)
 
@@ -255,7 +337,7 @@ class DerivadoTests(unittest.TestCase):
                 for v in (salida / "estacion=X01" / "contaminante=pm25").glob("version=*"):
                     shutil.rmtree(v)
                 with sin_disco:
-                    x = self.prep.process_series(fuentes, self.ins[fam], salida, until=until, reserve_gib=100,
+                    x = self.prep.process_series(fuentes, self.ins[fam], salida, until=until, reserve_gib=dr.RESERVA_GIB,
                                                  volume_uuid=None, code_bytes=dr.RUTA_PREPARADOR.read_bytes())
                 corrida = salida / "_runs" / f"2099010{k}T000000Z-red2"
                 corrida.mkdir()
@@ -386,7 +468,7 @@ class DerivadoTests(unittest.TestCase):
         salida = Path(self.tmp.name) / "derived" / "modelado" / "SINCA" / "v1_red2"
         codigo = dr.RUTA_PREPARADOR.read_bytes()
         for (e, p), (fam, filas) in sorted(self.ins["grupos"].items()):
-            res = self.prep.process_series(filas, self.ins[fam], salida, reserve_gib=100, volume_uuid=None,
+            res = self.prep.process_series(filas, self.ins[fam], salida, reserve_gib=dr.RESERVA_GIB, volume_uuid=None,
                                            code_bytes=codigo)
             self.assertEqual(res["status"], "published")
             self.assertIsNone(self.prep.validate_publication(Path(res["path"]))["inputs"].get("since"))

@@ -339,6 +339,8 @@ class GuardaR22Tests(unittest.TestCase):
         self.assertGreaterEqual(len(rutas_cambios), 21)
         exigidas = {*(f"scripts_modelo_1km/v2/{m}" for m in MODULOS_NUEVOS), CONTRATO, CONFIG, *rutas_cambios,
                     *ra.ARCHIVOS_PROPUESTA,
+                    "scripts_pipeline/preparar_sinca_modelado_red2.py",
+                    "scripts_pipeline/tests/test_preparar_sinca_modelado_red2.py",
                     "scripts_pipeline/geometria_sinca_ampliacion.py", "scripts_pipeline/descargar_sinca_ampliacion.py",
                     "scripts_pipeline/tests/test_geometria_sinca_ampliacion.py",
                     "scripts_pipeline/tests/test_descargar_sinca_ampliacion.py",
@@ -368,6 +370,31 @@ class GuardaR22Tests(unittest.TestCase):
         for rel, esperado in codigo.items():
             with self.subTest(rel=rel):
                 self.assertEqual(sha(REPO / rel), esperado)
+
+    def test_espacio_red2_explicito_y_autorizado(self):
+        import derivado_red2_v2 as dr
+        vigente = json.loads((REPO / CONFIG).read_text(encoding="utf-8"))
+        propuesta = json.loads((PROPUESTA / "config_v2.propuesto.json").read_text(encoding="utf-8"))
+        for cfg in (vigente, propuesta):
+            d = cfg["red_de_monitores"]["calidad"]["derivado"]
+            self.assertEqual((d["programa"], d["sha256"]),
+                             (str(dr.RUTA_PREPARADOR.relative_to(REPO)), sha(dr.RUTA_PREPARADOR)))
+            self.assertEqual(d["preparador_original"],
+                             {"programa": str(dr.RUTA_PREPARADOR_ORIGINAL.relative_to(REPO)),
+                              "sha256": SELLADOS["scripts_pipeline/preparar_sinca_modelado.py"]})
+            p = d["politica_espacio"]
+            self.assertEqual((p["reserva_gib_por_omision"], p["reserva_gib_minima"]), (1, 1))
+            self.assertEqual(p["overhead_inicio_bytes"], dr.OVERHEAD_INICIO_BYTES)
+            self.assertIn('plan.json', p['presupuesto_inicio_corrida_bytes'])
+            self.assertIn('prohibida', p['publicacion_cli_preparador'])
+            self.assertIn('raíz canónica', p['destino_escritura'])
+            self.assertEqual(p["autoridad"], ra.DECISION_ESPACIO)
+            self.assertEqual(ra.ARCHIVOS_DEL_ESPEJO[p["autoridad"]["archivo"]], p["autoridad"]["sha256"])
+            self.assertIn("elección técnica", p["nota"])
+            self.assertIn("100 GiB", p["nota"])
+            self.assertEqual(d["raiz"], "derived/modelado/SINCA/v1_red2")
+        self.assertEqual(vigente, propuesta)
+        self.assertEqual(sha(dr.RUTA_PREPARADOR_ORIGINAL), dr.SHA_PREPARADOR_ORIGINAL)
 
     def test_la_configuracion_repite_las_constantes_del_codigo(self):
         """Cuarta revisión, menor 25: los nodos de red_de_monitores (en la configuración aplicada o en la propuesta) que
@@ -450,6 +477,8 @@ class GuardaR22Tests(unittest.TestCase):
         citados = {enm["texto_del_bloque"]["archivo"]: enm["texto_del_bloque"]["sha256"],
                    enm["decisiones_del_autor"]["archivo"]: enm["decisiones_del_autor"]["sha256"],
                    dec["archivo"]: dec["sha256"]}
+        autoridad = config_con_la_red()["red_de_monitores"]["calidad"]["derivado"]["politica_espacio"]["autoridad"]
+        citados[autoridad["archivo"]] = autoridad["sha256"]
         self.assertEqual(citados, ra.ARCHIVOS_DEL_ESPEJO)
         if not DECISIONES.exists():
             self.skipTest("sin el repositorio de salud")

@@ -20,6 +20,46 @@ corrigió 25 hallazgos más, entre ellos la ratificación de T13 en la compuerta
 rompía y la huella de `produccion.py` por repositorio (§3.7); y la quinta ronda, 30 más (§3.8), entre ellos que en la
 decisión rija la evaluabilidad de E2 registrada antes del ajuste, como dice R15, sin ninguna elección abierta al autor.
 
+### Cambio operativo autorizado el 2026-10-28: espacio SINCA
+
+La autorización está en `Air-Pollution-Health-Chile/auditoria/20261028/sinca_espacio/DECISION_ESPACIO.md`
+(sha256 `99e2970fc0339411fbe6cc814e594cc67d1eaedc25d71c5339994b569b27fdd0`), que ahora exige
+`red_ampliada_v2.ARCHIVOS_DEL_ESPEJO`. **Sí cambia la política operativa**, no el parser, el ranking, la calidad,
+las marcas temporales ni la selección: la copia explícita `scripts_pipeline/preparar_sinca_modelado_red2.py`
+(sha256 `b1d134da9e447124f6c643c36346feb2ae4fb93a1db5a65fea17b106ff2b470a`) sustituye el mínimo rígido de 100 GiB
+por `libre >= reserva + pending_bytes`, con reserva predeterminada y mínima de 1 GiB. **1 GiB es un margen técnico
+de implementación, no una cifra literal del autor.** Se conservan los presupuestos inicial por serie
+(`12 × bytes fuentes + 1 MiB`), por tabla (`máximo(2 × table.nbytes, 1 MiB)`) y antes de publicar (`1 MiB`),
+y los bloqueos antes de escribir, montaje, UUID, integridad, candado, reapertura y publicación sin reemplazo.
+El presupuesto inicial no prueba el pico final real; los controles dinámicos siguen vigentes para no llenar el disco.
+
+El original y su prueba quedan byte a byte intactos (preparador `95f1ecd3c9071f3877e858e0b822b4e525b00b49ab4aced8f0490a71d0a65401`;
+prueba `6b6eabe9ea5f98237423d57192e9659336c9bd5d280da026d59e796080b5e233`). El orquestador carga la variante por su
+propia huella y registra la referencia del original, la política y la autorización en su plan. La copia nueva archiva
+su código con su propio nombre y usa por omisión `SINCA/v1_red2`; **las rutas del derivado no se cambian**.
+La versión nueva y su prueba entran en `ARCHIVOS_TRADUCCION`. La configuración y su copia propuesta pasan a
+`1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae`; el resto de sus parámetros no cambia.
+
+**Correcciones de la revisión independiente del 2026-10-28.** El diff de la variante incluye también su
+`main`: `--ejecutar` directo queda prohibido inmediatamente después de leer los argumentos, antes de cargar
+insumos, leer valores o crear carpetas. El modo plan sigue disponible y la API `process_series` se conserva para
+el orquestador; no se replica R22 ni se importa circularmente. La única publicación por consola es
+`derivado_red2_v2 --ejecutar`, que exige la compuerta de R22. En el orquestador, `verificar_destino` exige igualdad
+con `destino_por_omision(datos)` (la raíz de producción no cambia), además de proteger v1 y los crudos: una salida
+alternativa se rechaza sin efectos. Antes del primer `mkdir`, candado o JSON, se calcula el presupuesto inicial
+de la corrida (`presupuesto_inicio_corrida`): bytes exactos UTF-8 del `plan.json` y su procedencia, con la misma
+serialización y salto final de `json_atomic`, más 1 MiB conservador para directorios, candado, temporales y
+progreso. Se exige ese presupuesto **además** de la reserva; exactamente 1 GiB libre no permite crear ninguna
+salida. La igualdad `libre = reserva + presupuesto` sigue siendo admisible; los controles posteriores por serie,
+por tabla y antes de publicar siguen vigentes. Las pruebas nuevas cubren CLI bloqueada sin parches de compuerta,
+plan sin publicación, destinos alternativos sin efectos, rechazo inicial sin salida, serialización con Unicode y
+planes mayores que un presupuesto fijo, y frontera inclusiva.
+
+Este cambio no equivale a datos armados ni habilita el armado: faltan revisión, regeneración autorizada de
+`componentes_compartidos.json` (no se regenera en esta intervención), confirmación en git de AP y APH y R22.
+M1 debe refijar formalmente la huella nueva de `config_v2.json` bajo D51; aquí no se modifica M1 ni S6.
+No se ejecutan modelos ni se usan valores reales para elegir el margen.
+
 ## 1. Origen
 
 | Documento | Dónde | sha256 |
@@ -36,7 +76,7 @@ decisión rija la evaluabilidad de E2 registrada antes del ajuste, como dice R15
 | Archivo | Qué es | sha256 |
 |---|---|---|
 | `DISENO_AMBIENTAL_V2.propuesto.md` | texto nuevo completo: el contrato vigente más el bloque transcrito sin cambios al final de «Enmiendas», con sus encabezados bajados dos niveles | `5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670` |
-| `config_v2.propuesto.json` | texto nuevo completo: la configuración vigente con los cambios de §4; el resto, byte a byte igual; desde el paso 0 (2026-10-26), con la ratificación de T11 a T13 (§9.0) | `51df5063ed642c737d883a82c40382e7e211d288f5499151edce61bd692528d7` |
+| `config_v2.propuesto.json` | configuración vigente con los cambios de §4, la ratificación de T11 a T13 (§9.0) y el cambio operativo de espacio SINCA del 2026-10-28; los demás parámetros intactos | `1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae` |
 | `CAMBIOS_AL_CODIGO_SELLADO.md` | 70 reemplazos exactos en 21 archivos sellados (código y pruebas), con la huella de cada origen y de cada resultado (el de `test_config_v2`, con la huella de las decisiones ratificadas) | `84362a574ca9cbb688106d46df94124f4767f4918d36a44d4b98f121403147e8` |
 
 Para verlos frente a los vigentes, sin escribir nada:
@@ -435,8 +475,8 @@ prueba falla con la mutación y pasa sin ella.
 | `unidades_v2.py` | rótulo, regla del contraste y del rótulo, 25 °C y 1 atm con las masas molares literales de R6 (O3 47,998: T12, también en el contraste; el predictor `cams_o3` del panel sigue con 47,9982 del código v1, con su huella), SNIFA; las series sin coordenada salen antes (R6, R8) | `5738943c623e3e2bf50b7b6abd7e67286fa1972dbd5543b09b04a5edcc8a354c` |
 | `contraste_unidades_v2.py` | el programa del contraste versionado, con sus constantes (salvo O3, 47,998 por T12), para la segunda corrida (R6), con el derivado cerrado y antes del panel (T12 a): nada antes de la confirmación en git; NO2 y O3, la primera corrida por su huella y el derivado completo para escribir; lista cerrada, series, archivos CAMS con su sha256 antes y después de leerlos (exigidos) y cambios frente a la primera, con la procedencia de la corrida, escrita una vez (y completada si se cortó entre el CSV y el lateral); cada serie se lee desde los bytes cuyo sha256 registra el lateral (ronda 5) | `e2e9b6d37405ce331301c44cb5a569123dd3982aa0031e122ddeef84d3b1401e` |
 | `duplicados_v2.py` | `pares_duplicados` y `quitar_copias`: una copia por hora (R9), con una sola regla de desempate (`orden_de_conservacion`) | `fd53bad7f7dc02822cce1ae7c1bccfc352d39f093018ca7e6772a73a172fb524` |
-| `red_ampliada_v2.py` | lista cerrada, maestros de R8, propietarios, red resultante, series esperadas de la red 2, decisiones de traducción (T1 a T13), procedencia de la descarga, cláusula y camino de la 518 (con los archivos de la red 2 en `paneles/`, uno por uno), compuerta de R22: el par AP y espejo desde cualquiera de los dos, los textos de la auditoría en el espejo, `config/componentes_compartidos.json` y la ratificación de T11 a T13 antes del armado (T13: `RATIFICACION_T11_T13`, con las lecturas §8.14, §8.15 y §8.17, y los textos de T11 a T13 ya sin la marca de pendiente); la configuración confirmada en git para el anexo; y la procedencia de cada artefacto (`traza_red2`, con la traducción y la ratificación con que se escribió) (R2, R3, R8, R10, R22, §0) | `5de85a47486748c94cbffdc4de841a9a741d9338f47d0ab0bf2ba654725c47fe` |
-| `derivado_red2_v2.py` | derivado SINCA red 2 con el preparador sellado cargado por su huella y `afg_lib.py` por la suya, en `amb_v2` (R4, R5, T8); para quien lo lee, el contrato de cada versión (T8 y la publicación del preparador: `files` con los dos parquet, sus filas y la huella de su esquema, sólo metadatos; versión y `digest(inputs)`), el derivado completo (R2 y R4: la raíz de `destino_por_omision`, el `plan.json` con la huella rastreada de este programa y cada versión sin ventana, con exactamente sus fuentes de la lista cerrada en todas sus columnas de identidad, con las filas que declaran esos manifiestos y, archivo por archivo, las que declaró el preparador, y con las etiquetas que deja el ranking afg, leídas sólo de `ts_local` (ronda 5); una reescritura que conserve los conteos de cada archivo y las etiquetas del ranking sólo se detecta volviendo a derivar) y las corridas equivalentes; la raíz rechazada, a la vista aunque esté fuera de la carpeta de la raíz de datos; `plan.json` con la huella de este programa y la procedencia | `eeee1995d12d22b171570a6b8e3c7f87fde54852539af8b3e4b624b99888f101` |
+| `red_ampliada_v2.py` | lista cerrada, maestros de R8, propietarios, red resultante, series esperadas de la red 2, decisiones de traducción (T1 a T13), procedencia de la descarga, cláusula y camino de la 518 (con los archivos de la red 2 en `paneles/`, uno por uno), compuerta de R22: el par AP y espejo desde cualquiera de los dos, los textos de la auditoría en el espejo, `config/componentes_compartidos.json` y la ratificación de T11 a T13 antes del armado (T13: `RATIFICACION_T11_T13`, con las lecturas §8.14, §8.15 y §8.17, y los textos de T11 a T13 ya sin la marca de pendiente); la configuración confirmada en git para el anexo; y la procedencia de cada artefacto (`traza_red2`, con la traducción y la ratificación con que se escribió) (R2, R3, R8, R10, R22, §0) | `b34d78cf810d2597d0f6ba6b1eb1080fe928884a7db5e1a9ab21f8bcfeff10a4` |
+| `derivado_red2_v2.py` | derivado SINCA red 2 con la variante explícita de espacio cargada por su propia huella, el original sellado como procedencia y `afg_lib.py` por la suya, en `amb_v2` (R4, R5, T8); para quien lo lee, el contrato de cada versión (T8 y la publicación del preparador: `files` con los dos parquet, sus filas y la huella de su esquema, sólo metadatos; versión y `digest(inputs)`), el derivado completo (R2 y R4: la raíz de `destino_por_omision`, el `plan.json` con la huella rastreada de este programa y cada versión sin ventana, con exactamente sus fuentes de la lista cerrada en todas sus columnas de identidad, con las filas que declaran esos manifiestos y, archivo por archivo, las que declaró el preparador, y con las etiquetas que deja el ranking afg, leídas sólo de `ts_local` (ronda 5); una reescritura que conserve los conteos de cada archivo y las etiquetas del ranking sólo se detecta volviendo a derivar) y las corridas equivalentes; la raíz rechazada, a la vista aunque esté fuera de la carpeta de la raíz de datos; `plan.json` con la huella de este programa y la procedencia | `6001c12fdf7d5332576513e0b59422a5e65cc61530fc572b3799f6ffa38e89b7` |
 | `panel_red2_v2.py` | inventario (de escritura única) y copia congelada de los insumos, que se retoma si el armado se corta (R11, con TROPOMI por fecha sin límite por T11 y su conteo por año), registro del catálogo MAIAC (T5), derivado completo de la red 2 (R2), convención civil tomada del reloj de su carpeta, sobre las mismas series y vuelto a calcular (T4), segunda corrida del contraste sobre esas series y con sus cambios (R6), observaciones con R3-R9 y la red frente a la esperada, réplica del panel v1 (con `produccion.py` importado por su huella, la de cada repositorio, y sus rachas con `produccion.marcar_rachas`: T12), bandera de calidad, regímenes (R17), estaciones con propietarios (R10), observaciones float64 y estrato de propietario; base de zonas y límite de R7 comprobados en el reloj; los archivos CAMS del lateral; al retomar, se compara sólo lo que entra; la procedencia en cada json que escribe; desde la ronda 5, la regla de unidades antes de escribir nada y cada serie leída desde los bytes cuyo sha256 registró al empezar | `18fa2b9dfc5469e95e8137139032f53597ca0586c25b9fc446eec86f46f68428` |
 | `pliegues_red2_v2.py` | la única fuente de pliegues, pesos, E2, bloque más influyente y regímenes de la red 2 (R13-R17), con el renombre de R13 (del f001d48c…, también si se cortó después del renombre) y el anexo: lo arma completo de los artefactos (`--anexo`), con la traducción común de todos y el estado de la procedencia de la descarga, y lo exige, con lo calculado (R15, también la evaluabilidad de E2 por protocolo, con los umbrales, los códigos de E2 y el mínimo de horas de la configuración, en el registro de la red y, la que rige, en la decisión: `evaluabilidad_e2_que_rige`; R16 con `red_original` conservado y su aviso, y R17 con su rótulo), y con `config_v2.json` confirmado en git; al reemplazar, el evento de R13 sigue primero en la bitácora | `aeebeac945fa1f2da92f53a291761f9c34fda0df813628fe2246319c262144d7` |
 
@@ -465,10 +505,12 @@ saltan sin el disco), nunca valores ni métricas.
   la lista: `038737be2430b3ef626b686ab7550b95a973e873f1e8b1e2dce630133242fa7f`. El registro se escribe al armar, después
   de la confirmación en git; si una tesela cambia antes, la huella cambia y queda a la vista.
 
-## 8. Hallazgos para el autor (sin cambio de reglas)
+## 8. Hallazgos para el autor (reglas científicas sin cambios; política operativa actualizada)
 
-1. `preparar_sinca_modelado.py --salida …/SINCA/v1_red2` fallaría (su `main` sólo admite destinos dentro de
-   `SINCA/v1`); `derivado_red2_v2` usa su API, cargándolo por su huella (95f1ecd3…).
+1. El original `preparar_sinca_modelado.py --salida …/SINCA/v1_red2` sigue rechazando el destino (su `main` sólo
+   admite `SINCA/v1`) y conserva su huella 95f1ecd3…. Desde el cambio operativo autorizado del 2026-10-28,
+   `derivado_red2_v2` usa la API de `preparar_sinca_modelado_red2.py`, cargándolo por su propia huella, no la del
+   original (véase la nota de espacio al comienzo). La raíz red 2 no cambia.
 2. `load_inputs` toma la geometría de la carpeta fuente (la del 2026-10-24, excluida): se reemplaza por la del maestro
    corregido (eaeaf965…).
 3. El verificador original no podía dar «hora civil» con el derivado: éste deja una fila por etiqueta y la repetición

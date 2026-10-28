@@ -430,6 +430,10 @@ ARCHIVOS_TRADUCCION = ("scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md", "scripts_
                        "scripts_modelo_1km/v2/duplicados_v2.py", "scripts_modelo_1km/v2/red_ampliada_v2.py",
                        "scripts_modelo_1km/v2/derivado_red2_v2.py", "scripts_modelo_1km/v2/panel_red2_v2.py",
                        "scripts_modelo_1km/v2/pliegues_red2_v2.py",
+                       # Cambio operativo autorizado el 2026-10-28: copia explícita, original intacto.
+                       # La CLI de la copia no publica: sólo el orquestador, con R22 y presupuesto inicial.
+                       "scripts_pipeline/preparar_sinca_modelado_red2.py",
+                       "scripts_pipeline/tests/test_preparar_sinca_modelado_red2.py",
                        # el código sellado que cambia al aplicar la propuesta (CAMBIOS_AL_CODIGO_SELLADO.md)
                        "scripts_modelo_1km/v2/calidad_v2.py", "scripts_modelo_1km/v2/pliegues_v2.py",
                        "scripts_modelo_1km/v2/vecindario_v2.py", "scripts_modelo_1km/v2/validar_vecindario_v2.py",
@@ -461,7 +465,13 @@ NOMBRE_CANONICO = "Air-Pollution"                  # el repositorio público (co
 NOMBRE_ESPEJO = "Air-Pollution-Health-Chile"      # el espejo, junto al repositorio
 # Los textos de la auditoría que cita la configuración (contrato.enmiendas[2]) y que sólo están en el espejo (AP no
 # lleva /auditoria/): rastreados, sin cambios y con su sha256 en el git del espejo (cuarta revisión, menores 15, 31 y 36).
+DECISION_ESPACIO = {
+    "archivo": "auditoria/20261028/sinca_espacio/DECISION_ESPACIO.md",
+    "repositorio": "Air-Pollution-Health-Chile",
+    "sha256": "99e2970fc0339411fbe6cc814e594cc67d1eaedc25d71c5339994b569b27fdd0",
+}
 ARCHIVOS_DEL_ESPEJO = {
+    DECISION_ESPACIO["archivo"]: DECISION_ESPACIO["sha256"],
     "auditoria/20261024/sinca_al_modelo/ENMIENDA_2_BLOQUE_RED_AMPLIADA.md": BLOQUE["sha256"],
     "auditoria/20261024/sinca_al_modelo/decisiones_autor_20261024.md":
         "01744a98101ff149fc3e65a32046c27b2fd810bd2b23d8c72594e00b4355b7af",

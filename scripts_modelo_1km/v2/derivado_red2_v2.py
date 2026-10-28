@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """Derivado SINCA de la red ampliada (bloque R5): el mismo contrato y el mismo ranking, en una raíz aparte.
 
-R5 pide armar el derivado de las estaciones nuevas y de la actualización con ``scripts_pipeline/preparar_sinca_modelado.py``
-(sha256 95f1ecd3…), con el mismo contrato (``airpollution.sinca.modelado.v1.0.0``) y la misma huella del ranking
-``afg_lib``, en una raíz aparte, sin tocar el derivado v1. Este módulo lo hace **sin modificar ese programa**: lo carga
-por ruta exigiendo su sha256 y usa su API de orquestador (``load_inputs``, ``consolidate`` y ``process_series``), porque
-su ``main`` sólo admite destinos dentro de ``derived/modelado/SINCA/v1`` (``preparar_sinca_modelado.py:534-535``) y
-``--salida derived/…/SINCA/v1_red2`` falla por diseño.
+R5 conserva el contrato (``airpollution.sinca.modelado.v1.0.0``) y el ranking ``afg_lib`` del preparador original
+``scripts_pipeline/preparar_sinca_modelado.py`` (sha256 95f1ecd3…), que queda intacto como procedencia. Desde la
+autorización del 2026-10-28 (``red_ampliada_v2.DECISION_ESPACIO``), este módulo carga la copia explícita
+``scripts_pipeline/preparar_sinca_modelado_red2.py`` por su propia huella y usa su API de orquestador
+(``load_inputs``, ``consolidate`` y ``process_series``). Es un cambio operativo: reserva predeterminada de 1 GiB
+(margen técnico, no cifra literal del autor) más el presupuesto pendiente, en lugar del mínimo rígido de 100 GiB.
+Conserva los presupuestos dinámicos, montaje, UUID, integridad y publicación sin reemplazo; no cambia la raíz red 2.
 
 Qué arma, por estación × contaminante (PM2,5, NO2 y O3):
 
@@ -61,8 +62,12 @@ REPO = AQUI.parents[1]
 sys.path.insert(0, str(AQUI))
 import red_ampliada_v2 as ra  # noqa: E402
 
-RUTA_PREPARADOR = REPO / "scripts_pipeline" / "preparar_sinca_modelado.py"
-SHA_PREPARADOR = "95f1ecd3c9071f3877e858e0b822b4e525b00b49ab4aced8f0490a71d0a65401"
+RUTA_PREPARADOR_ORIGINAL = REPO / "scripts_pipeline" / "preparar_sinca_modelado.py"
+SHA_PREPARADOR_ORIGINAL = "95f1ecd3c9071f3877e858e0b822b4e525b00b49ab4aced8f0490a71d0a65401"
+RUTA_PREPARADOR = REPO / "scripts_pipeline" / "preparar_sinca_modelado_red2.py"
+SHA_PREPARADOR = "b1d134da9e447124f6c643c36346feb2ae4fb93a1db5a65fea17b106ff2b470a"
+RESERVA_GIB = 1  # margen técnico autorizado por DECISION_ESPACIO, además del presupuesto dinámico
+OVERHEAD_INICIO_BYTES = 2**20  # directorios, candado, temporales atómicos y progreso; además del plan serializado
 RUTA_POLITICA = REPO / "config" / "sinca" / "politica_temporal.json"
 RUTA_AFG = REPO / "scripts_superficie" / "afg_lib.py"
 # T8 (decisiones_autor_traduccion_20261025.md, tras la segunda revisión): en R5, «la misma huella del ranking» es el
@@ -116,11 +121,11 @@ def verificar_entorno() -> dict:
 
 
 def cargar_preparador(ruta: Path = RUTA_PREPARADOR, sha256: str = SHA_PREPARADOR) -> types.ModuleType:
-    """Carga ``preparar_sinca_modelado.py`` ejecutando exactamente los bytes con la huella exigida."""
+    """Carga la variante red 2 ejecutando exactamente los bytes con su propia huella exigida."""
     datos = Path(ruta).read_bytes()
     if hashlib.sha256(datos).hexdigest() != sha256:
         raise SystemExit(f"{Path(ruta).name} no tiene la huella fijada ({sha256[:8]}…); el derivado red 2 no se arma")
-    modulo = types.ModuleType("preparar_sinca_modelado_fijado")
+    modulo = types.ModuleType("preparar_sinca_modelado_red2_fijado")
     modulo.__file__ = str(ruta)
     exec(compile(datos, str(ruta), "exec"), modulo.__dict__)
     if hashlib.sha256(Path(ruta).read_bytes()).hexdigest() != sha256:
@@ -523,13 +528,16 @@ def destino_por_omision(datos: Path) -> Path:
 
 
 def verificar_destino(salida: Path, datos: Path) -> Path:
-    """El derivado red 2 no puede caer en el derivado v1 (ni dentro de él, ni contenerlo) ni en los datos crudos."""
+    """Exige la única raíz registrada; además protege el derivado v1 y los datos crudos antes de escribir."""
     s = Path(salida).resolve()
     v1 = raiz_derivados(datos).joinpath(*SUBRUTA_V1).resolve()
     crudos = Path(datos).resolve()
     for nombre, otra in (("el derivado v1", v1), ("los datos crudos", crudos)):
         if s == otra or s.is_relative_to(otra) or otra.is_relative_to(s):
             raise SystemExit(f"El derivado red 2 no puede escribirse en {nombre} ({otra})")
+    if s != destino_por_omision(datos).resolve():
+        raise SystemExit('El derivado red 2 exige la raíz registrada derived/modelado/SINCA/v1_red2; '
+                         'no se escribe una salida alternativa')
     return s
 
 
@@ -641,13 +649,30 @@ def plan_con_procedencia(ins: dict, r, compuerta: dict | None) -> dict:
     p = {k: v for k, v in plan(ins).items() if k != "detalle"}
     p["codigo"] = {"programa": PROGRAMA, "sha256": huella_del_programa(),
                    "red_ampliada_v2_sha256": ra.sha256_archivo(Path(ra.__file__).resolve()),
-                   "preparador_sha256": SHA_PREPARADOR}
+                   "preparador": str(RUTA_PREPARADOR.relative_to(REPO)), "preparador_sha256": SHA_PREPARADOR,
+                   "preparador_original": {"programa": str(RUTA_PREPARADOR_ORIGINAL.relative_to(REPO)),
+                                           "sha256": SHA_PREPARADOR_ORIGINAL},
+                   "politica_espacio": {"reserva_gib_por_omision": RESERVA_GIB,
+                                        "regla": "reserva más pending_bytes; presupuestos dinámicos sin cambios",
+                                        "inicio_corrida": "bytes JSON UTF-8 del plan, incluido salto final, más overhead",
+                                        "overhead_inicio_bytes": OVERHEAD_INICIO_BYTES,
+                                        "autoridad": ra.DECISION_ESPACIO}}
     p["traza"] = ra.traza_red2(r, compuerta, {"politica_temporal": RUTA_POLITICA, "afg_lib": RUTA_AFG}, None, 1,
                                programa="derivado_red2_v2 --ejecutar")
     return p
 
 
-def ejecutar(prep: types.ModuleType, ins: dict, salida: Path, datos: Path, reserva_gib: float = 100,
+def presupuesto_inicio_corrida(plan_corrida: dict) -> int:
+    """Bytes exactos del JSON que escribe json_atomic y margen pequeño para el resto de la escritura inicial.
+
+    Se calcula antes del primer mkdir/candado. No sustituye la reserva ni los presupuestos posteriores por serie,
+    por tabla y antes de publicar. La serialización es la misma del preparador, con su salto de línea final.
+    """
+    serializado = json.dumps(plan_corrida, sort_keys=True, ensure_ascii=False, allow_nan=False) + "\n"
+    return len(serializado.encode("utf-8")) + OVERHEAD_INICIO_BYTES
+
+
+def ejecutar(prep: types.ModuleType, ins: dict, salida: Path, datos: Path, reserva_gib: float = RESERVA_GIB,
              r=None, cfg: dict | None = None, estado=None) -> dict:
     """Publica el derivado red 2 serie por serie con ``process_series`` (candado, procedencia y reapertura del
     propio preparador). Se corre en el armado (R22, paso 3), con la traducción confirmada en git. ``plan.json`` lleva
@@ -656,7 +681,8 @@ def ejecutar(prep: types.ModuleType, ins: dict, salida: Path, datos: Path, reser
     r = r or rv.rutas_v2()
     compuerta = ra.exigir_traduccion_confirmada(r, cfg, estado)
     salida = verificar_destino(salida, datos)
-    prep.check_disk(salida, reserva_gib)
+    plan_corrida = plan_con_procedencia(ins, r, compuerta)
+    prep.check_disk(salida, reserva_gib, pending_bytes=presupuesto_inicio_corrida(plan_corrida))
     salida.mkdir(parents=True, exist_ok=True)
     codigo = Path(RUTA_PREPARADOR).read_bytes()
     resultados = []
@@ -664,7 +690,7 @@ def ejecutar(prep: types.ModuleType, ins: dict, salida: Path, datos: Path, reser
         corrida = salida / "_runs" / (datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-red2")
         corrida.mkdir(parents=True)
         # plan.json registra el entorno (T8: amb_v2), en ranking_afg.esta_corrida, y su procedencia
-        prep.json_atomic(corrida / "plan.json", plan_con_procedencia(ins, r, compuerta))
+        prep.json_atomic(corrida / "plan.json", plan_corrida)
         for (e, p), (fam, filas) in sorted(ins["grupos"].items()):
             resultados.append(prep.process_series(filas, ins[fam], salida, reserve_gib=reserva_gib, code_bytes=codigo))
             prep.json_atomic(corrida / "progreso.json", {"status": "running", "results": resultados})
