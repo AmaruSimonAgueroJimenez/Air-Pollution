@@ -1383,7 +1383,7 @@ vigentes y cita la de M0 como estado de M0, que es la de AP `c7c47e8` (`fijados.
 | `AP/scripts_modelo_1km/_comun_modelo.py` | `a83c0384266554e16ab397749544759ae1cf161f138361eefa7d1ad3e29aa6f4` |
 | `AP/scripts_pipeline/descargar_meteo_chile_horaria.py` | `578fa26eea5b4ac4733c56aaf08e9b7b8904595fb8447dd54feb838642612120` |
 | `AP/scripts_modelo_1km/v2/correr_v2.py` (no se toca en M1) | vigente (D51; AP `889b972`): `1423ef3f7a8d7bc35d8ee1802187de95129e46afe276241e29a0c7e486f6445d`; estado de M0 (AP `c7c47e8`): `534e484b66ed9575f36a2ec5fc75052a9a2544656cf3e4a80077b90f96c69b07` |
-| `AP/scripts_modelo_1km/v2/config_v2.json` | vigente (D51; AP `6c15981`): `51df5063ed642c737d883a82c40382e7e211d288f5499151edce61bd692528d7`; estado de M0 (AP `c7c47e8`): `232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c` |
+| `AP/scripts_modelo_1km/v2/config_v2.json` | vigente (D51; AP `8542e61`, espacio SINCA): `1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae`; ratificación anterior (AP `6c15981`): `51df5063ed642c737d883a82c40382e7e211d288f5499151edce61bd692528d7`; estado de M0 (AP `c7c47e8`): `232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c` |
 | `APH/scripts_riesgo_agudo/v3/config_v3.json` | `ab248343239b58853d59516b1409d937e0b6a7ee36461c9df3b1eb7c09d17d94` |
 | `APH/scripts_riesgo_agudo/v3_next/meteo_civil_v3.py` (= `v3/`) | `483f63a634252fa383ae8a0abb3fd0e1472a73b67c8b36c1b2534a231f627bba` |
 | `APH/scripts_riesgo_agudo/v3/exposicion_horaria_v3.py` | `2eef68b329793316acabcd7e58ea9654038dc7ac3ccfe13b4031db7608a99b29` |

@@ -61,16 +61,17 @@ Lecturas propias (FIJ-n), para el addendum de M1:
   a·exp(b·t/(t + c)) con las mismas constantes en e_s y en e, t2m y d2m en K menos una constante, y
   ``arctan2(el_u10, el_v10)``). Si cambia la forma, falla en vez de adivinar.
 - FIJ-10. **Las huellas de v2 después de M0 (D51 y D54, decisiones del autor).** ``v2/correr_v2.py`` y
-  ``v2/config_v2.json`` cambiaron después de M0: la traducción del bloque «red ampliada» (AP ``889b972``) y su
-  ratificación (AP ``6c15981``). Por MC-09 (R21, anclado, exige la red ampliada en π^mon y en M6), D51 manda fijar las
-  posteriores: ``SHA_CORRER_V2`` (1423ef3f…, AP ``889b972``) y ``SHA_CONFIG_V2`` (51df5063…, AP ``6c15981``; la
-  02d8c386… que cita D51 fue la de antes de la ratificación). Las de M0 (534e484b… y 232c75b3…) siguen citadas como
-  «estado de M0» en ``SHA_CORRER_V2_M0`` y ``SHA_CONFIG_V2_M0``: son las de ``m0/huellas_m0.json``, que no se toca, y
-  las de AP ``c7c47e8``. D54 extiende D51 a ``v2/reloj_sinca_v2.py`` (c1eb98c5…, AP ``889b972``, el commit en que
-  entró; en M0 no existía). ``HUELLAS_D51`` lleva, por archivo, la de M0, la vigente y el commit de cada una;
-  ``test_fijados`` las compara con ``git show <commit>:<ruta>``. Si alguno vuelve a cambiar antes de M3-4, rige la de
-  su último commit (nota de D51): se vuelve a fijar aquí, en ``test_particiones`` y en la tabla de §9.3 del diseño.
-  La propuesta P78 (conservar las de M0) queda descartada por D53.
+  ``v2/config_v2.json`` cambiaron después de M0 por la traducción de la red ampliada (AP ``889b972``) y su
+  ratificación (AP ``6c15981``). La configuración cambió además por la política operativa de espacio SINCA autorizada
+  el 2026-10-28 (AP ``8542e61``; autoridad en ``APH/auditoria/20261028/sinca_espacio/DECISION_ESPACIO.md``).
+  Por MC-09 y D51 se fijan las vigentes: ``SHA_CORRER_V2`` (1423ef3f…, AP ``889b972``) y ``SHA_CONFIG_V2``
+  (1bcb3ff4…, AP ``8542e61``). La configuración de la ratificación, 51df5063…, se conserva como historia en
+  AP ``6c15981``; 02d8c386… fue la de antes de ratificar. Las de M0 (534e484b… y 232c75b3…) siguen citadas en
+  ``SHA_CORRER_V2_M0`` y ``SHA_CONFIG_V2_M0``: son las de ``m0/huellas_m0.json``, que no se toca, y de AP ``c7c47e8``.
+  D54 extiende D51 a ``v2/reloj_sinca_v2.py`` (c1eb98c5…, AP ``889b972``; en M0 no existía). ``HUELLAS_D51`` lleva,
+  por archivo, la de M0, la vigente y el commit de cada una; ``test_fijados`` las compara con git. Si vuelven a
+  cambiar antes de M3-4, rige la de su último commit (D51): se vuelve a fijar aquí, en ``test_particiones`` y en
+  §9.3 del diseño. No se cambia ningún parámetro de S6. P78 queda descartada por D53.
 - FIJ-11. **El píxel del reloj (MC-52, A27; ola 5).** ``cargar_elegir_pixel(ap, aph, huellas)`` entrega
   ``reloj_dmc.extraccion.elegir_pixel`` (el mismo objeto del módulo, no un envoltorio) en un ``PixelReloj``, junto con
   ``EleccionPixel``, los umbrales del reloj con que se llama (``PixelReloj.elegir`` los pone) y el radio (``radio_km``).
@@ -160,7 +161,7 @@ SHA_PESOS_PY = "2f19fa53bc7893d5220fd19034277eb840d11c020d43a3f83769ad2f09b310ed
 SHA_PESOS_POBLACION = "b6cc4947f432ed5e26e6d68468c25816f680efec88ceffdce0613bff5cb63bf9"   # scripts_neuro/pesos_poblacion.py
 SHA_PREPARAR_M0 = "49503a3a88a9b9b331d8f51704708a7154bfc311a1f4a0eb6ca1f22d2f255d81"
 SHA_CORRER_V2 = "1423ef3f7a8d7bc35d8ee1802187de95129e46afe276241e29a0c7e486f6445d"        # vigente (D51; AP 889b972)
-SHA_CONFIG_V2 = "51df5063ed642c737d883a82c40382e7e211d288f5499151edce61bd692528d7"        # vigente (D51; AP 6c15981)
+SHA_CONFIG_V2 = "1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae"        # vigente (D51; AP 8542e61)
 SHA_RELOJ_SINCA_V2 = "c1eb98c52660dae3755c65a69fb2cc33e7e8d54736c269cc111bde35289795f7"   # D54; AP 889b972
 SHA_CORRER_V2_M0 = "534e484b66ed9575f36a2ec5fc75052a9a2544656cf3e4a80077b90f96c69b07"     # estado de M0 (FIJ-10)
 SHA_CONFIG_V2_M0 = "232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c"     # estado de M0 (FIJ-10)
@@ -212,7 +213,7 @@ COMMIT_C1_RELOJ_APH = "1f59e6e18599bb72a59bbcb1e2e65996c5045564"    # APH: C1 de
 COMMIT_M0_AP = "c7c47e85d35889269ac30ae3582d96fbe697b6f8"
 HUELLAS_D51: tuple[tuple[str, str | None, str, str, str], ...] = (
     (RUTA_CORRER_V2, SHA_CORRER_V2_M0, COMMIT_M0_AP, SHA_CORRER_V2, "889b97253ec65457fcd1e3136eac1a26edc0edeb"),
-    (RUTA_CONFIG_V2, SHA_CONFIG_V2_M0, COMMIT_M0_AP, SHA_CONFIG_V2, "6c159813c44a6f94267f695a7d81c55186944314"),
+    (RUTA_CONFIG_V2, SHA_CONFIG_V2_M0, COMMIT_M0_AP, SHA_CONFIG_V2, "8542e615eeb83f6250911e7cbcea2d4cfdb15c5d"),
     (RUTA_RELOJ_SINCA_V2, None, COMMIT_M0_AP, SHA_RELOJ_SINCA_V2, "889b97253ec65457fcd1e3136eac1a26edc0edeb"),
 )
 

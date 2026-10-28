@@ -31,10 +31,10 @@ from meteo_combinada.tipos import Particion  # noqa: E402
 _AP = _RAIZ.parent
 _APH = _AP.parent / "Air-Pollution-Health-Chile"
 _CONFIG_V2 = _AP / "scripts_modelo_1km/v2/config_v2.json"
-# D51 (FIJ-10 de fijados): la vigente, la de AP 6c15981 (después de la traducción del bloque «red ampliada» y su
-# ratificación), y la de M0 (m0/huellas_m0.json; AP c7c47e8), que se conserva citada como estado de M0. El bloque
-# protocolos.BLQ-75 es el mismo en las dos. test_fijados compara las dos con git y con fijados.
-_SHA_CONFIG_V2 = "51df5063ed642c737d883a82c40382e7e211d288f5499151edce61bd692528d7"
+# D51 (FIJ-10 de fijados): la vigente es la de AP 8542e61 (política operativa de espacio SINCA). La de M0
+# (m0/huellas_m0.json; AP c7c47e8) se conserva como estado de M0; la de la ratificación está en AP 6c15981.
+# protocolos.BLQ-75 no cambió. test_fijados compara la vigente y la de M0 con git y con fijados.
+_SHA_CONFIG_V2 = "1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae"
 _SHA_CONFIG_V2_M0 = "232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c"
 
 # ---------------------------------------------------------------------------------------------------------------

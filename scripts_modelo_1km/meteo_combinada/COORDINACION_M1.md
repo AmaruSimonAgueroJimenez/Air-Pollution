@@ -3519,3 +3519,19 @@ Con D63 no queda ninguna pregunta abierta de este documento.
 
 Con D64 no queda ninguna pregunta abierta de este documento. El costo y el recorte definitivo siguen pendientes de la
 batería de sellado autorizada para una noche con el equipo encendido (D57).
+
+## Refijación D51 tras el cambio operativo de espacio SINCA (2026-10-28)
+
+El autor autorizó reemplazar el mínimo rígido de 100 GiB del preparador por un presupuesto dinámico con margen, sin
+borrar fuentes; consta en `APH/auditoria/20261028/sinca_espacio/DECISION_ESPACIO.md` (99e2970f…). El original sellado no
+cambió. La variante y sus guardas quedaron confirmadas en AP `8542e61`, con revisión independiente y pruebas sintéticas.
+
+El cambio de referencias del derivado modifica `v2/config_v2.json`: la vigente pasa de 51df5063… (AP `6c15981`) a
+1bcb3ff4… (AP `8542e61`). Por D51 se refija aquí antes de la batería de sellado, en `fijados.SHA_CONFIG_V2`, el commit
+correspondiente de `HUELLAS_D51`, `test_particiones` y §9.3 del diseño. `huellas_m0.json` y las huellas históricas de M0
+no se tocan; tampoco cambia `correr_v2.py`, la partición BLQ-75 ni ningún parámetro o dato de S6.
+
+Validación de esta refijación: las pruebas de `test_fijados`, `test_particiones`, el anexo de firmas y la privacidad del
+paquete. La suite completa de 917 pruebas registrada para AP `b979586` sigue siendo la del cierre previo; no se afirma
+que se haya repetido después de esta actualización. La batería nocturna de sellado deberá usar el commit posterior a
+esta refijación y comprobar todas sus huellas; el costo y el addendum final siguen pendientes.
