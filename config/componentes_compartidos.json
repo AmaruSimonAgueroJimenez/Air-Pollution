@@ -95,12 +95,15 @@
         "scripts_pipeline/descargar_omi.py": "bd8becd70b905cbc0398c9743e7dad9292a12704f3668be32c38ab9689d73ce0",
         "scripts_pipeline/descargar_omi_l2.py": "86a15f517a79b1f020e86fd562bec182edefbcd52fd8961a22e03c6ae4d2452d",
         "scripts_pipeline/descargar_sinca.py": "8b7831aa7ee02c348b97a31f87f2f696041f66b984abe544e78d977b41f7f704",
+        "scripts_pipeline/descargar_sinca_ampliacion.py": "d77247232ed4857941d8a4616193d805ed612af20a816949b44b6b1c9cb63c62",
+        "scripts_pipeline/descargar_sinca_meteorologia.py": "0942c4d071cefffb95da76d2b010c981ef126858ea7b3c028ef3c7c23a51b145",
         "scripts_pipeline/descargar_snifa.py": "0f7c296d81f7678db6fa9e7096f0f81d4d3a0aa0be4e0413c2e2ee482b146eec",
         "scripts_pipeline/descargar_topografia_nasadem.py": "6bfaa5b0da6ba5db9b6693af23e545f15d1867541d9852931740f116e663f2fa",
         "scripts_pipeline/descargar_tropomi.py": "1ce98047b03990a7485a9988ce5993b0a9e4a5eef0b35834684a52c6811fbeae",
         "scripts_pipeline/descargar_tropomi_gases.py": "62b2945bca5120ec701d5e79abca9af866519d94aceb3895e495a811cbdf13c3",
         "scripts_pipeline/ejecutar_descargas.sh": "46965d3e8a8a2753799be1bfc6806615b2b13dfc558f4b93397ff375fac7925a",
         "scripts_pipeline/ejecutar_snifa.sh": "81f4d76b617f035222fe8da15ec09b0cf23305adde3512450d8e6d2517aabdae",
+        "scripts_pipeline/geometria_sinca_ampliacion.py": "c1153b6396e965fa3f52697121fb2edb7f39241517e881daec94a3570532c76b",
         "scripts_pipeline/lanzar_descargas.sh": "749d365262d3e2c222a283472d369096a07da20fa2dfb74e120ef86d528e0983",
         "scripts_pipeline/lanzar_meteo_al_conectar.py": "d9ee20b7076c9c91aebd2369834415b3940bdfc2cfaf2fe42117fdb38541e360",
         "scripts_pipeline/normalizar_reanalisis_chile.py": "fe09a624a18483d270e416a45101327cd0764ccecef9f30458c938190e34d5d9",
@@ -109,6 +112,7 @@
         "scripts_pipeline/preparar_era5land_modelado.py": "2aabcfc96ffe6e0821480379434c9abea5c24590eb0b80058a4371c92c19bc78",
         "scripts_pipeline/preparar_merra2_modelado.py": "9ffaf7b017016c302e8e924f904808e63909c800bb6057812b4449bf6cc7aaac",
         "scripts_pipeline/preparar_sinca_modelado.py": "95f1ecd3c9071f3877e858e0b822b4e525b00b49ab4aced8f0490a71d0a65401",
+        "scripts_pipeline/preparar_sinca_modelado_red2.py": "b1d134da9e447124f6c643c36346feb2ae4fb93a1db5a65fea17b106ff2b470a",
         "scripts_pipeline/preparar_snifa_modelado.py": "f7d478a831e68719beb162cdb310edf21595ed8225c783aa5d526191b488fe72",
         "scripts_pipeline/requirements-modelado.txt": "e481361a9e25f8a8205a58ba20d346be5631e18499cc876daf4d4564106046e5",
         "scripts_pipeline/requirements-snifa.lock.txt": "703e784a64f7f5152c7897577c76e2b0a63bd3b844c991f0f9589ceef3c5e714",
@@ -121,16 +125,20 @@
         "scripts_pipeline/tests/test_descargar_maiac_aod.py": "c08730dcb594e741da406b032f7ac0fe926e3f89d1db1a6e45c5c95ad65ea215",
         "scripts_pipeline/tests/test_descargar_modis_aod.py": "22471b98dc9e5966719e3fee2c77096d554c207c4effb8b449d71c46b8b0a3e0",
         "scripts_pipeline/tests/test_descargar_nightlights.py": "713287cd2fae113f32233ee044bdda5b4a1745adb5884f94a77bd30b03bb4337",
+        "scripts_pipeline/tests/test_descargar_sinca_ampliacion.py": "9b69e038718baf33ff73468559db97887b36a4ab50950b276d7a4c9d2178b99b",
+        "scripts_pipeline/tests/test_descargar_sinca_meteorologia.py": "d1ec53754c9debf20fc4569903e9b7850fed9b68fa4d330c18afa7ff21e4850a",
         "scripts_pipeline/tests/test_descargar_snifa.py": "4abcdc623cf8b636a49a0f20264818ebd9cc2a283451c116fddfe15af16fd854",
         "scripts_pipeline/tests/test_descargar_tropomi.py": "6f1a2ed49172ee853e4e0a31cd53354b05c51ce1a2137e3974386f812a34bf91",
         "scripts_pipeline/tests/test_descargar_tropomi_gases.py": "c924e9ce1790b7e7b06dc71234db770df4998de0d5518c827c78efbd5327d27b",
         "scripts_pipeline/tests/test_era5land_publicacion_segura.py": "1cab88cf4a7a787dc7dc7488583b8c90ae384ddd209856104c75b6bd7afb2df8",
+        "scripts_pipeline/tests/test_geometria_sinca_ampliacion.py": "5e4fc914f090bc32e20fe9d0b384bea135e28da366e893245ec0017e5988e904",
         "scripts_pipeline/tests/test_meteo_chile_horaria.py": "3e5055712c1dbc5ba300372f56b6da9f1acf89bddd52e3665491a3bc52895d1b",
         "scripts_pipeline/tests/test_meteo_guard.py": "41a75ac89e5c2d0d5ac76bb0aa9d0ddab9241996fe5e4b8986e85a4527aebafd",
         "scripts_pipeline/tests/test_preparar_datos_modelado.py": "5afb38965c3efd1c2233aa15f714d95b386a0b0be54b4c9259364b5222de1771",
         "scripts_pipeline/tests/test_preparar_era5land_modelado.py": "a28df34fa5ea39a6fbc5cea9d19e8d7b4dec0d405227e4d1407a5aaa582048fe",
         "scripts_pipeline/tests/test_preparar_merra2_modelado.py": "a23652c43d29a0bd3f4de31361f0652cb9075d76f42c67093fcbac86414e09f9",
         "scripts_pipeline/tests/test_preparar_sinca_modelado.py": "6b6eabe9ea5f98237423d57192e9659336c9bd5d280da026d59e796080b5e233",
+        "scripts_pipeline/tests/test_preparar_sinca_modelado_red2.py": "9f3fc6d37058fefd50f52028752c498a4cd43fa45ea85f66d3308738a3acb049",
         "scripts_pipeline/tests/test_preparar_snifa.py": "ebf7a56a417cf8631360e2e54fe88932e45baaa9c4bb8fd2622311ab1502dc73",
         "scripts_pipeline/tests/test_producciones_modis.py": "b3b289123d2135cc6bca4599f0012efae853c1932138d33b0b685b8466226ee6",
         "scripts_pipeline/tests/test_satellite_streaming_retention.py": "9438db7be448f477922bbba1470cedec9e84ea27b5e2bcc25bbd1b44e8f1798c",
@@ -208,6 +216,67 @@
         "scripts_modelo_1km/experimento_interpolacion.sh": "9714d202b198a95b83c2a2b7966d2b591bd6b0fca27ae38e32e83545a0cfa639",
         "scripts_modelo_1km/lanzar_corrida_completa.sh": "8ffb163a455d02ce9626c2e71d9f472795ee2918e6e313870641e7bdaee40918",
         "scripts_modelo_1km/lanzar_produccion_serie.sh": "5ec241c20b5d8020b25690856ba6b538aeb54bd63d01eca1d85fb0385357a7fe",
+        "scripts_modelo_1km/meteo_combinada/COORDINACION_M1.md": "95f14f065e5c1eeedd500b23b5b1c20e667cdcea9134a95efd95898e64fcaa11",
+        "scripts_modelo_1km/meteo_combinada/DISENO_IMPLEMENTACION_M1.md": "c1034011307f813bd487bda14a4b8fdd3f44a3c7abd2a07c773d01dfbeaf9a2b",
+        "scripts_modelo_1km/meteo_combinada/__init__.py": "3418219a487520b716ca6744350a516bb268c95834d28af3f24e6971f73d6509",
+        "scripts_modelo_1km/meteo_combinada/addendum.py": "1713ccc126a1ba5c101fac3de281aaec524f2a72036ee105bdc4cd7233514d11",
+        "scripts_modelo_1km/meteo_combinada/ambiental.py": "1e6cd4f8547d89516a514199e1cdc966c1120ef6b436b3cdf54c64c4f802fa1e",
+        "scripts_modelo_1km/meteo_combinada/candidatos.py": "7fbc085e6f6523bbfe4aed2ddb92df6857c3b640b0e061c43559fa8b895b87b5",
+        "scripts_modelo_1km/meteo_combinada/ceguera.py": "a8fe8a2329cbba03a39c89e9ccd0d31a4b8a56c16b12ee071931460d8ef6829f",
+        "scripts_modelo_1km/meteo_combinada/constantes.py": "8f9a2889063b808cf2418a258154f438f53c01ede5236983b3651b6951c47e36",
+        "scripts_modelo_1km/meteo_combinada/costo.py": "c18c27a857a63f564dc8bb6eb4d30d426b954fa29ecf143a3a2b6674826d45c4",
+        "scripts_modelo_1km/meteo_combinada/decision.py": "d2d1891f0a2676af0bed79a7151a3e74770e830e1d0e94d3d46fde3667d9074e",
+        "scripts_modelo_1km/meteo_combinada/entorno.py": "1dab8f64462749be132d4794a529c6575a653277fc45387ed788fe9108ae736a",
+        "scripts_modelo_1km/meteo_combinada/estaticas_nasadem.py": "3a9e90418e5605e927042d80f6f8ab614bf4f29c981e66679f00ddd447c049cd",
+        "scripts_modelo_1km/meteo_combinada/fijados.py": "c8e36cdb2e2adb9e5d4ab6689d3925cf92ab3a8fb20fc23ba4d880948bab60ae",
+        "scripts_modelo_1km/meteo_combinada/fondo_era5l.py": "d305df752b955bd8344a26457f1e17ea9dce25abe5e343eb9011b1db00b8d2c2",
+        "scripts_modelo_1km/meteo_combinada/homogeneidad.py": "f910b76e624c6472587b1c1f90842d4bd78ce3ae7e7045b30a3efcafe9d5155a",
+        "scripts_modelo_1km/meteo_combinada/meteo_combinada.py": "8b6d43b010fd3ad9240cce0b8b477237728e8f0dfd70e686ef52fc8d817ea872",
+        "scripts_modelo_1km/meteo_combinada/numerico.py": "a0d0197e4fa6e140c3c57164214bc91f05c5320a1700e0025664e6f69557bbbf",
+        "scripts_modelo_1km/meteo_combinada/orquestacion.py": "253eb120b49293da4d14fc1105382074ae5a31087888d271245c8b5ee1f67c78",
+        "scripts_modelo_1km/meteo_combinada/particiones.py": "047e6999803fe70ff959a7f471a667b96736ecad649f98db8570f4927e2146a1",
+        "scripts_modelo_1km/meteo_combinada/politicas.py": "0e73444d6e4447a0d19427cc83f3242dffbdfb883b907b7d53fc9be46f3c5414",
+        "scripts_modelo_1km/meteo_combinada/producto.py": "afa56ac51350b0dea290bdf1f509abefcae9365711dbb0516817918db700991d",
+        "scripts_modelo_1km/meteo_combinada/qc_dmc_meteo.py": "0022d145ce86aaf185bfd1cfc56ff9202b3d4f42b46b8751e67206c22e11bd66",
+        "scripts_modelo_1km/meteo_combinada/salidas.py": "953dd6e5c22233275d64fbc4a67d3a246f1ad2a6c9851283624fce8a0e3935fb",
+        "scripts_modelo_1km/meteo_combinada/salud.py": "888a97902ce743b445706a6a77af330aef5ae6b8232c8cf2d5619c212f499f95",
+        "scripts_modelo_1km/meteo_combinada/sinca_meteo.py": "8201fbbaa98ea1a9f5625bfd0ca3ddfd0643f9ed69380cbfe57e7bff1dab4563",
+        "scripts_modelo_1km/meteo_combinada/sintetico.py": "f87148e775c52243a288c2ca045806f4b567ecbd0ebf4e868dad68849fd3fe0e",
+        "scripts_modelo_1km/meteo_combinada/tendencias.py": "1ca7fa879677c4cb061636266e52a402936d1e93e514c89e77670a4d342462c0",
+        "scripts_modelo_1km/meteo_combinada/tests/__init__.py": "60fd83d07f5b8866f90049a4f63d530266580c8e72ccd04bfaedf305f54e4e3c",
+        "scripts_modelo_1km/meteo_combinada/tests/test_addendum.py": "c2cdf8317b9cfbc924342c94f4f27ddb9e49ab2e3cda568dd6b03af8d04108e1",
+        "scripts_modelo_1km/meteo_combinada/tests/test_ambiental.py": "6ba2a45c8a3b348099957403a662169c5db52f935141a087e70a5ab5380f3c99",
+        "scripts_modelo_1km/meteo_combinada/tests/test_candidatos.py": "4437f5b3ad7286c4f7076b324dd0b34bae702992c895f51b89a1200e36eda845",
+        "scripts_modelo_1km/meteo_combinada/tests/test_ceguera.py": "5ba039bbbe5d41bc512185aba2883495a8754654d5a69d6f23e084170a43b745",
+        "scripts_modelo_1km/meteo_combinada/tests/test_constantes.py": "aaf70eef9e76dfd85549f78bd1c3f60ff8e7e00b45aeedefd88ccc750d0d6216",
+        "scripts_modelo_1km/meteo_combinada/tests/test_costo.py": "6fe99d1d87b60c0e23d5724cf10690f8dfcd429d3a772c79593e43b72d7607c3",
+        "scripts_modelo_1km/meteo_combinada/tests/test_decision.py": "2cf505d814e31e96131c04327aeb8750e18dbd840a7ad9f80c6e847899e552fc",
+        "scripts_modelo_1km/meteo_combinada/tests/test_entorno.py": "175fac62ff3c0dbb30df2161265f879bdf69b8039617dcf58fd43580b23e8b93",
+        "scripts_modelo_1km/meteo_combinada/tests/test_estaticas_nasadem.py": "f1c196eb632e53bc5a4fc971c933a0566f59efdaf057519b4d0ece7c16a6a11a",
+        "scripts_modelo_1km/meteo_combinada/tests/test_fijados.py": "155859b37275bcbde0ff404c37dd90283ff667add93eed5776054e68fb446f21",
+        "scripts_modelo_1km/meteo_combinada/tests/test_fondo_era5l.py": "9680d8a1167e5d553c35cb405dc47c59e1f8caf3f6bfb1097edc9ef682b58a35",
+        "scripts_modelo_1km/meteo_combinada/tests/test_homogeneidad.py": "b7dd43701e1e801d414e3a31eefa8ca9fb6969617abde2b8d4d192d845ffd235",
+        "scripts_modelo_1km/meteo_combinada/tests/test_integracion.py": "79f33798a81167a6386362a61330dfda795e58e6bc34e73db81aae57bb905ec8",
+        "scripts_modelo_1km/meteo_combinada/tests/test_meteo_combinada.py": "fb0aaca2c3ec6664edf0102ba1e8b450544eb1eab5d17d7f822ec71057cbb7f6",
+        "scripts_modelo_1km/meteo_combinada/tests/test_numerico.py": "0252c745402b210bf6142b5530a7def153c01cace738337854a5a7c029c364d4",
+        "scripts_modelo_1km/meteo_combinada/tests/test_orquestacion.py": "950764fca444a386fa878864fda0bdf5c9958dd89b879200ba7600903ce6a949",
+        "scripts_modelo_1km/meteo_combinada/tests/test_particiones.py": "1e716a2cebea93445ea33c468c52f38a7d5d81d3bf037d7dab36f5e4225d9eb5",
+        "scripts_modelo_1km/meteo_combinada/tests/test_politicas.py": "d88166a64289bab75ec080a41743a71878dfda0a0ea27b4ec80adde76e99c0c6",
+        "scripts_modelo_1km/meteo_combinada/tests/test_producto.py": "9de05939552aff6f0277740b854905ecbbd4368a4c0032b691bfd2aa4d359206",
+        "scripts_modelo_1km/meteo_combinada/tests/test_qc_dmc_meteo.py": "26eab858c568941514f5fab8ca3483b1bf294f3a7bd32a73f546e1430bc1dfa1",
+        "scripts_modelo_1km/meteo_combinada/tests/test_salidas.py": "71eb2751c87abe98c7560ca8d8493ec31398bd7b2b5af27ef4d21b2ed80ac3f2",
+        "scripts_modelo_1km/meteo_combinada/tests/test_salud.py": "e12eb1353a2bc742512834ec0805b3bf5e671e28caa2ec1d7ef2c1359e46eee2",
+        "scripts_modelo_1km/meteo_combinada/tests/test_sinca_meteo.py": "74bc9c8f6458f79baf9a48e3d491c2767b7d395276cdc4d77beb1f297181d797",
+        "scripts_modelo_1km/meteo_combinada/tests/test_sintetico.py": "b23c42ba0dca5e09ff757f3dad03fda0a2a9b431cb5c62d09dc5e6cd0287989f",
+        "scripts_modelo_1km/meteo_combinada/tests/test_tendencias.py": "9a6b920f22a67dc2765c24d9269c6a0a61d7e6d8e0c2ff5505b276d6e4629788",
+        "scripts_modelo_1km/meteo_combinada/tests/test_tipos.py": "fece006ee18d32bd6a9aa72547028c41168b5d116c08b784459f99585a34ba6d",
+        "scripts_modelo_1km/meteo_combinada/tests/test_umbrales.py": "6fa54b8781f17dee777f2a03b16817d5e1e13d2ccc134b1f8df4075ed9f486ef",
+        "scripts_modelo_1km/meteo_combinada/tests/test_validacion.py": "2474c59f2dc20ccebfa5e2cb244044ceee63fffcf1557add9866ecf37d28c328",
+        "scripts_modelo_1km/meteo_combinada/tests/test_verificar_meteo_combinada.py": "50b477ed6d705c7f6047d6685b4d958fe3d9c45114a60106b216c2ca51fe845d",
+        "scripts_modelo_1km/meteo_combinada/tipos.py": "31fc3a1ad00ccdc5219ee44796e77be44e0cc3f813901a03b69d6bf964743dab",
+        "scripts_modelo_1km/meteo_combinada/umbrales.py": "9131ae0d00002ccaae08e59fc13257d22c589ce5d3f3d9072152af6148e13a7e",
+        "scripts_modelo_1km/meteo_combinada/validacion.py": "86b0e2b89344dcd38fa28a100257f03f404a8f8e4b5eaa740fa3979d02dbc70c",
+        "scripts_modelo_1km/meteo_combinada/verificar_meteo_combinada.py": "a044cf2972620554d0f10f63cb257d3be1a0de7a9a07f7ebd0b5bdeeac8d8f13",
         "scripts_modelo_1km/parche_produccion_interp.py": "4bc8f72b6cbe6c7a60c5c5489c4834a66a1316eafd84627205f326ce4c5b6ca3",
         "scripts_modelo_1km/producir_serie.py": "360e406d4b5e3ca00aa94c554ac92580dc434e1c91839d1f9c397eea5e6dfce7",
         "scripts_modelo_1km/promover_no2.py": "47e4330e8fbac87177262b1955375a797e694b23106bf7a095d00a2a39304521",
@@ -215,42 +284,62 @@
         "scripts_modelo_1km/refrescar_retransformacion.sh": "2ca84413a3ddec74df2f88d6d0646176e015effed2a6a253413e842850867f13",
         "scripts_modelo_1km/requirements.txt": "a2d7315331413cbb7924dbe0848b12b66fa8852844e0029b149c61794eabb78a",
         "scripts_modelo_1km/tests/test_modelo_1km.py": "31b3f76fb3b28c51b18e9229ea7d433a0d2a58c219aefee485578c4736ef4cd6",
-        "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md": "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0",
-        "scripts_modelo_1km/v2/_rutas_v2.py": "eb8a92d233d6f9f07fefd02ed7b25950d5f768771d10e356cb545ccfa86e3103",
+        "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md": "5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670",
+        "scripts_modelo_1km/v2/_rutas_v2.py": "b18e66eff345185d7938886c3e5354f25df0445853bb97353ccd5f2caec17517",
         "scripts_modelo_1km/v2/_traza_v2.py": "7f4e34ab31844d50a4083d035c3d8882323aa873bd993eeab04eb3043ae89c6d",
         "scripts_modelo_1km/v2/bootstrap_v2.py": "699c262304593d7cadef0726c6a0e4f168e333ac7741b1175e4188d549f6ad5b",
-        "scripts_modelo_1km/v2/calidad_v2.py": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
-        "scripts_modelo_1km/v2/config_v2.json": "232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c",
-        "scripts_modelo_1km/v2/correr_v2.py": "534e484b66ed9575f36a2ec5fc75052a9a2544656cf3e4a80077b90f96c69b07",
+        "scripts_modelo_1km/v2/calidad_v2.py": "87bc4818dfba96ff544790c64274e86e019ab6a5197e68e670807fe9d33dd0e4",
+        "scripts_modelo_1km/v2/config_v2.json": "1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae",
+        "scripts_modelo_1km/v2/contraste_unidades_v2.py": "e2e9b6d37405ce331301c44cb5a569123dd3982aa0031e122ddeef84d3b1401e",
+        "scripts_modelo_1km/v2/correr_v2.py": "1423ef3f7a8d7bc35d8ee1802187de95129e46afe276241e29a0c7e486f6445d",
         "scripts_modelo_1km/v2/decision_v2.py": "830b898bc1545ce607fa84cfac86a5b19056b9001b0c95fe0790d3fca211d3f6",
-        "scripts_modelo_1km/v2/factibilidad_v2.py": "2229bd95eed76c37ccb55d3d853280785dd2752131eb624aae9e5a67d00a764f",
+        "scripts_modelo_1km/v2/derivado_red2_v2.py": "6001c12fdf7d5332576513e0b59422a5e65cc61530fc572b3799f6ffa38e89b7",
+        "scripts_modelo_1km/v2/duplicados_v2.py": "fd53bad7f7dc02822cce1ae7c1bccfc352d39f093018ca7e6772a73a172fb524",
+        "scripts_modelo_1km/v2/factibilidad_v2.py": "a428cf1aa19ef70562715c3d208e3a7e76440cddeff9e29a33592d1d37b82f63",
         "scripts_modelo_1km/v2/metricas_v2.py": "93cbb474da22a64d22138ee72502989b88374fa980e7e6d6008e1075c16b1591",
         "scripts_modelo_1km/v2/motores_v2.py": "389f23f210bfe2dba55dca524b093f620adf6267309c42ceac2cb93ab3e35c57",
+        "scripts_modelo_1km/v2/panel_red2_v2.py": "18fa2b9dfc5469e95e8137139032f53597ca0586c25b9fc446eec86f46f68428",
         "scripts_modelo_1km/v2/perdidas_v2.py": "c8caaf6b426447bcb0e86197a0935794746cb92503eed6531225321538fff471",
-        "scripts_modelo_1km/v2/piloto_v2.py": "60cfaba9e217b200db19fc68bb4d4cfe27e4d8f9ae5d951e88b6072a608d5336",
-        "scripts_modelo_1km/v2/pliegues_v2.py": "05cac03f33492a102deea2abb6f76f3f2dfa3b2430350a3f25a93e049ca29615",
+        "scripts_modelo_1km/v2/piloto_v2.py": "e7a90fb88e3743dba848978d62b1fff6f39b7a83f8f6340a74484be49901ad12",
+        "scripts_modelo_1km/v2/pliegues_red2_v2.py": "aeebeac945fa1f2da92f53a291761f9c34fda0df813628fe2246319c262144d7",
+        "scripts_modelo_1km/v2/pliegues_v2.py": "26207bf4542c987a751493ff99e4590c524a204cd5f88d3e3ed3674150a535e3",
+        "scripts_modelo_1km/v2/propuesta_red_ampliada/CAMBIOS_AL_CODIGO_SELLADO.md": "84362a574ca9cbb688106d46df94124f4767f4918d36a44d4b98f121403147e8",
+        "scripts_modelo_1km/v2/propuesta_red_ampliada/DISENO_AMBIENTAL_V2.propuesto.md": "5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670",
+        "scripts_modelo_1km/v2/propuesta_red_ampliada/PROPUESTA.md": "ce4999e8d9559cf2102dfcce68e1a405931e881762aaa8e24039cce30f5a0aab",
+        "scripts_modelo_1km/v2/propuesta_red_ampliada/config_v2.propuesto.json": "1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae",
+        "scripts_modelo_1km/v2/red_ampliada_v2.py": "b34d78cf810d2597d0f6ba6b1eb1080fe928884a7db5e1a9ab21f8bcfeff10a4",
+        "scripts_modelo_1km/v2/reloj_sinca_v2.py": "c1eb98c52660dae3755c65a69fb2cc33e7e8d54736c269cc111bde35289795f7",
         "scripts_modelo_1km/v2/retransformacion_v2.py": "ff92d87b370fdf8386a17a9c171fa42bf70f6b549d9cd58612da49bb471bd1f9",
-        "scripts_modelo_1km/v2/tests/_sintetico_v2.py": "c9cd550f3fb9500c69accabab916ecad26dc1a41b5301c66575f2e9b96f1631e",
+        "scripts_modelo_1km/v2/tests/_sintetico_v2.py": "10e9faa5e5dec08101e326ca2064e7d0bf689feba42f23a047813de4e904c7dc",
         "scripts_modelo_1km/v2/tests/test_bootstrap_v2.py": "1384c7d526ccc313a0e06812169b074b4072a4519e8af75d0ebe328d174e18d5",
-        "scripts_modelo_1km/v2/tests/test_calidad_artefacto_v2.py": "f3268c6e8f7f787f248f742799297e0510993e37ec40c23c56b20cf0298e4b81",
-        "scripts_modelo_1km/v2/tests/test_calidad_v2.py": "fe1f7bd11cd752e52f11506654749cda6c643c608df37a42f818f54c6afaf020",
-        "scripts_modelo_1km/v2/tests/test_config_v2.py": "c7f4b4f64cd19c0e4a52620567f39353a51a794de6c46237add858d8b3523066",
+        "scripts_modelo_1km/v2/tests/test_calidad_artefacto_v2.py": "564e46d60f45c213938b1817053833ddecd2a06fa2cb84e9b17a892e179a559b",
+        "scripts_modelo_1km/v2/tests/test_calidad_v2.py": "b771a2f5d6e09b95c62fdc518679706cd1c04d48a70e9ae22959e164203f0a50",
+        "scripts_modelo_1km/v2/tests/test_config_v2.py": "186d590ba0d2269f492a2b8d55ba342597503075bc11766bb2f38ba69d49084e",
         "scripts_modelo_1km/v2/tests/test_congelados_v2.py": "4f6e4ae6c180310b3dd40606d5578280bdb2ede63322b954bfb8691dc1f4d187",
-        "scripts_modelo_1km/v2/tests/test_correr_v2.py": "59bbe7997f17fab70685c48fa73d6d7715afea8be1e6816a4b56b5eb2f8112a7",
-        "scripts_modelo_1km/v2/tests/test_decision_v2.py": "2be67aec4e1ef43ce8d07ae7ae5e4d84f766267c00cf4097f1ed44657946b370",
-        "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py": "4fcd0613edb0e70b85958661841f7e6df89fb34dd753a7d00043869d5f34be0b",
-        "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py": "267b9707591dbdfb7047d12e2426f0488677972ff2a662acf794bb6a9a2bf2ce",
-        "scripts_modelo_1km/v2/tests/test_metricas_v2.py": "2ae7a194513bc280fcc5ccef5a10ec98b2b729e754da02e827325fa29e398b26",
+        "scripts_modelo_1km/v2/tests/test_contraste_unidades_v2.py": "ba3ff6695f289cb30f5fd8e523e35b4d6fdb1077bf73a19f7866df36295ca989",
+        "scripts_modelo_1km/v2/tests/test_correr_v2.py": "b066ba45f815ffb96557fe7bd0b2af14ef27180095bb22f81b6acbf11146d984",
+        "scripts_modelo_1km/v2/tests/test_decision_v2.py": "c6b413c7108a1bb80a2065586a3d1ed668727b6928275b24c2d4c02340956d6a",
+        "scripts_modelo_1km/v2/tests/test_derivado_red2_v2.py": "62e4fb341c870f6657968c05518dfd061ffbe6bccc50d384f7d363b172741b33",
+        "scripts_modelo_1km/v2/tests/test_duplicados_v2.py": "b3dc6730c170129ee2e1e33f10c71ea9aec3e6b055a28d836cb7d106d438fad4",
+        "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py": "9ab3d8410af87be36cfe6783513e68274297f8d1806cd1ee488cb7b73a08f98c",
+        "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py": "079aa5894108bdfc70bf8cb92ac58aa114c517a32d2b8ab29288a504a0fda325",
+        "scripts_modelo_1km/v2/tests/test_metricas_v2.py": "17ca2affac3f08bb23b4a04e4c5b5821725df85865dc79703f4e394616992015",
         "scripts_modelo_1km/v2/tests/test_motores_v2.py": "a14dfba3affa04fad2e3e86031d9d69ae5c106562ec9c0527439eb78b913d165",
+        "scripts_modelo_1km/v2/tests/test_panel_red2_v2.py": "7a33553757def94c8c90f53a446a5d858a3ef69d6d502d9c1edbdc44a18de718",
         "scripts_modelo_1km/v2/tests/test_perdidas_v2.py": "9bdc925418eae3fbc42974427a58dd08a5c6847d251c0e1423acb3bfb8fe1d79",
-        "scripts_modelo_1km/v2/tests/test_piloto_v2.py": "26f921ccebb275d22e9ec70c20ea50daeecbd3bf72a7dd543d6b798160c90fc8",
-        "scripts_modelo_1km/v2/tests/test_pliegues_v2.py": "21e1c1e338677948771e7358e08a1984a82b5e495ac0e68375d216d67d7b3711",
+        "scripts_modelo_1km/v2/tests/test_piloto_v2.py": "3b92a4ba91e343fb5be64b760552428d38757add48be037f0f717053047e3e21",
+        "scripts_modelo_1km/v2/tests/test_pliegues_red2_v2.py": "cdbf696f0ec5173a46fb4c83f8f0158388a4699f3a42224729dc34eef6b402ee",
+        "scripts_modelo_1km/v2/tests/test_pliegues_v2.py": "c703601345aeea193393167c04fd46e0157e76a67bc82af56f76c343da0d3a7b",
+        "scripts_modelo_1km/v2/tests/test_red_ampliada_v2.py": "b318fb78280d2f9ce05ff42429aa5ee2dafee0dedc7dc0f6847734dbe9292f30",
+        "scripts_modelo_1km/v2/tests/test_reloj_sinca_v2.py": "262ca86b9c0db58dad51cd79c48e471392cd8f4b601c3e7a63c9b5a50e73b00c",
         "scripts_modelo_1km/v2/tests/test_retransformacion_v2.py": "02c10f5a7b4f98b34888a702aa1ce9143fc8606e4c73545b0b4b460e159f90d0",
-        "scripts_modelo_1km/v2/tests/test_rutas_v2.py": "968b5b51bec1150f3888301cbbcf46956fe4d658c0dd75b9cf7adaafa4bdbf15",
+        "scripts_modelo_1km/v2/tests/test_rutas_v2.py": "5ed83039f5393a7ab102682f8f7632d61fa365301a5fd485f3e24d5b68e98159",
         "scripts_modelo_1km/v2/tests/test_traza_v2.py": "8ffcc7484a1eb4e430d42b6c9c7f3381fe4ad1205109401f40493f4cf992fd5e",
-        "scripts_modelo_1km/v2/tests/test_vecindario_v2.py": "b21d5315d060a97cb5b572bdeb6d5e57c460c48a58e9b9460477480b86e40d41",
-        "scripts_modelo_1km/v2/validar_vecindario_v2.py": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
-        "scripts_modelo_1km/v2/vecindario_v2.py": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181",
+        "scripts_modelo_1km/v2/tests/test_unidades_v2.py": "964c44c99ccea7e3b76e8eafb46adc0a6f33a096dda0fb9b14b68ca435f83b50",
+        "scripts_modelo_1km/v2/tests/test_vecindario_v2.py": "f3ee3b5d960e70eebe3ab340b576663b63890c001c5fcde64314c777a581edbc",
+        "scripts_modelo_1km/v2/unidades_v2.py": "5738943c623e3e2bf50b7b6abd7e67286fa1972dbd5543b09b04a5edcc8a354c",
+        "scripts_modelo_1km/v2/validar_vecindario_v2.py": "0046df3dd4d166f5c86f70be8b729f132c2ff368e16b613aefe73132795a475a",
+        "scripts_modelo_1km/v2/vecindario_v2.py": "08f0a5a3b8249ec5987b9416a145b2e04b426245d9b504d9c15fdcf1f9b0bb12",
         "scripts_modelo_1km/verificar_reloj_sinca.py": "a93a1eab928d032b1d83c0e32702f2f2b73fa6d9a0b228b47ef9abb3f632d446"
       }
     },
@@ -332,8 +421,8 @@
       "sha256": {
         "others_scripts/README.md": "62cce9c08feb2eadcd4c0a88399b897744ceeaaf27a51ce3dbdb8d9a104df1f2",
         "others_scripts/aligerar_html.py": "52fb339f973fb2b65b33545e74d94aa07c47bb8ef97ad7e15a38ea23b5aa6210",
-        "others_scripts/tests/test_verificar_componentes_compartidos.py": "3397dc9ecc79ceb0a6dc4d28662b7bac96626516006250384c9c34519a71409c",
-        "others_scripts/verificar_componentes_compartidos.py": "abf59f70943661ae8afbf4589b6f369f42bca3f84867ae82bda51216efce6d01"
+        "others_scripts/tests/test_verificar_componentes_compartidos.py": "e57cff5bcc9031c33fcf00c5344bc4a3b0cc1e76aefa9caefdd34cbd2cf89140",
+        "others_scripts/verificar_componentes_compartidos.py": "1e4359694aef5452e4144444e75c4b9ce27ea755d5e0a2a3cc9a96e91486bf0d"
       }
     },
     {
@@ -3698,6 +3787,1297 @@
       "raiz": "LOCAL/AirPollution/modelado_1km",
       "repo_que_corre": "Air-Pollution",
       "nota": "Informativo; el comprobador no lo verifica. Etiqueta vacía: la versión definitiva, sin sufijo en MODELO_1KM_ETIQUETA. Raíz: la de AIR_POLLUTION_MODELO_1KM_ROOT por omisión, bajo el alias LOCAL (la carpeta Asesorias_Data_local del usuario). Las corridas del modelo salen del canónico."
+    }
+  ],
+  "actualizaciones_acotadas": [
+    {
+      "base": {
+        "sha256": "54c2d65a69997d273a0f25b60572d097cd52683c769949ce6428b821e6e58dd3",
+        "canonico": {
+          "commit": "fa0e351e9865b3f219634dcca90941cb37582b13",
+          "ruta": "config/componentes_compartidos.json"
+        },
+        "espejo": {
+          "commit": "f7e2576038195baac96d4cc018efa66dcc276565",
+          "ruta": "config/componentes_compartidos.json"
+        }
+      },
+      "fecha_utc": "2026-10-29T14:20:55Z",
+      "actualizador": {
+        "script": "others_scripts/verificar_componentes_compartidos.py",
+        "sha256": "1e4359694aef5452e4144444e75c4b9ce27ea755d5e0a2a3cc9a96e91486bf0d"
+      },
+      "fuentes": {
+        "canonico": {
+          "repo": "Air-Pollution",
+          "commit": "b999a57c4bc689b068b179aaf07f3451f1dd8092"
+        },
+        "espejo": {
+          "repo": "Air-Pollution-Health-Chile",
+          "commit": "bf3f52857ef60d12a2d0c1b46a7eaa8a631b575d"
+        }
+      },
+      "seleccion": [
+        {
+          "ruta": "others_scripts/tests/test_verificar_componentes_compartidos.py",
+          "grupo": "utilitarios",
+          "sha256": "e57cff5bcc9031c33fcf00c5344bc4a3b0cc1e76aefa9caefdd34cbd2cf89140"
+        },
+        {
+          "ruta": "others_scripts/verificar_componentes_compartidos.py",
+          "grupo": "utilitarios",
+          "sha256": "1e4359694aef5452e4144444e75c4b9ce27ea755d5e0a2a3cc9a96e91486bf0d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/COORDINACION_M1.md",
+          "grupo": "modelo_1km",
+          "sha256": "95f14f065e5c1eeedd500b23b5b1c20e667cdcea9134a95efd95898e64fcaa11"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/DISENO_IMPLEMENTACION_M1.md",
+          "grupo": "modelo_1km",
+          "sha256": "c1034011307f813bd487bda14a4b8fdd3f44a3c7abd2a07c773d01dfbeaf9a2b"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/__init__.py",
+          "grupo": "modelo_1km",
+          "sha256": "3418219a487520b716ca6744350a516bb268c95834d28af3f24e6971f73d6509"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/addendum.py",
+          "grupo": "modelo_1km",
+          "sha256": "1713ccc126a1ba5c101fac3de281aaec524f2a72036ee105bdc4cd7233514d11"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/ambiental.py",
+          "grupo": "modelo_1km",
+          "sha256": "1e6cd4f8547d89516a514199e1cdc966c1120ef6b436b3cdf54c64c4f802fa1e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/candidatos.py",
+          "grupo": "modelo_1km",
+          "sha256": "7fbc085e6f6523bbfe4aed2ddb92df6857c3b640b0e061c43559fa8b895b87b5"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/ceguera.py",
+          "grupo": "modelo_1km",
+          "sha256": "a8fe8a2329cbba03a39c89e9ccd0d31a4b8a56c16b12ee071931460d8ef6829f"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/constantes.py",
+          "grupo": "modelo_1km",
+          "sha256": "8f9a2889063b808cf2418a258154f438f53c01ede5236983b3651b6951c47e36"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/costo.py",
+          "grupo": "modelo_1km",
+          "sha256": "c18c27a857a63f564dc8bb6eb4d30d426b954fa29ecf143a3a2b6674826d45c4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/decision.py",
+          "grupo": "modelo_1km",
+          "sha256": "d2d1891f0a2676af0bed79a7151a3e74770e830e1d0e94d3d46fde3667d9074e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/entorno.py",
+          "grupo": "modelo_1km",
+          "sha256": "1dab8f64462749be132d4794a529c6575a653277fc45387ed788fe9108ae736a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/estaticas_nasadem.py",
+          "grupo": "modelo_1km",
+          "sha256": "3a9e90418e5605e927042d80f6f8ab614bf4f29c981e66679f00ddd447c049cd"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/fijados.py",
+          "grupo": "modelo_1km",
+          "sha256": "c8e36cdb2e2adb9e5d4ab6689d3925cf92ab3a8fb20fc23ba4d880948bab60ae"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/fondo_era5l.py",
+          "grupo": "modelo_1km",
+          "sha256": "d305df752b955bd8344a26457f1e17ea9dce25abe5e343eb9011b1db00b8d2c2"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/homogeneidad.py",
+          "grupo": "modelo_1km",
+          "sha256": "f910b76e624c6472587b1c1f90842d4bd78ce3ae7e7045b30a3efcafe9d5155a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/meteo_combinada.py",
+          "grupo": "modelo_1km",
+          "sha256": "8b6d43b010fd3ad9240cce0b8b477237728e8f0dfd70e686ef52fc8d817ea872"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/numerico.py",
+          "grupo": "modelo_1km",
+          "sha256": "a0d0197e4fa6e140c3c57164214bc91f05c5320a1700e0025664e6f69557bbbf"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/orquestacion.py",
+          "grupo": "modelo_1km",
+          "sha256": "253eb120b49293da4d14fc1105382074ae5a31087888d271245c8b5ee1f67c78"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/particiones.py",
+          "grupo": "modelo_1km",
+          "sha256": "047e6999803fe70ff959a7f471a667b96736ecad649f98db8570f4927e2146a1"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/politicas.py",
+          "grupo": "modelo_1km",
+          "sha256": "0e73444d6e4447a0d19427cc83f3242dffbdfb883b907b7d53fc9be46f3c5414"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/producto.py",
+          "grupo": "modelo_1km",
+          "sha256": "afa56ac51350b0dea290bdf1f509abefcae9365711dbb0516817918db700991d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/qc_dmc_meteo.py",
+          "grupo": "modelo_1km",
+          "sha256": "0022d145ce86aaf185bfd1cfc56ff9202b3d4f42b46b8751e67206c22e11bd66"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/salidas.py",
+          "grupo": "modelo_1km",
+          "sha256": "953dd6e5c22233275d64fbc4a67d3a246f1ad2a6c9851283624fce8a0e3935fb"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/salud.py",
+          "grupo": "modelo_1km",
+          "sha256": "888a97902ce743b445706a6a77af330aef5ae6b8232c8cf2d5619c212f499f95"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/sinca_meteo.py",
+          "grupo": "modelo_1km",
+          "sha256": "8201fbbaa98ea1a9f5625bfd0ca3ddfd0643f9ed69380cbfe57e7bff1dab4563"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/sintetico.py",
+          "grupo": "modelo_1km",
+          "sha256": "f87148e775c52243a288c2ca045806f4b567ecbd0ebf4e868dad68849fd3fe0e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tendencias.py",
+          "grupo": "modelo_1km",
+          "sha256": "1ca7fa879677c4cb061636266e52a402936d1e93e514c89e77670a4d342462c0"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/__init__.py",
+          "grupo": "modelo_1km",
+          "sha256": "60fd83d07f5b8866f90049a4f63d530266580c8e72ccd04bfaedf305f54e4e3c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_addendum.py",
+          "grupo": "modelo_1km",
+          "sha256": "c2cdf8317b9cfbc924342c94f4f27ddb9e49ab2e3cda568dd6b03af8d04108e1"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_ambiental.py",
+          "grupo": "modelo_1km",
+          "sha256": "6ba2a45c8a3b348099957403a662169c5db52f935141a087e70a5ab5380f3c99"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_candidatos.py",
+          "grupo": "modelo_1km",
+          "sha256": "4437f5b3ad7286c4f7076b324dd0b34bae702992c895f51b89a1200e36eda845"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_ceguera.py",
+          "grupo": "modelo_1km",
+          "sha256": "5ba039bbbe5d41bc512185aba2883495a8754654d5a69d6f23e084170a43b745"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_constantes.py",
+          "grupo": "modelo_1km",
+          "sha256": "aaf70eef9e76dfd85549f78bd1c3f60ff8e7e00b45aeedefd88ccc750d0d6216"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_costo.py",
+          "grupo": "modelo_1km",
+          "sha256": "6fe99d1d87b60c0e23d5724cf10690f8dfcd429d3a772c79593e43b72d7607c3"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_decision.py",
+          "grupo": "modelo_1km",
+          "sha256": "2cf505d814e31e96131c04327aeb8750e18dbd840a7ad9f80c6e847899e552fc"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_entorno.py",
+          "grupo": "modelo_1km",
+          "sha256": "175fac62ff3c0dbb30df2161265f879bdf69b8039617dcf58fd43580b23e8b93"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_estaticas_nasadem.py",
+          "grupo": "modelo_1km",
+          "sha256": "f1c196eb632e53bc5a4fc971c933a0566f59efdaf057519b4d0ece7c16a6a11a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_fijados.py",
+          "grupo": "modelo_1km",
+          "sha256": "155859b37275bcbde0ff404c37dd90283ff667add93eed5776054e68fb446f21"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_fondo_era5l.py",
+          "grupo": "modelo_1km",
+          "sha256": "9680d8a1167e5d553c35cb405dc47c59e1f8caf3f6bfb1097edc9ef682b58a35"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_homogeneidad.py",
+          "grupo": "modelo_1km",
+          "sha256": "b7dd43701e1e801d414e3a31eefa8ca9fb6969617abde2b8d4d192d845ffd235"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_integracion.py",
+          "grupo": "modelo_1km",
+          "sha256": "79f33798a81167a6386362a61330dfda795e58e6bc34e73db81aae57bb905ec8"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_meteo_combinada.py",
+          "grupo": "modelo_1km",
+          "sha256": "fb0aaca2c3ec6664edf0102ba1e8b450544eb1eab5d17d7f822ec71057cbb7f6"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_numerico.py",
+          "grupo": "modelo_1km",
+          "sha256": "0252c745402b210bf6142b5530a7def153c01cace738337854a5a7c029c364d4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_orquestacion.py",
+          "grupo": "modelo_1km",
+          "sha256": "950764fca444a386fa878864fda0bdf5c9958dd89b879200ba7600903ce6a949"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_particiones.py",
+          "grupo": "modelo_1km",
+          "sha256": "1e716a2cebea93445ea33c468c52f38a7d5d81d3bf037d7dab36f5e4225d9eb5"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_politicas.py",
+          "grupo": "modelo_1km",
+          "sha256": "d88166a64289bab75ec080a41743a71878dfda0a0ea27b4ec80adde76e99c0c6"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_producto.py",
+          "grupo": "modelo_1km",
+          "sha256": "9de05939552aff6f0277740b854905ecbbd4368a4c0032b691bfd2aa4d359206"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_qc_dmc_meteo.py",
+          "grupo": "modelo_1km",
+          "sha256": "26eab858c568941514f5fab8ca3483b1bf294f3a7bd32a73f546e1430bc1dfa1"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_salidas.py",
+          "grupo": "modelo_1km",
+          "sha256": "71eb2751c87abe98c7560ca8d8493ec31398bd7b2b5af27ef4d21b2ed80ac3f2"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_salud.py",
+          "grupo": "modelo_1km",
+          "sha256": "e12eb1353a2bc742512834ec0805b3bf5e671e28caa2ec1d7ef2c1359e46eee2"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_sinca_meteo.py",
+          "grupo": "modelo_1km",
+          "sha256": "74bc9c8f6458f79baf9a48e3d491c2767b7d395276cdc4d77beb1f297181d797"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_sintetico.py",
+          "grupo": "modelo_1km",
+          "sha256": "b23c42ba0dca5e09ff757f3dad03fda0a2a9b431cb5c62d09dc5e6cd0287989f"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_tendencias.py",
+          "grupo": "modelo_1km",
+          "sha256": "9a6b920f22a67dc2765c24d9269c6a0a61d7e6d8e0c2ff5505b276d6e4629788"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_tipos.py",
+          "grupo": "modelo_1km",
+          "sha256": "fece006ee18d32bd6a9aa72547028c41168b5d116c08b784459f99585a34ba6d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_umbrales.py",
+          "grupo": "modelo_1km",
+          "sha256": "6fa54b8781f17dee777f2a03b16817d5e1e13d2ccc134b1f8df4075ed9f486ef"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_validacion.py",
+          "grupo": "modelo_1km",
+          "sha256": "2474c59f2dc20ccebfa5e2cb244044ceee63fffcf1557add9866ecf37d28c328"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_verificar_meteo_combinada.py",
+          "grupo": "modelo_1km",
+          "sha256": "50b477ed6d705c7f6047d6685b4d958fe3d9c45114a60106b216c2ca51fe845d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tipos.py",
+          "grupo": "modelo_1km",
+          "sha256": "31fc3a1ad00ccdc5219ee44796e77be44e0cc3f813901a03b69d6bf964743dab"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/umbrales.py",
+          "grupo": "modelo_1km",
+          "sha256": "9131ae0d00002ccaae08e59fc13257d22c589ce5d3f3d9072152af6148e13a7e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/validacion.py",
+          "grupo": "modelo_1km",
+          "sha256": "86b0e2b89344dcd38fa28a100257f03f404a8f8e4b5eaa740fa3979d02dbc70c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/verificar_meteo_combinada.py",
+          "grupo": "modelo_1km",
+          "sha256": "a044cf2972620554d0f10f63cb257d3be1a0de7a9a07f7ebd0b5bdeeac8d8f13"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+          "grupo": "modelo_1km",
+          "sha256": "5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/_rutas_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "b18e66eff345185d7938886c3e5354f25df0445853bb97353ccd5f2caec17517"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/calidad_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "87bc4818dfba96ff544790c64274e86e019ab6a5197e68e670807fe9d33dd0e4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/config_v2.json",
+          "grupo": "modelo_1km",
+          "sha256": "1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/contraste_unidades_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "e2e9b6d37405ce331301c44cb5a569123dd3982aa0031e122ddeef84d3b1401e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/correr_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "1423ef3f7a8d7bc35d8ee1802187de95129e46afe276241e29a0c7e486f6445d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/derivado_red2_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "6001c12fdf7d5332576513e0b59422a5e65cc61530fc572b3799f6ffa38e89b7"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/duplicados_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "fd53bad7f7dc02822cce1ae7c1bccfc352d39f093018ca7e6772a73a172fb524"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/factibilidad_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "a428cf1aa19ef70562715c3d208e3a7e76440cddeff9e29a33592d1d37b82f63"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/panel_red2_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "18fa2b9dfc5469e95e8137139032f53597ca0586c25b9fc446eec86f46f68428"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/piloto_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "e7a90fb88e3743dba848978d62b1fff6f39b7a83f8f6340a74484be49901ad12"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/pliegues_red2_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "aeebeac945fa1f2da92f53a291761f9c34fda0df813628fe2246319c262144d7"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/pliegues_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "26207bf4542c987a751493ff99e4590c524a204cd5f88d3e3ed3674150a535e3"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/propuesta_red_ampliada/CAMBIOS_AL_CODIGO_SELLADO.md",
+          "grupo": "modelo_1km",
+          "sha256": "84362a574ca9cbb688106d46df94124f4767f4918d36a44d4b98f121403147e8"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/propuesta_red_ampliada/DISENO_AMBIENTAL_V2.propuesto.md",
+          "grupo": "modelo_1km",
+          "sha256": "5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/propuesta_red_ampliada/PROPUESTA.md",
+          "grupo": "modelo_1km",
+          "sha256": "ce4999e8d9559cf2102dfcce68e1a405931e881762aaa8e24039cce30f5a0aab"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/propuesta_red_ampliada/config_v2.propuesto.json",
+          "grupo": "modelo_1km",
+          "sha256": "1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/red_ampliada_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "b34d78cf810d2597d0f6ba6b1eb1080fe928884a7db5e1a9ab21f8bcfeff10a4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/reloj_sinca_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "c1eb98c52660dae3755c65a69fb2cc33e7e8d54736c269cc111bde35289795f7"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "10e9faa5e5dec08101e326ca2064e7d0bf689feba42f23a047813de4e904c7dc"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_calidad_artefacto_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "564e46d60f45c213938b1817053833ddecd2a06fa2cb84e9b17a892e179a559b"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_calidad_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "b771a2f5d6e09b95c62fdc518679706cd1c04d48a70e9ae22959e164203f0a50"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_config_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "186d590ba0d2269f492a2b8d55ba342597503075bc11766bb2f38ba69d49084e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_contraste_unidades_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "ba3ff6695f289cb30f5fd8e523e35b4d6fdb1077bf73a19f7866df36295ca989"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_correr_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "b066ba45f815ffb96557fe7bd0b2af14ef27180095bb22f81b6acbf11146d984"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_decision_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "c6b413c7108a1bb80a2065586a3d1ed668727b6928275b24c2d4c02340956d6a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_derivado_red2_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "62e4fb341c870f6657968c05518dfd061ffbe6bccc50d384f7d363b172741b33"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_duplicados_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "b3dc6730c170129ee2e1e33f10c71ea9aec3e6b055a28d836cb7d106d438fad4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "9ab3d8410af87be36cfe6783513e68274297f8d1806cd1ee488cb7b73a08f98c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "079aa5894108bdfc70bf8cb92ac58aa114c517a32d2b8ab29288a504a0fda325"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "17ca2affac3f08bb23b4a04e4c5b5821725df85865dc79703f4e394616992015"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_panel_red2_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "7a33553757def94c8c90f53a446a5d858a3ef69d6d502d9c1edbdc44a18de718"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "3b92a4ba91e343fb5be64b760552428d38757add48be037f0f717053047e3e21"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_pliegues_red2_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "cdbf696f0ec5173a46fb4c83f8f0158388a4699f3a42224729dc34eef6b402ee"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "c703601345aeea193393167c04fd46e0157e76a67bc82af56f76c343da0d3a7b"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_red_ampliada_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "b318fb78280d2f9ce05ff42429aa5ee2dafee0dedc7dc0f6847734dbe9292f30"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_reloj_sinca_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "262ca86b9c0db58dad51cd79c48e471392cd8f4b601c3e7a63c9b5a50e73b00c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_rutas_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "5ed83039f5393a7ab102682f8f7632d61fa365301a5fd485f3e24d5b68e98159"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_unidades_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "964c44c99ccea7e3b76e8eafb46adc0a6f33a096dda0fb9b14b68ca435f83b50"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_vecindario_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "f3ee3b5d960e70eebe3ab340b576663b63890c001c5fcde64314c777a581edbc"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/unidades_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "5738943c623e3e2bf50b7b6abd7e67286fa1972dbd5543b09b04a5edcc8a354c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/validar_vecindario_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "0046df3dd4d166f5c86f70be8b729f132c2ff368e16b613aefe73132795a475a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/vecindario_v2.py",
+          "grupo": "modelo_1km",
+          "sha256": "08f0a5a3b8249ec5987b9416a145b2e04b426245d9b504d9c15fdcf1f9b0bb12"
+        },
+        {
+          "ruta": "scripts_pipeline/descargar_sinca_ampliacion.py",
+          "grupo": "pipeline",
+          "sha256": "d77247232ed4857941d8a4616193d805ed612af20a816949b44b6b1c9cb63c62"
+        },
+        {
+          "ruta": "scripts_pipeline/descargar_sinca_meteorologia.py",
+          "grupo": "pipeline",
+          "sha256": "0942c4d071cefffb95da76d2b010c981ef126858ea7b3c028ef3c7c23a51b145"
+        },
+        {
+          "ruta": "scripts_pipeline/geometria_sinca_ampliacion.py",
+          "grupo": "pipeline",
+          "sha256": "c1153b6396e965fa3f52697121fb2edb7f39241517e881daec94a3570532c76b"
+        },
+        {
+          "ruta": "scripts_pipeline/preparar_sinca_modelado_red2.py",
+          "grupo": "pipeline",
+          "sha256": "b1d134da9e447124f6c643c36346feb2ae4fb93a1db5a65fea17b106ff2b470a"
+        },
+        {
+          "ruta": "scripts_pipeline/tests/test_descargar_sinca_ampliacion.py",
+          "grupo": "pipeline",
+          "sha256": "9b69e038718baf33ff73468559db97887b36a4ab50950b276d7a4c9d2178b99b"
+        },
+        {
+          "ruta": "scripts_pipeline/tests/test_descargar_sinca_meteorologia.py",
+          "grupo": "pipeline",
+          "sha256": "d1ec53754c9debf20fc4569903e9b7850fed9b68fa4d330c18afa7ff21e4850a"
+        },
+        {
+          "ruta": "scripts_pipeline/tests/test_geometria_sinca_ampliacion.py",
+          "grupo": "pipeline",
+          "sha256": "5e4fc914f090bc32e20fe9d0b384bea135e28da366e893245ec0017e5988e904"
+        },
+        {
+          "ruta": "scripts_pipeline/tests/test_preparar_sinca_modelado_red2.py",
+          "grupo": "pipeline",
+          "sha256": "9f3fc6d37058fefd50f52028752c498a4cd43fa45ea85f66d3308738a3acb049"
+        }
+      ],
+      "cambios": [
+        {
+          "ruta": "others_scripts/tests/test_verificar_componentes_compartidos.py",
+          "grupo": "utilitarios",
+          "anterior": "3397dc9ecc79ceb0a6dc4d28662b7bac96626516006250384c9c34519a71409c",
+          "nuevo": "e57cff5bcc9031c33fcf00c5344bc4a3b0cc1e76aefa9caefdd34cbd2cf89140"
+        },
+        {
+          "ruta": "others_scripts/verificar_componentes_compartidos.py",
+          "grupo": "utilitarios",
+          "anterior": "abf59f70943661ae8afbf4589b6f369f42bca3f84867ae82bda51216efce6d01",
+          "nuevo": "1e4359694aef5452e4144444e75c4b9ce27ea755d5e0a2a3cc9a96e91486bf0d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/COORDINACION_M1.md",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "95f14f065e5c1eeedd500b23b5b1c20e667cdcea9134a95efd95898e64fcaa11"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/DISENO_IMPLEMENTACION_M1.md",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "c1034011307f813bd487bda14a4b8fdd3f44a3c7abd2a07c773d01dfbeaf9a2b"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/__init__.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "3418219a487520b716ca6744350a516bb268c95834d28af3f24e6971f73d6509"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/addendum.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "1713ccc126a1ba5c101fac3de281aaec524f2a72036ee105bdc4cd7233514d11"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/ambiental.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "1e6cd4f8547d89516a514199e1cdc966c1120ef6b436b3cdf54c64c4f802fa1e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/candidatos.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "7fbc085e6f6523bbfe4aed2ddb92df6857c3b640b0e061c43559fa8b895b87b5"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/ceguera.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "a8fe8a2329cbba03a39c89e9ccd0d31a4b8a56c16b12ee071931460d8ef6829f"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/constantes.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "8f9a2889063b808cf2418a258154f438f53c01ede5236983b3651b6951c47e36"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/costo.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "c18c27a857a63f564dc8bb6eb4d30d426b954fa29ecf143a3a2b6674826d45c4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/decision.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "d2d1891f0a2676af0bed79a7151a3e74770e830e1d0e94d3d46fde3667d9074e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/entorno.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "1dab8f64462749be132d4794a529c6575a653277fc45387ed788fe9108ae736a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/estaticas_nasadem.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "3a9e90418e5605e927042d80f6f8ab614bf4f29c981e66679f00ddd447c049cd"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/fijados.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "c8e36cdb2e2adb9e5d4ab6689d3925cf92ab3a8fb20fc23ba4d880948bab60ae"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/fondo_era5l.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "d305df752b955bd8344a26457f1e17ea9dce25abe5e343eb9011b1db00b8d2c2"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/homogeneidad.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "f910b76e624c6472587b1c1f90842d4bd78ce3ae7e7045b30a3efcafe9d5155a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/meteo_combinada.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "8b6d43b010fd3ad9240cce0b8b477237728e8f0dfd70e686ef52fc8d817ea872"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/numerico.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "a0d0197e4fa6e140c3c57164214bc91f05c5320a1700e0025664e6f69557bbbf"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/orquestacion.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "253eb120b49293da4d14fc1105382074ae5a31087888d271245c8b5ee1f67c78"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/particiones.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "047e6999803fe70ff959a7f471a667b96736ecad649f98db8570f4927e2146a1"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/politicas.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "0e73444d6e4447a0d19427cc83f3242dffbdfb883b907b7d53fc9be46f3c5414"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/producto.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "afa56ac51350b0dea290bdf1f509abefcae9365711dbb0516817918db700991d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/qc_dmc_meteo.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "0022d145ce86aaf185bfd1cfc56ff9202b3d4f42b46b8751e67206c22e11bd66"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/salidas.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "953dd6e5c22233275d64fbc4a67d3a246f1ad2a6c9851283624fce8a0e3935fb"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/salud.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "888a97902ce743b445706a6a77af330aef5ae6b8232c8cf2d5619c212f499f95"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/sinca_meteo.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "8201fbbaa98ea1a9f5625bfd0ca3ddfd0643f9ed69380cbfe57e7bff1dab4563"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/sintetico.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "f87148e775c52243a288c2ca045806f4b567ecbd0ebf4e868dad68849fd3fe0e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tendencias.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "1ca7fa879677c4cb061636266e52a402936d1e93e514c89e77670a4d342462c0"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/__init__.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "60fd83d07f5b8866f90049a4f63d530266580c8e72ccd04bfaedf305f54e4e3c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_addendum.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "c2cdf8317b9cfbc924342c94f4f27ddb9e49ab2e3cda568dd6b03af8d04108e1"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_ambiental.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "6ba2a45c8a3b348099957403a662169c5db52f935141a087e70a5ab5380f3c99"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_candidatos.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "4437f5b3ad7286c4f7076b324dd0b34bae702992c895f51b89a1200e36eda845"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_ceguera.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "5ba039bbbe5d41bc512185aba2883495a8754654d5a69d6f23e084170a43b745"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_constantes.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "aaf70eef9e76dfd85549f78bd1c3f60ff8e7e00b45aeedefd88ccc750d0d6216"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_costo.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "6fe99d1d87b60c0e23d5724cf10690f8dfcd429d3a772c79593e43b72d7607c3"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_decision.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "2cf505d814e31e96131c04327aeb8750e18dbd840a7ad9f80c6e847899e552fc"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_entorno.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "175fac62ff3c0dbb30df2161265f879bdf69b8039617dcf58fd43580b23e8b93"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_estaticas_nasadem.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "f1c196eb632e53bc5a4fc971c933a0566f59efdaf057519b4d0ece7c16a6a11a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_fijados.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "155859b37275bcbde0ff404c37dd90283ff667add93eed5776054e68fb446f21"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_fondo_era5l.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "9680d8a1167e5d553c35cb405dc47c59e1f8caf3f6bfb1097edc9ef682b58a35"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_homogeneidad.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "b7dd43701e1e801d414e3a31eefa8ca9fb6969617abde2b8d4d192d845ffd235"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_integracion.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "79f33798a81167a6386362a61330dfda795e58e6bc34e73db81aae57bb905ec8"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_meteo_combinada.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "fb0aaca2c3ec6664edf0102ba1e8b450544eb1eab5d17d7f822ec71057cbb7f6"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_numerico.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "0252c745402b210bf6142b5530a7def153c01cace738337854a5a7c029c364d4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_orquestacion.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "950764fca444a386fa878864fda0bdf5c9958dd89b879200ba7600903ce6a949"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_particiones.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "1e716a2cebea93445ea33c468c52f38a7d5d81d3bf037d7dab36f5e4225d9eb5"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_politicas.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "d88166a64289bab75ec080a41743a71878dfda0a0ea27b4ec80adde76e99c0c6"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_producto.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "9de05939552aff6f0277740b854905ecbbd4368a4c0032b691bfd2aa4d359206"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_qc_dmc_meteo.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "26eab858c568941514f5fab8ca3483b1bf294f3a7bd32a73f546e1430bc1dfa1"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_salidas.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "71eb2751c87abe98c7560ca8d8493ec31398bd7b2b5af27ef4d21b2ed80ac3f2"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_salud.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "e12eb1353a2bc742512834ec0805b3bf5e671e28caa2ec1d7ef2c1359e46eee2"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_sinca_meteo.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "74bc9c8f6458f79baf9a48e3d491c2767b7d395276cdc4d77beb1f297181d797"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_sintetico.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "b23c42ba0dca5e09ff757f3dad03fda0a2a9b431cb5c62d09dc5e6cd0287989f"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_tendencias.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "9a6b920f22a67dc2765c24d9269c6a0a61d7e6d8e0c2ff5505b276d6e4629788"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_tipos.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "fece006ee18d32bd6a9aa72547028c41168b5d116c08b784459f99585a34ba6d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_umbrales.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "6fa54b8781f17dee777f2a03b16817d5e1e13d2ccc134b1f8df4075ed9f486ef"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_validacion.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "2474c59f2dc20ccebfa5e2cb244044ceee63fffcf1557add9866ecf37d28c328"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tests/test_verificar_meteo_combinada.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "50b477ed6d705c7f6047d6685b4d958fe3d9c45114a60106b216c2ca51fe845d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/tipos.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "31fc3a1ad00ccdc5219ee44796e77be44e0cc3f813901a03b69d6bf964743dab"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/umbrales.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "9131ae0d00002ccaae08e59fc13257d22c589ce5d3f3d9072152af6148e13a7e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/validacion.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "86b0e2b89344dcd38fa28a100257f03f404a8f8e4b5eaa740fa3979d02dbc70c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/meteo_combinada/verificar_meteo_combinada.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "a044cf2972620554d0f10f63cb257d3be1a0de7a9a07f7ebd0b5bdeeac8d8f13"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/DISENO_AMBIENTAL_V2.md",
+          "grupo": "modelo_1km",
+          "anterior": "5d879a05179a3e980d01e25e12bb4f3492d4fe6b4142f7be6daa2509df4c39b0",
+          "nuevo": "5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/_rutas_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "eb8a92d233d6f9f07fefd02ed7b25950d5f768771d10e356cb545ccfa86e3103",
+          "nuevo": "b18e66eff345185d7938886c3e5354f25df0445853bb97353ccd5f2caec17517"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/calidad_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "5f34bf2d3e0f6a91f0d5284c00805b92cb55dcff1e9e3f258f910bdb385a46d7",
+          "nuevo": "87bc4818dfba96ff544790c64274e86e019ab6a5197e68e670807fe9d33dd0e4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/config_v2.json",
+          "grupo": "modelo_1km",
+          "anterior": "232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c",
+          "nuevo": "1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/contraste_unidades_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "e2e9b6d37405ce331301c44cb5a569123dd3982aa0031e122ddeef84d3b1401e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/correr_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "534e484b66ed9575f36a2ec5fc75052a9a2544656cf3e4a80077b90f96c69b07",
+          "nuevo": "1423ef3f7a8d7bc35d8ee1802187de95129e46afe276241e29a0c7e486f6445d"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/derivado_red2_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "6001c12fdf7d5332576513e0b59422a5e65cc61530fc572b3799f6ffa38e89b7"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/duplicados_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "fd53bad7f7dc02822cce1ae7c1bccfc352d39f093018ca7e6772a73a172fb524"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/factibilidad_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "2229bd95eed76c37ccb55d3d853280785dd2752131eb624aae9e5a67d00a764f",
+          "nuevo": "a428cf1aa19ef70562715c3d208e3a7e76440cddeff9e29a33592d1d37b82f63"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/panel_red2_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "18fa2b9dfc5469e95e8137139032f53597ca0586c25b9fc446eec86f46f68428"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/piloto_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "60cfaba9e217b200db19fc68bb4d4cfe27e4d8f9ae5d951e88b6072a608d5336",
+          "nuevo": "e7a90fb88e3743dba848978d62b1fff6f39b7a83f8f6340a74484be49901ad12"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/pliegues_red2_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "aeebeac945fa1f2da92f53a291761f9c34fda0df813628fe2246319c262144d7"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/pliegues_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "05cac03f33492a102deea2abb6f76f3f2dfa3b2430350a3f25a93e049ca29615",
+          "nuevo": "26207bf4542c987a751493ff99e4590c524a204cd5f88d3e3ed3674150a535e3"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/propuesta_red_ampliada/CAMBIOS_AL_CODIGO_SELLADO.md",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "84362a574ca9cbb688106d46df94124f4767f4918d36a44d4b98f121403147e8"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/propuesta_red_ampliada/DISENO_AMBIENTAL_V2.propuesto.md",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "5140306eae85f854e17748b1119300ce35f9239685487bff3806b285ca397670"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/propuesta_red_ampliada/PROPUESTA.md",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "ce4999e8d9559cf2102dfcce68e1a405931e881762aaa8e24039cce30f5a0aab"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/propuesta_red_ampliada/config_v2.propuesto.json",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "1bcb3ff49729ffa65cc89f646f1c711f01a2ecae1241db1cef91eace36aabaae"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/red_ampliada_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "b34d78cf810d2597d0f6ba6b1eb1080fe928884a7db5e1a9ab21f8bcfeff10a4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/reloj_sinca_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "c1eb98c52660dae3755c65a69fb2cc33e7e8d54736c269cc111bde35289795f7"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/_sintetico_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "c9cd550f3fb9500c69accabab916ecad26dc1a41b5301c66575f2e9b96f1631e",
+          "nuevo": "10e9faa5e5dec08101e326ca2064e7d0bf689feba42f23a047813de4e904c7dc"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_calidad_artefacto_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "f3268c6e8f7f787f248f742799297e0510993e37ec40c23c56b20cf0298e4b81",
+          "nuevo": "564e46d60f45c213938b1817053833ddecd2a06fa2cb84e9b17a892e179a559b"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_calidad_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "fe1f7bd11cd752e52f11506654749cda6c643c608df37a42f818f54c6afaf020",
+          "nuevo": "b771a2f5d6e09b95c62fdc518679706cd1c04d48a70e9ae22959e164203f0a50"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_config_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "c7f4b4f64cd19c0e4a52620567f39353a51a794de6c46237add858d8b3523066",
+          "nuevo": "186d590ba0d2269f492a2b8d55ba342597503075bc11766bb2f38ba69d49084e"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_contraste_unidades_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "ba3ff6695f289cb30f5fd8e523e35b4d6fdb1077bf73a19f7866df36295ca989"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_correr_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "59bbe7997f17fab70685c48fa73d6d7715afea8be1e6816a4b56b5eb2f8112a7",
+          "nuevo": "b066ba45f815ffb96557fe7bd0b2af14ef27180095bb22f81b6acbf11146d984"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_decision_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "2be67aec4e1ef43ce8d07ae7ae5e4d84f766267c00cf4097f1ed44657946b370",
+          "nuevo": "c6b413c7108a1bb80a2065586a3d1ed668727b6928275b24c2d4c02340956d6a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_derivado_red2_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "62e4fb341c870f6657968c05518dfd061ffbe6bccc50d384f7d363b172741b33"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_duplicados_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "b3dc6730c170129ee2e1e33f10c71ea9aec3e6b055a28d836cb7d106d438fad4"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_factibilidad_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "4fcd0613edb0e70b85958661841f7e6df89fb34dd753a7d00043869d5f34be0b",
+          "nuevo": "9ab3d8410af87be36cfe6783513e68274297f8d1806cd1ee488cb7b73a08f98c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_manifiesto_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "267b9707591dbdfb7047d12e2426f0488677972ff2a662acf794bb6a9a2bf2ce",
+          "nuevo": "079aa5894108bdfc70bf8cb92ac58aa114c517a32d2b8ab29288a504a0fda325"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_metricas_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "2ae7a194513bc280fcc5ccef5a10ec98b2b729e754da02e827325fa29e398b26",
+          "nuevo": "17ca2affac3f08bb23b4a04e4c5b5821725df85865dc79703f4e394616992015"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_panel_red2_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "7a33553757def94c8c90f53a446a5d858a3ef69d6d502d9c1edbdc44a18de718"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_piloto_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "26f921ccebb275d22e9ec70c20ea50daeecbd3bf72a7dd543d6b798160c90fc8",
+          "nuevo": "3b92a4ba91e343fb5be64b760552428d38757add48be037f0f717053047e3e21"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_pliegues_red2_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "cdbf696f0ec5173a46fb4c83f8f0158388a4699f3a42224729dc34eef6b402ee"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_pliegues_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "21e1c1e338677948771e7358e08a1984a82b5e495ac0e68375d216d67d7b3711",
+          "nuevo": "c703601345aeea193393167c04fd46e0157e76a67bc82af56f76c343da0d3a7b"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_red_ampliada_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "b318fb78280d2f9ce05ff42429aa5ee2dafee0dedc7dc0f6847734dbe9292f30"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_reloj_sinca_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "262ca86b9c0db58dad51cd79c48e471392cd8f4b601c3e7a63c9b5a50e73b00c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_rutas_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "968b5b51bec1150f3888301cbbcf46956fe4d658c0dd75b9cf7adaafa4bdbf15",
+          "nuevo": "5ed83039f5393a7ab102682f8f7632d61fa365301a5fd485f3e24d5b68e98159"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_unidades_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "964c44c99ccea7e3b76e8eafb46adc0a6f33a096dda0fb9b14b68ca435f83b50"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/tests/test_vecindario_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "b21d5315d060a97cb5b572bdeb6d5e57c460c48a58e9b9460477480b86e40d41",
+          "nuevo": "f3ee3b5d960e70eebe3ab340b576663b63890c001c5fcde64314c777a581edbc"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/unidades_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": null,
+          "nuevo": "5738943c623e3e2bf50b7b6abd7e67286fa1972dbd5543b09b04a5edcc8a354c"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/validar_vecindario_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "2465a31f502900975222287088eb340d586660ae7d87b7faae14c20e1d8c4790",
+          "nuevo": "0046df3dd4d166f5c86f70be8b729f132c2ff368e16b613aefe73132795a475a"
+        },
+        {
+          "ruta": "scripts_modelo_1km/v2/vecindario_v2.py",
+          "grupo": "modelo_1km",
+          "anterior": "0121a6c49a2d84471f60114cbf3a4c4001642fb78a61f9b7b2241ae6fcdf6181",
+          "nuevo": "08f0a5a3b8249ec5987b9416a145b2e04b426245d9b504d9c15fdcf1f9b0bb12"
+        },
+        {
+          "ruta": "scripts_pipeline/descargar_sinca_ampliacion.py",
+          "grupo": "pipeline",
+          "anterior": null,
+          "nuevo": "d77247232ed4857941d8a4616193d805ed612af20a816949b44b6b1c9cb63c62"
+        },
+        {
+          "ruta": "scripts_pipeline/descargar_sinca_meteorologia.py",
+          "grupo": "pipeline",
+          "anterior": null,
+          "nuevo": "0942c4d071cefffb95da76d2b010c981ef126858ea7b3c028ef3c7c23a51b145"
+        },
+        {
+          "ruta": "scripts_pipeline/geometria_sinca_ampliacion.py",
+          "grupo": "pipeline",
+          "anterior": null,
+          "nuevo": "c1153b6396e965fa3f52697121fb2edb7f39241517e881daec94a3570532c76b"
+        },
+        {
+          "ruta": "scripts_pipeline/preparar_sinca_modelado_red2.py",
+          "grupo": "pipeline",
+          "anterior": null,
+          "nuevo": "b1d134da9e447124f6c643c36346feb2ae4fb93a1db5a65fea17b106ff2b470a"
+        },
+        {
+          "ruta": "scripts_pipeline/tests/test_descargar_sinca_ampliacion.py",
+          "grupo": "pipeline",
+          "anterior": null,
+          "nuevo": "9b69e038718baf33ff73468559db97887b36a4ab50950b276d7a4c9d2178b99b"
+        },
+        {
+          "ruta": "scripts_pipeline/tests/test_descargar_sinca_meteorologia.py",
+          "grupo": "pipeline",
+          "anterior": null,
+          "nuevo": "d1ec53754c9debf20fc4569903e9b7850fed9b68fa4d330c18afa7ff21e4850a"
+        },
+        {
+          "ruta": "scripts_pipeline/tests/test_geometria_sinca_ampliacion.py",
+          "grupo": "pipeline",
+          "anterior": null,
+          "nuevo": "5e4fc914f090bc32e20fe9d0b384bea135e28da366e893245ec0017e5988e904"
+        },
+        {
+          "ruta": "scripts_pipeline/tests/test_preparar_sinca_modelado_red2.py",
+          "grupo": "pipeline",
+          "anterior": null,
+          "nuevo": "9f3fc6d37058fefd50f52028752c498a4cd43fa45ea85f66d3308738a3acb049"
+        }
+      ],
+      "alcance": "rutas_explicitas",
+      "verificacion_global": "no_ejecutada",
+      "metadatos_globales": "historia_de_la_base_sin_refrescar"
     }
   ]
 }
