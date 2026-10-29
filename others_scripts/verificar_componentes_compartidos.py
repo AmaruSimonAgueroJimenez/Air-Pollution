@@ -32,16 +32,25 @@ Opciones:
   --generar     regenera el manifiesto desde el canónico (sha256, adaptados, hash_codigo, commit de anclaje y
                 rutas sin confirmar) y conserva grupos, motivos y planes. Si el manifiesto existe y cambiaría,
                 sólo muestra los cambios; ``--forzar`` lo sobrescribe.
+  --actualizar-ruta RUTA  modo separado y repetible: --base BASE --salida CANDIDATA; ambas fuentes deben estar
+                confirmadas y limpias en Git. Sólo actualiza SHA seleccionadas y añade actualizaciones_acotadas.
+                Los metadatos globales se conservan como historia de la base; no se lee ningún informe ni se
+                comprueba coherencia global. Vista previa por omisión; --forzar crea sólo una candidata externa
+                nueva, fuera de ambos repositorios. Una salida existente sólo se admite si ya es una candidata válida
+                e idéntica de esta operación; jamás se sobrescribe. Se ignoran refs/replace e info/grafts de Git.
+                La base debe coincidir con el manifiesto de los HEAD reales, o con --commit-base-canonico y
+                --commit-base-espejo (identificadores completos reales). Nunca instala manifiestos activos.
   --registrar   añade una línea JSON con el resultado a un registro (en APH,
                 ``auditoria/registro_sincronizacion.jsonl``).
 
 Repositorios: ``--canonico`` y ``--espejo``. Por omisión son las carpetas hermanas ``Air-Pollution`` y
 ``Air-Pollution-Health-Chile`` del repositorio que contiene este script. El manifiesto no lleva rutas absolutas.
-Sólo escribe con ``--generar`` (el manifiesto) o ``--registrar`` (una línea del registro).
+Sólo escribe con ``--generar`` (el manifiesto), ``--actualizar-ruta --forzar`` (una candidata separada) o
+``--registrar`` (una línea del registro). La operación acotada no certifica coherencia global.
 
 Códigos de salida:
-    0  coherente (con --generar: escrito, o sin cambios);
-    1  hay divergencias (con --generar sin --forzar: el manifiesto cambiaría y no se escribió);
+    0  coherente al verificar; al generar/actualizar: operación exitosa o sin cambios, NO verificación global;
+    1  hay divergencias; al generar/actualizar sin --forzar: cambiaría y no se escribió;
     2  manifiesto inválido, repositorio inexistente o archivo ilegible. El 2 tiene prioridad.
 
 Ejemplos, desde la raíz de cualquiera de los dos repositorios::
@@ -488,6 +497,7 @@ def validar_manifiesto(man: object, estricto: bool = True) -> None:
                 valores = informe.get(clave, [])
                 if not isinstance(valores, list) or not all(isinstance(v, str) and _HEX16.match(v) for v in valores):
                     raise ManifiestoInvalido(f"hash_codigo.declarado_en_informe.{clave}: lista de 16 hexadecimales")
+    _validar_actualizaciones_acotadas(man)
     excepcion = hcod.get("excepcion")
     if excepcion is not None:
         if not isinstance(excepcion, dict) or not isinstance(excepcion.get("vigente"), bool):
@@ -923,7 +933,7 @@ def _resumen_cambios(viejo: dict | None, nuevo: dict) -> list[str]:
     return lineas
 
 
-def _escribir_atomico(ruta: Path, texto: str) -> None:
+def _escribir_atomico(ruta: Path, texto: str, antes_reemplazar=None, crear_exclusivo=False) -> None:
     modo = stat.S_IMODE(ruta.stat().st_mode) if ruta.exists() else 0o644
     ruta.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=ruta.parent, prefix=f".{ruta.name}.", suffix=".tmp")
@@ -931,11 +941,335 @@ def _escribir_atomico(ruta: Path, texto: str) -> None:
         with os.fdopen(fd, "w", encoding="utf-8", newline="\n") as fh:
             fh.write(texto)
         os.chmod(tmp, modo)
-        os.replace(tmp, ruta)
+        if antes_reemplazar is not None:
+            antes_reemplazar()
+        if crear_exclusivo:
+            # Publicación atómica sin sobrescribir: también bloquea una aparición después de la revalidación.
+            os.link(tmp, ruta, follow_symlinks=False)
+            os.unlink(tmp)
+        else:
+            os.replace(tmp, ruta)
     except BaseException:
         if os.path.exists(tmp):
             os.unlink(tmp)
         raise
+
+
+# El modo acotado nunca llama a construir_manifiesto, expandir, hash_codigo ni _huellas_informe.
+_COMMIT = re.compile(r"(?:[0-9a-f]{40}|[0-9a-f]{64})\Z")
+GLOBAL_NO_EJECUTADA = "no_ejecutada"
+
+
+def _ruta_acotada(rel: object) -> str:
+    rel = _validar_ruta(rel, "actualización acotada")
+    partes = rel.lower().split("/")
+    if (rel != _nfc(rel) or any(ord(c) < 32 for c in rel)
+            or any(c in rel for c in "[]{}")
+            or any(p in (".git", ".hg", ".svn", ".ssh", ".aws", ".gnupg", ".docker", ".netrc",
+                         ".npmrc", ".pypirc") or p.startswith(".env")
+                   or "cache" in p or any(x in p for x in ("credencial", "credential", "secret", "token",
+                                                           "password", "passwd"))
+                   or p in ("id_rsa", "id_ed25519") or p.endswith((".pem", ".key", ".p12", ".pfx", ".keychain"))
+                   for p in partes)
+            or any(rx.match(rel) for rx in _RX_EXCLUIR_SIEMPRE)
+            or rel == RUTA_MANIFIESTO):
+        raise ManifiestoInvalido(f"ruta no admisible en actualización acotada: {rel}")
+    return rel
+
+
+def _validar_actualizaciones_acotadas(man: dict) -> None:
+    registros = man.get("actualizaciones_acotadas", [])
+    if not isinstance(registros, list):
+        raise ManifiestoInvalido("actualizaciones_acotadas: se espera una lista")
+    for r in registros:
+        if not isinstance(r, dict) or set(r) != {
+                "base", "fecha_utc", "actualizador", "fuentes", "seleccion", "cambios",
+                "alcance", "verificacion_global", "metadatos_globales"}:
+            raise ManifiestoInvalido("actualizaciones_acotadas: registro incompleto o desconocido")
+        if (r["alcance"] != "rutas_explicitas" or r["verificacion_global"] != GLOBAL_NO_EJECUTADA
+                or r["metadatos_globales"] != "historia_de_la_base_sin_refrescar"):
+            raise ManifiestoInvalido("actualizaciones_acotadas: alcance o afirmación global inválidos")
+        try:
+            fecha = dt.datetime.fromisoformat(r["fecha_utc"].replace("Z", "+00:00"))
+            if fecha.utcoffset() != dt.timedelta(0):
+                raise ValueError
+        except (TypeError, AttributeError, ValueError):
+            raise ManifiestoInvalido("actualizaciones_acotadas: fecha UTC inválida") from None
+        base, act, fuentes = r["base"], r["actualizador"], r["fuentes"]
+        if (not isinstance(base, dict) or set(base) != {"sha256", "canonico", "espejo"}
+                or not isinstance(base["sha256"], str) or not _HEX64.fullmatch(base["sha256"])
+                or not isinstance(act, dict) or set(act) != {"script", "sha256"}
+                or not isinstance(act["sha256"], str) or not _HEX64.fullmatch(act["sha256"])
+                or not isinstance(fuentes, dict) or set(fuentes) != {"canonico", "espejo"}):
+            raise ManifiestoInvalido("actualizaciones_acotadas: base, actualizador o fuentes inválidos")
+        _validar_ruta(act["script"], "actualizador.script")
+        for lado, repo in (("canonico", man["canonico"]["repo"]), ("espejo", man["espejos"][0]["repo"])):
+            b, f = base[lado], fuentes[lado]
+            if (not isinstance(b, dict) or set(b) != {"commit", "ruta"}
+                    or b["ruta"] != RUTA_MANIFIESTO or not isinstance(b["commit"], str)
+                    or not _COMMIT.fullmatch(b["commit"])
+                    or not isinstance(f, dict) or set(f) != {"repo", "commit"} or f["repo"] != repo
+                    or not isinstance(f["commit"], str) or not _COMMIT.fullmatch(f["commit"])):
+                raise ManifiestoInvalido("actualizaciones_acotadas: procedencia Git inválida")
+        seleccion = r["seleccion"]
+        if not isinstance(seleccion, list) or not seleccion:
+            raise ManifiestoInvalido("actualizaciones_acotadas: selección vacía o inválida")
+        por_ruta = {}
+        for x in seleccion:
+            if not isinstance(x, dict) or set(x) != {"ruta", "grupo", "sha256"}:
+                raise ManifiestoInvalido("actualizaciones_acotadas: selección inválida")
+            rel = _ruta_acotada(x["ruta"])
+            if (rel in por_ruta or not isinstance(x["sha256"], str) or not _HEX64.fullmatch(x["sha256"])
+                    or _grupo_acotado(man, rel)["nombre"] != x["grupo"]):
+                raise ManifiestoInvalido("actualizaciones_acotadas: selección repetida o inconsistente")
+            por_ruta[rel] = x
+        cambios = r["cambios"]
+        if not isinstance(cambios, list) or not cambios:
+            raise ManifiestoInvalido("actualizaciones_acotadas: cambios vacíos o inválidos")
+        vistos = set()
+        for x in cambios:
+            if not isinstance(x, dict) or set(x) != {"ruta", "grupo", "anterior", "nuevo"}:
+                raise ManifiestoInvalido("actualizaciones_acotadas: cambio inválido")
+            rel, anterior = x["ruta"], x["anterior"]
+            if (not isinstance(rel, str) or rel not in por_ruta or rel in vistos
+                    or x["grupo"] != por_ruta[rel]["grupo"] or x["nuevo"] != por_ruta[rel]["sha256"]
+                    or anterior == x["nuevo"] or (anterior is not None
+                    and (not isinstance(anterior, str) or not _HEX64.fullmatch(anterior)))):
+                raise ManifiestoInvalido("actualizaciones_acotadas: cambio fuera de selección o inválido")
+            vistos.add(rel)
+
+
+def _grupo_acotado(man: dict, rel: str) -> dict:
+    if any(rel in g.get("archivos", {}) for g in man["grupos"] if g["modo"] == "adaptado"):
+        raise ManifiestoInvalido(f"{rel}: es adaptado, no se actualiza como idéntico")
+    propios = man.get("propios", {})
+    lados = (man["canonico"]["repo"], man["espejos"][0]["repo"])
+    candidatos = []
+    for g in man["grupos"]:
+        if g["modo"] != "identico":
+            continue
+        fuera = [*EXCLUIR_SIEMPRE, *man.get("excluir_siempre", []), *g.get("excluir", [])]
+        fuera += [p for repo in lados for p in propios.get(repo, [])]
+        if (any(patron_a_regex(p).fullmatch(rel) for p in g["incluir"])
+                and not any(patron_a_regex(p).fullmatch(rel) for p in fuera)):
+            candidatos.append(g)
+    if len(candidatos) != 1:
+        raise ManifiestoInvalido(f"{rel}: requiere exactamente un grupo idéntico efectivo ({len(candidatos)})")
+    return candidatos[0]
+
+
+def _git_acotado(repo: Path, *args: str) -> bytes:
+    entorno = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    entorno["GIT_OPTIONAL_LOCKS"] = "0"
+    entorno["GIT_GRAFT_FILE"] = os.devnull  # Ignorar también .git/info/grafts, no sólo refs/replace.
+    try:
+        r = subprocess.run(["git", "--no-optional-locks", "--no-replace-objects", "--literal-pathspecs", "-c", "core.fsmonitor=false",
+                            "-C", str(repo), *args], capture_output=True, env=entorno, timeout=60, check=False)
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ErrorLectura(f"Git no disponible para actualización acotada: {type(exc).__name__}") from None
+    if r.returncode:
+        raise ErrorLectura(f"Git falló en {repo.name}: {args[0]}")
+    return r.stdout
+
+
+def _head_acotado(repo: Path) -> str:
+    arriba = _git_acotado(repo, "rev-parse", "--show-toplevel").decode().strip()
+    if Path(arriba).resolve() != repo.resolve():
+        raise ErrorLectura(f"{repo.name}: no es raíz de un repositorio Git")
+    head = _git_acotado(repo, "rev-parse", "--verify", "HEAD^{commit}").decode().strip()
+    if not _COMMIT.fullmatch(head):
+        raise ErrorLectura("HEAD Git inválido")
+    return head
+
+
+def _capturar_acotado(repo: Path, rutas: list[str]) -> dict:
+    head = _head_acotado(repo)
+    archivos = {}
+    for rel in rutas:
+        if _componente_enlazado(repo, rel) or not stat.S_ISREG((repo / rel).lstat().st_mode):
+            raise ErrorLectura(f"{rel}: no es archivo regular sin enlaces")
+        indice = _git_acotado(repo, "ls-files", "--stage", "-z", "--", rel).split(b"\0")
+        arbol = _git_acotado(repo, "ls-tree", "-z", head, "--", rel).split(b"\0")
+        nombre = rel.encode("utf-8")
+        try:
+            entrada, vacio = indice
+            meta, ruta = entrada.split(b"\t", 1)
+            modo, blob, etapa = meta.split()
+            arb, fin = arbol
+            meta_head, ruta_head = arb.split(b"\t", 1)
+            modo_head, tipo_head, blob_head = meta_head.split()
+            valido = (not vacio and not fin and ruta == ruta_head == nombre and etapa == b"0"
+                      and modo in (b"100644", b"100755") and tipo_head == b"blob"
+                      and modo == modo_head and blob == blob_head)
+        except ValueError:
+            valido = False
+        if not valido:
+            raise ErrorLectura(f"{rel}: ausente, sin rastrear o índice distinto de HEAD")
+        banderas = _git_acotado(repo, "ls-files", "-v", "-z", "--", rel)
+        estado = _git_acotado(repo, "status", "--porcelain=v1", "-z", "--untracked-files=no", "--", rel)
+        if banderas != b"H " + nombre + b"\0" or estado:
+            raise ErrorLectura(f"{rel}: estado Git modificado u oculto")
+        sha_head = hashlib.sha256(_git_acotado(repo, "cat-file", "blob", blob.decode())).hexdigest()
+        sha = _sha_o_ausente(repo, rel)
+        if sha != sha_head:
+            raise ErrorLectura(f"{rel}: bytes distintos de HEAD/índice")
+        archivos[rel] = {"sha256": sha, "blob": blob.decode(), "modo": modo.decode()}
+    if _head_acotado(repo) != head:
+        raise ErrorLectura("HEAD cambió durante la lectura")
+    return {"commit": head, "archivos": archivos}
+
+
+def construir_actualizacion_acotada(base: dict, C: Path, E: Path, rutas: list[str],
+                                     base_bytes: bytes, commits_base: dict, fuentes: dict) -> dict:
+    """Sólo cambia SHA seleccionadas y añade procedencia parcial; no certifica coherencia global."""
+    validar_manifiesto(base, estricto=True)
+    man = copy.deepcopy(base)
+    seleccion, cambios = [], []
+    for rel in rutas:
+        g = _grupo_acotado(man, _ruta_acotada(rel))
+        nuevo = fuentes["canonico"]["archivos"][rel]["sha256"]
+        if nuevo != fuentes["espejo"]["archivos"][rel]["sha256"]:
+            raise ErrorLectura(f"{rel}: bytes distintos en el espejo")
+        anterior = g["sha256"].get(rel)
+        seleccion.append({"ruta": rel, "grupo": g["nombre"], "sha256": nuevo})
+        if anterior != nuevo:
+            cambios.append({"ruta": rel, "grupo": g["nombre"], "anterior": anterior, "nuevo": nuevo})
+            g["sha256"][rel] = nuevo
+    if cambios:
+        registro = {
+            "base": {"sha256": hashlib.sha256(base_bytes).hexdigest(),
+                     **{lado: {"commit": commits_base[lado], "ruta": RUTA_MANIFIESTO}
+                        for lado in ("canonico", "espejo")}},
+            "fecha_utc": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+            "actualizador": {"script": _ruta_generador(C), "sha256": sha256_archivo(Path(__file__).resolve())},
+            "fuentes": {lado: {"repo": repo, "commit": fuentes[lado]["commit"]}
+                        for lado, repo in (("canonico", base["canonico"]["repo"]),
+                                           ("espejo", base["espejos"][0]["repo"]))},
+            "seleccion": seleccion, "cambios": cambios, "alcance": "rutas_explicitas",
+            "verificacion_global": GLOBAL_NO_EJECUTADA,
+            "metadatos_globales": "historia_de_la_base_sin_refrescar"}
+        man.setdefault("actualizaciones_acotadas", []).append(registro)
+    validar_manifiesto(man, estricto=True)
+    return man
+
+
+def _sin_fechas_acotadas(man: dict) -> dict:
+    man = copy.deepcopy(man)
+    for r in man.get("actualizaciones_acotadas", []):
+        r.pop("fecha_utc", None)
+    return man
+
+
+def _sin_enlaces_locales(ruta: Path) -> None:
+    absoluta = ruta.absolute()
+    for parte in (absoluta, *absoluta.parents):
+        if parte.name:
+            _ruta_acotada(parte.name)
+        if parte.is_symlink():
+            raise ErrorLectura("ruta local contiene un enlace simbólico")
+
+
+def _identidad_normalizada(ruta: Path) -> str:
+    return _nfc(str(ruta.resolve())).casefold()
+
+
+def _misma_identidad(a: Path, b: Path) -> bool:
+    if _identidad_normalizada(a) == _identidad_normalizada(b):
+        return True
+    try:
+        return a.samefile(b)  # Incluye alias y enlaces duros, también fuera de los repositorios.
+    except FileNotFoundError:
+        return False
+
+
+def _proteger_salida_acotada(salida: Path, base: Path, C: Path, E: Path, rutas: list[str]) -> None:
+    for local in (salida, base, C, E):
+        _sin_enlaces_locales(local)
+    normalizada = _identidad_normalizada(salida)
+    for repo in (C, E):
+        raiz = _identidad_normalizada(repo).rstrip(os.sep)
+        if normalizada == raiz or normalizada.startswith(raiz + os.sep):
+            raise ErrorLectura("la candidata debe estar fuera de ambos repositorios, incluidos sus alias")
+    protegidas = [base, C / RUTA_MANIFIESTO, E / RUTA_MANIFIESTO]
+    protegidas += [repo / rel for repo in (C, E) for rel in rutas]
+    if any(_misma_identidad(salida, p) for p in protegidas):
+        raise ErrorLectura("la salida coincide con base, manifiesto activo o fuente seleccionada")
+
+
+def _modo_actualizar_acotado(a: argparse.Namespace, C: Path) -> int:
+    try:
+        for local in (a.base, a.salida):
+            _sin_enlaces_locales(local)
+            _ruta_acotada(local.name)  # No leer ni escribir credenciales disfrazadas de base/candidata.
+        _sin_enlaces_locales(C)
+        base_bytes = _leer_bytes(a.base)
+        base = json.loads(base_bytes.decode("utf-8"))
+        validar_manifiesto(base, estricto=True)
+        E = (a.espejo or C.parent / base["espejos"][0]["repo"]).expanduser()
+        _sin_enlaces_locales(E)
+        if C.resolve() == E.resolve():
+            raise ErrorLectura("canónico y espejo no pueden ser el mismo repositorio")
+        rutas = sorted(set(_ruta_acotada(r) for r in a.actualizar_ruta))
+        for rel in rutas:
+            _grupo_acotado(base, rel)
+        _proteger_salida_acotada(a.salida, a.base, C, E, rutas)
+        fuentes = {lado: _capturar_acotado(repo, rutas) for lado, repo in (("canonico", C), ("espejo", E))}
+        commits_base = {}
+        for lado, repo, revision in (("canonico", C, a.commit_base_canonico), ("espejo", E, a.commit_base_espejo)):
+            revision = revision or fuentes[lado]["commit"]
+            if not _COMMIT.fullmatch(revision):
+                raise ErrorLectura("la procedencia de base requiere un identificador completo de commit real")
+            commit = _git_acotado(repo, "rev-parse", "--verify", revision + "^{commit}").decode().strip()
+            if commit != revision or _git_acotado(repo, "show", f"{commit}:{RUTA_MANIFIESTO}") != base_bytes:
+                raise ErrorLectura("la base no coincide con el manifiesto de los commits declarados")
+            _git_acotado(repo, "merge-base", "--is-ancestor", commit, fuentes[lado]["commit"])
+            commits_base[lado] = commit
+        previo = _leer_bytes(a.salida) if a.salida.exists() else None
+        sha_actualizador = sha256_archivo(Path(__file__).resolve())
+        nuevo = construir_actualizacion_acotada(base, C, E, rutas, base_bytes, commits_base, fuentes)
+        def revalidar():
+            # No reabrir árboles ajenos; también se llama inmediatamente antes del reemplazo atómico.
+            _proteger_salida_acotada(a.salida, a.base, C, E, rutas)
+            for lado, repo in (("canonico", C), ("espejo", E)):
+                if _capturar_acotado(repo, rutas) != fuentes[lado]:
+                    raise ErrorLectura("HEAD, índice o fuentes cambiaron durante la actualización")
+            if sha256_archivo(Path(__file__).resolve()) != sha_actualizador:
+                raise ErrorLectura("el actualizador cambió durante la actualización")
+            if _leer_bytes(a.base) != base_bytes:
+                raise ErrorLectura("la base cambió durante la actualización")
+            _proteger_salida_acotada(a.salida, a.base, C, E, rutas)
+            if (_leer_bytes(a.salida) if a.salida.exists() else None) != previo:
+                raise ErrorLectura("la candidata cambió durante la actualización")
+        revalidar()
+        igual = False
+        if previo is not None:
+            try:
+                anterior = json.loads(previo)
+                validar_manifiesto(anterior, estricto=True)
+                igual = _sin_fechas_acotadas(anterior) == _sin_fechas_acotadas(nuevo)
+            except (UnicodeDecodeError, json.JSONDecodeError, ManifiestoInvalido):
+                pass
+        if igual:
+            print("Sin cambios: candidata acotada idéntica; no se reescribe. Verificación global no ejecutada.")
+            return 0
+        if previo is not None:
+            raise ErrorLectura("salida existente: sólo se admite una candidata válida e idéntica de esta operación")
+        cambios = nuevo.get("actualizaciones_acotadas", [])
+        n = len(cambios[-1]["cambios"]) if len(cambios) > len(base.get("actualizaciones_acotadas", [])) else 0
+        print(f"Actualización acotada: {len(rutas)} rutas seleccionadas, {n} huellas cambiadas; resto conservado; "
+              "verificación global no ejecutada.")
+        if n == 0:
+            print("Sin cambios de huellas: no se añade registro ni se escribe candidata.")
+            return 0
+        if not a.forzar:
+            print("No se escribió: vista previa. Usa --forzar para escribir únicamente la candidata separada.")
+            return 1 if n or previo is not None else 0
+        _escribir_atomico(a.salida, serializar(nuevo), antes_reemplazar=revalidar, crear_exclusivo=True)
+        print(f"Candidata escrita: {_relativa(a.salida)}. No se instaló ni copió ningún manifiesto activo.")
+        return 0
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, ManifiestoInvalido, ErrorLectura) as exc:
+        print(f"ERROR actualización acotada: {exc}", file=sys.stderr)
+        return 2
 
 
 def _modo_generar(a: argparse.Namespace, C: Path, ruta_man: Path) -> int:
@@ -1017,7 +1351,8 @@ def _argumentos(argv: list[str] | None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         description="Comprueba los componentes compartidos entre Air-Pollution (canónico) y "
                     "Air-Pollution-Health-Chile (espejo) contra config/componentes_compartidos.json.",
-        epilog="Salida: 0 coherente, 1 divergencia, 2 manifiesto inválido o error de lectura.")
+        epilog="Salida: 0 coherente al verificar/éxito operativo al generar o actualizar; "
+               "1 divergencia o vista previa con cambios; 2 entrada inválida o error de lectura.")
     p.add_argument("--canonico", type=Path, help="raíz del canónico (por omisión, la carpeta hermana Air-Pollution)")
     p.add_argument("--espejo", type=Path,
                    help="raíz del espejo (por omisión, la carpeta hermana del canónico con el nombre del manifiesto)")
@@ -1025,13 +1360,24 @@ def _argumentos(argv: list[str] | None) -> argparse.Namespace:
     modo = p.add_mutually_exclusive_group()
     modo.add_argument("--plan", action="store_true", help="imprime, sin ejecutarlo, el rsync del canónico al espejo")
     modo.add_argument("--generar", action="store_true", help="regenera el manifiesto desde el canónico")
-    p.add_argument("--forzar", action="store_true", help="con --generar, sobrescribe el manifiesto existente")
+    modo.add_argument("--actualizar-ruta", action="append", metavar="RUTA",
+                      help="actualización acotada de una ruta literal; repetible; sólo candidata separada")
+    p.add_argument("--base", type=Path, help="base explícita y estricta, idéntica a la confirmada en ambos Git")
+    p.add_argument("--salida", type=Path, help="candidata externa nueva; existente sólo si es idéntica de esta operación")
+    p.add_argument("--commit-base-canonico", help="commit completo real que contiene la base (omisión: HEAD)")
+    p.add_argument("--commit-base-espejo", help="commit completo real que contiene la base (omisión: HEAD)")
+    p.add_argument("--forzar", action="store_true", help="escribe con --generar o --actualizar-ruta")
     p.add_argument("--registrar", type=Path, metavar="JSONL", help="añade el resultado como una línea JSON")
     a = p.parse_args(argv)
-    if a.forzar and not a.generar:
-        p.error("--forzar sólo vale con --generar")
-    if a.registrar and a.generar:
-        p.error("--registrar no vale con --generar")
+    if a.forzar and not (a.generar or a.actualizar_ruta):
+        p.error("--forzar sólo vale con --generar o --actualizar-ruta")
+    if a.registrar and (a.generar or a.actualizar_ruta):
+        p.error("--registrar no vale con generación o actualización acotada")
+    if a.actualizar_ruta:
+        if a.base is None or a.salida is None or a.manifiesto is not None:
+            p.error("--actualizar-ruta exige --base y --salida; no admite --manifiesto")
+    elif any(x is not None for x in (a.base, a.salida, a.commit_base_canonico, a.commit_base_espejo)):
+        p.error("--base/--salida/--commit-base-* sólo valen con --actualizar-ruta")
     return a
 
 
@@ -1048,6 +1394,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERROR no existe el canónico: {_relativa(C)} (usa --canonico)", file=sys.stderr)
         return 2
     ruta_man = (a.manifiesto or C / RUTA_MANIFIESTO).expanduser()
+    if a.actualizar_ruta:
+        return _modo_actualizar_acotado(a, C)
     if a.generar:
         return _modo_generar(a, C, ruta_man)
 

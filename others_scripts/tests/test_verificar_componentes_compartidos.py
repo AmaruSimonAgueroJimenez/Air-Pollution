@@ -571,5 +571,475 @@ class Registro(Base):
         self.assertEqual(dato["divergencias_por_grupo"], {"pipeline": 1})
 
 
+class ActualizacionAcotada(Base):
+    """Git y archivos exclusivamente de juguete; ningún commit de fixture acredita producción."""
+    REL = "scripts_pipeline/a.py"
+
+    def git(self, repo, *args):
+        entorno = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        entorno.update(GIT_CONFIG_NOSYSTEM="1", GIT_CONFIG_GLOBAL=os.devnull,
+                       GIT_AUTHOR_NAME="Prueba", GIT_AUTHOR_EMAIL="prueba@example.invalid",
+                       GIT_COMMITTER_NAME="Prueba", GIT_COMMITTER_EMAIL="prueba@example.invalid")
+        return subprocess.check_output(["git", "--no-optional-locks", "-c", "core.hooksPath=" + os.devnull,
+                                        "-C", str(repo), *args], env=entorno, stderr=subprocess.PIPE)
+
+    def confirmar(self, repo):
+        self.git(repo, "add", "--", ".")
+        self.git(repo, "commit", "-qm", "fixture sintético")
+
+    def setUp(self):
+        super().setUp()
+        self.generar_y_copiar()
+        self.original = self.manifiesto()
+        self.archivo_base = self.base / "base.json"
+        self.archivo_base.write_bytes((self.c / RUTA).read_bytes())
+        self.salida = self.base / "candidata.json"
+        self.commits_base = {}
+        for repo in (self.c, self.e):
+            self.git(repo, "init", "-q")
+            self.confirmar(repo)
+            self.commits_base[repo] = self.git(repo, "rev-parse", "HEAD").decode().strip()
+            escribir(repo, self.REL, "print('nuevo confirmado')\n")
+            self.confirmar(repo)
+
+    def actualizar(self, *args):
+        return self.correr("--actualizar-ruta", self.REL, "--base", str(self.archivo_base),
+                           "--salida", str(self.salida), *args)
+
+    def test_preview_no_escribe_ni_declara_coherencia(self):
+        codigo, out, err = self.actualizar()
+        self.assertEqual(codigo, 1, out + err)
+        self.assertFalse(self.salida.exists())
+        self.assertIn("verificación global no ejecutada", out)
+        self.assertNotIn("COHERENTE", out)
+        self.assertEqual(self.manifiesto(), self.original)
+
+    def test_solo_sha_y_procedencia_con_idempotencia(self):
+        codigo, out, err = self.actualizar("--forzar")
+        self.assertEqual(codigo, 0, out + err)
+        nuevo = json.loads(self.salida.read_bytes())
+        registro = nuevo.pop("actualizaciones_acotadas")[0]
+        self.assertEqual(registro["base"]["sha256"], hashlib.sha256(self.archivo_base.read_bytes()).hexdigest())
+        self.assertEqual(registro["verificacion_global"], "no_ejecutada")
+        self.assertEqual(len(registro["seleccion"]), 1)
+        self.assertEqual(len(registro["cambios"]), 1)
+        grupo(nuevo, "pipeline")["sha256"][self.REL] = grupo(self.original, "pipeline")["sha256"][self.REL]
+        self.assertEqual(nuevo, self.original)
+        antes, fecha = self.salida.read_bytes(), self.salida.stat().st_mtime_ns
+        codigo, out, err = self.actualizar("--forzar")
+        self.assertEqual(codigo, 0, out + err)
+        self.assertIn("Sin cambios", out)
+        self.assertEqual((self.salida.read_bytes(), self.salida.stat().st_mtime_ns), (antes, fecha))
+
+    def test_no_abre_fuentes_ajenas_ni_funciones_globales(self):
+        permitidos = {self.archivo_base.resolve(), self.salida.resolve(), SCRIPT.resolve(),
+                      (self.c / self.REL).resolve(), (self.e / self.REL).resolve()}
+        abrir = vcc._abrir_lectura
+        def espia(p):
+            self.assertIn(Path(p).resolve(), permitidos)
+            return abrir(p)
+        with contextlib.ExitStack() as pila:
+            for nombre in ("expandir", "hash_codigo", "_huellas_informe", "construir_manifiesto", "_estado_git"):
+                pila.enter_context(mock.patch.object(vcc, nombre, side_effect=AssertionError(nombre)))
+            pila.enter_context(mock.patch.object(vcc, "_abrir_lectura", espia))
+            codigo, out, err = self.actualizar("--forzar")
+        self.assertEqual(codigo, 0, out + err)
+
+    def test_alta_y_divergencias_ajenas_permanecen(self):
+        rel = "scripts_pipeline/nuevo.py"
+        for repo in (self.c, self.e):
+            escribir(repo, rel, "N = 1\n")
+            escribir(repo, "scripts_superficie/s.py", "S = 999\n")
+            self.confirmar(repo)
+        codigo, out, err = self.actualizar("--actualizar-ruta", rel, "--forzar")
+        self.assertEqual(codigo, 0, out + err)
+        man = json.loads(self.salida.read_bytes())
+        self.assertEqual(len(man["actualizaciones_acotadas"][0]["cambios"]), 2)
+        self.assertIsNone(man["actualizaciones_acotadas"][0]["cambios"][1]["anterior"])
+        self.guardar_manifiesto(man)
+        codigo, out, err = self.correr()
+        self.assertEqual(codigo, 1, out + err)
+        self.assertIn("scripts_superficie/s.py: el canónico cambió", out)
+        self.assertNotIn(self.REL + ": el canónico cambió", out)
+
+    def test_rechaza_sin_rastrear_staged_unstaged_y_borrados(self):
+        for variante in ("sin_rastrear", "staged", "unstaged", "borrado"):
+            with self.subTest(variante=variante):
+                repo = self.e
+                if variante == "sin_rastrear":
+                    self.git(repo, "rm", "--cached", "--", self.REL)
+                elif variante == "borrado":
+                    (repo / self.REL).unlink()
+                else:
+                    escribir(repo, self.REL, "cambio\n")
+                    if variante == "staged":
+                        self.git(repo, "add", "--", self.REL)
+                codigo, _, _ = self.actualizar("--forzar")
+                self.assertEqual(codigo, 2)
+                self.assertFalse(self.salida.exists())
+                # Restauración exclusivamente en el repositorio temporal de prueba.
+                self.git(repo, "restore", "--source=HEAD", "--staged", "--worktree", "--", self.REL)
+
+    def test_rechaza_estados_ocultos_y_bytes_aun_si_status_omite(self):
+        for flag, deshacer in (("--assume-unchanged", "--no-assume-unchanged"),
+                               ("--skip-worktree", "--no-skip-worktree")):
+            with self.subTest(flag=flag):
+                self.git(self.e, "update-index", flag, "--", self.REL)
+                escribir(self.e, self.REL, "oculto\n")
+                self.assertEqual(self.actualizar("--forzar")[0], 2)
+                self.git(self.e, "update-index", deshacer, "--", self.REL)
+                self.git(self.e, "restore", "--", self.REL)
+        git = vcc._git_acotado
+        def estado_oculto(repo, *args):
+            return b"" if args[0] == "status" else git(repo, *args)
+        escribir(self.e, self.REL, "diferencia sin status\n")
+        with mock.patch.object(vcc, "_git_acotado", estado_oculto):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+
+    def test_rechaza_fuentes_confirmadas_distintas(self):
+        escribir(self.e, self.REL, "distinto confirmado\n")
+        self.confirmar(self.e)
+        self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertFalse(self.salida.exists())
+
+    def test_rechaza_rutas_peligrosas_antes_de_leerlas(self):
+        for rel in ("../a.py", "/tmp/a.py", "scripts_pipeline/*.py", "scripts_pipeline/a[1].py",
+                    "scripts_pipeline/privado/a.py", "scripts_pipeline/MNI1.py", "scripts_pipeline/.git/config",
+                    "scripts_pipeline/.env", "scripts_pipeline/credentials.json", "scripts_pipeline/__pycache__/a.py",
+                    "scripts_pipeline/a 2.py", "config/token.json", RUTA):
+            with self.subTest(rel=rel):
+                with self.assertRaises(vcc.ManifiestoInvalido):
+                    vcc._ruta_acotada(rel)
+
+    def test_rechaza_excluido_propio_adaptado_y_grupo_ambiguo(self):
+        for variante in ("excluido", "propio", "adaptado", "ambiguo"):
+            man = json.loads(json.dumps(self.original))
+            if variante == "excluido":
+                grupo(man, "pipeline")["excluir"] = [self.REL]
+            elif variante == "propio":
+                man["propios"][self.e.name].append(self.REL)
+            elif variante == "adaptado":
+                grupo(man, "adaptados")["archivos"][self.REL] = {}
+            else:
+                man["grupos"].append({"nombre": "solapado", "modo": "identico", "incluir": [self.REL], "sha256": {}})
+            with self.subTest(variante=variante), self.assertRaises(vcc.ManifiestoInvalido):
+                vcc._grupo_acotado(man, self.REL)
+
+    def test_rechaza_enlaces_de_archivo_y_directorio(self):
+        (self.e / self.REL).unlink()
+        os.symlink(self.c / self.REL, self.e / self.REL)
+        self.assertEqual(self.actualizar("--forzar")[0], 2)
+        with self.assertRaises(vcc.ErrorLectura):
+            vcc._capturar_acotado(self.e, [self.REL])
+        (self.e / self.REL).unlink()
+        self.git(self.e, "restore", "--", self.REL)
+        original = self.e / "scripts_pipeline"
+        original.rename(self.e / "movido")
+        os.symlink(self.e / "movido", original)
+        self.assertEqual(self.actualizar("--forzar")[0], 2)
+
+    def test_base_no_confirmada_activos_y_mismo_repo_bloquean(self):
+        self.assertEqual(self.actualizar("--salida", str(self.c / RUTA), "--forzar")[0], 2)
+        self.assertEqual(self.actualizar("--espejo", str(self.c), "--forzar")[0], 2)
+        man = json.loads(self.archivo_base.read_bytes())
+        man["descripcion"] += " no confirmada"
+        self.archivo_base.write_text(json.dumps(man), encoding="utf-8")
+        self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertFalse(self.salida.exists())
+
+    def test_commits_base_explicitos_reales_y_rechazo_revision_falsa(self):
+        args = ("--commit-base-canonico", self.commits_base[self.c],
+                "--commit-base-espejo", self.commits_base[self.e])
+        self.assertEqual(self.actualizar(*args, "--forzar")[0], 0)
+        self.assertEqual(self.actualizar("--commit-base-canonico", "HEAD", "--forzar")[0], 2)
+
+    def test_no_acepta_commit_huerfano_como_historia_confirmada_de_base(self):
+        arbol = self.git(self.c, "rev-parse", "HEAD^{tree}").decode().strip()
+        huerfano = self.git(self.c, "commit-tree", arbol, "-m", "huérfano sintético, no procedencia real").decode().strip()
+        self.assertEqual(self.actualizar("--commit-base-canonico", huerfano, "--forzar")[0], 2)
+        self.assertFalse(self.salida.exists())
+
+    def test_error_git_y_carreras_no_dejan_escritura_parcial(self):
+        self.salida.write_text("candidata anterior", encoding="utf-8")
+        antes = self.salida.read_bytes()
+        with mock.patch.object(vcc, "_git_acotado", side_effect=vcc.ErrorLectura("fallo simulado")):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertEqual(self.salida.read_bytes(), antes)
+        capturar = vcc._capturar_acotado
+        llamadas = 0
+        def carrera(repo, rutas):
+            nonlocal llamadas
+            llamadas += 1
+            if llamadas == 3:
+                escribir(self.e, self.REL, "cambio concurrente\n")
+            return capturar(repo, rutas)
+        with mock.patch.object(vcc, "_capturar_acotado", carrera):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertEqual(self.salida.read_bytes(), antes)
+
+    def test_base_concurrente_y_head_concurrente_bloquean(self):
+        construir = vcc.construir_actualizacion_acotada
+        for objetivo in ("base", "head"):
+            original = self.archivo_base.read_bytes()
+            def carrera(*args, **kwargs):
+                nuevo = construir(*args, **kwargs)
+                if objetivo == "base":
+                    self.archivo_base.write_bytes(original + b" ")
+                else:
+                    self.git(self.c, "commit", "--allow-empty", "-qm", "HEAD concurrente de juguete")
+                return nuevo
+            with self.subTest(objetivo=objetivo), mock.patch.object(vcc, "construir_actualizacion_acotada", carrera):
+                self.assertEqual(self.actualizar("--forzar")[0], 2)
+                self.assertFalse(self.salida.exists())
+            self.archivo_base.write_bytes(original)
+
+    def test_valida_procedencia_y_rechaza_coherencia_global_falsa(self):
+        self.assertEqual(self.actualizar("--forzar")[0], 0)
+        man = json.loads(self.salida.read_bytes())
+        vcc.validar_manifiesto(man)
+        for clave, valor in (("verificacion_global", "coherente"), ("fecha_utc", "ayer"), ("seleccion", []),
+                             ("cambios", []), ("base", {}), ("fuentes", {}), ("actualizador", {})):
+            variante = json.loads(json.dumps(man))
+            variante["actualizaciones_acotadas"][0][clave] = valor
+            with self.subTest(clave=clave), self.assertRaises(vcc.ManifiestoInvalido):
+                vcc.validar_manifiesto(variante)
+
+    def test_preserva_adaptados_excepcion_versiones_y_metadatos(self):
+        man = json.loads(self.archivo_base.read_bytes())
+        rel = "others_scripts/adaptado.py"
+        lados = {}
+        for repo, texto in ((self.c, "canónico\n"), (self.e, "espejo\n")):
+            escribir(repo, rel, texto)
+            lados[repo] = hashlib.sha256((repo / rel).read_bytes()).hexdigest()
+        grupo(man, "adaptados")["archivos"][rel] = {
+            "motivo": "diferencia sintética histórica", "plan": "conservar pendiente",
+            "sha256_canonico": lados[self.c], "sha256_espejo": lados[self.e]}
+        man["hash_codigo"]["excepcion"] = {"vigente": True, "motivo": "historia", "plan": "no refrescar"}
+        man["versiones_modelo"] = [{"etiqueta": "histórica sintética"}]
+        self.guardar_manifiesto(man)
+        self.archivo_base.write_bytes((self.c / RUTA).read_bytes())
+        for repo in (self.c, self.e):
+            self.confirmar(repo)
+        escribir(self.e, rel, "divergencia externa posterior\n")
+        self.assertEqual(self.actualizar("--forzar")[0], 0)
+        nuevo = json.loads(self.salida.read_bytes())
+        for clave in ("hash_codigo", "versiones_modelo", "canonico", "generador", "generado", "propios"):
+            self.assertEqual(nuevo[clave], man[clave])
+        self.assertEqual(grupo(nuevo, "adaptados"), grupo(man, "adaptados"))
+        self.guardar_manifiesto(nuevo)
+        codigo, out, err = self.correr()
+        self.assertEqual(codigo, 1, out + err)
+        self.assertIn(rel + ": el espejo cambió", out)
+
+    def test_reemplazo_final_revalida_y_elimina_temporal_si_hay_carrera(self):
+        escribir_atomico = vcc._escribir_atomico
+        def carrera(ruta, texto, antes_reemplazar=None, crear_exclusivo=False):
+            self.archivo_base.write_bytes(self.archivo_base.read_bytes() + b" ")
+            escribir_atomico(ruta, texto, antes_reemplazar=antes_reemplazar, crear_exclusivo=crear_exclusivo)
+        with mock.patch.object(vcc, "_escribir_atomico", carrera):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertFalse(self.salida.exists())
+        self.assertEqual(list(self.base.glob(".candidata.json.*.tmp")), [])
+
+    def test_error_de_creacion_atomica_no_publica_y_limpia_temporal(self):
+        with mock.patch.object(vcc.os, "link", side_effect=OSError("fallo simulado")):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertFalse(self.salida.exists())
+        self.assertEqual(list(self.base.glob(".candidata.json.*.tmp")), [])
+
+    def test_candidata_concurrente_no_se_sobrescribe(self):
+        construir = vcc.construir_actualizacion_acotada
+        def carrera(*args, **kwargs):
+            nuevo = construir(*args, **kwargs)
+            self.salida.write_bytes(b"trabajo concurrente")
+            return nuevo
+        with mock.patch.object(vcc, "construir_actualizacion_acotada", carrera):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertEqual(self.salida.read_bytes(), b"trabajo concurrente")
+
+    def test_rechaza_candidata_invalida_incluso_forzada_y_no_escribe_si_no_cambia(self):
+        self.salida.write_bytes(b"candidata invalida")
+        self.assertEqual(self.actualizar()[0], 2)
+        self.assertEqual(self.salida.read_bytes(), b"candidata invalida")
+        self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertEqual(self.salida.read_bytes(), b"candidata invalida")
+        self.salida.unlink()
+        for repo in (self.c, self.e):
+            escribir(repo, RUTA, self.archivo_base.read_text(encoding="utf-8"))
+            escribir(repo, self.REL, "print('a')\n")
+            self.confirmar(repo)
+        codigo, out, err = self.actualizar("--forzar")
+        self.assertEqual(codigo, 0, out + err)
+        self.assertIn("Sin cambios de huellas", out)
+        self.assertFalse(self.salida.exists())
+
+    def test_no_sigue_enlace_en_padre_de_candidata_ni_abre_env(self):
+        destino = self.base / "destino"
+        destino.mkdir()
+        enlace = self.base / "enlace"
+        os.symlink(destino, enlace)
+        self.assertEqual(self.actualizar("--salida", str(enlace / "candidata.json"), "--forzar")[0], 2)
+        with mock.patch.object(vcc, "_abrir_lectura", side_effect=AssertionError("no debe abrir .env")):
+            self.assertEqual(self.actualizar("--base", str(self.base / ".env"), "--forzar")[0], 2)
+
+    def test_indice_concurrente_bloquea_aunque_bytes_de_trabajo_sean_iguales(self):
+        construir = vcc.construir_actualizacion_acotada
+        def carrera(*args, **kwargs):
+            nuevo = construir(*args, **kwargs)
+            original = (self.e / self.REL).read_bytes()
+            escribir(self.e, self.REL, "sólo en índice\n")
+            self.git(self.e, "add", "--", self.REL)
+            (self.e / self.REL).write_bytes(original)
+            return nuevo
+        with mock.patch.object(vcc, "construir_actualizacion_acotada", carrera):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertFalse(self.salida.exists())
+
+    def test_salida_rechaza_alias_casefold_de_base_y_ambos_repositorios(self):
+        protegidas = [self.archivo_base, self.c / RUTA, self.e / RUTA, self.c / self.REL, self.e / self.REL]
+        antes = {p: p.read_bytes() for p in protegidas}
+        salidas = [self.archivo_base.with_name(self.archivo_base.name.upper()),
+                   self.c / "config/COMPONENTES_COMPARTIDOS.JSON", self.e / "config/COMPONENTES_COMPARTIDOS.JSON",
+                   self.c / self.REL, self.e / self.REL, self.c / "candidata_externa.json",
+                   self.c.with_name(self.c.name.upper()) / "CONFIG/COMPONENTES_COMPARTIDOS.JSON",
+                   self.e.with_name(self.e.name.upper()) / "CANDIDATA.JSON"]
+        for salida in salidas:
+            with self.subTest(salida=salida):
+                self.assertEqual(self.actualizar("--salida", str(salida), "--forzar")[0], 2)
+                self.assertEqual({p: p.read_bytes() for p in protegidas}, antes)
+        self.assertFalse((self.c / "candidata_externa.json").exists())
+
+    def test_salida_hardlink_de_base_activos_o_fuentes_no_se_abre_ni_escribe(self):
+        abrir = vcc._abrir_lectura
+        def espia(p):
+            self.assertNotEqual(Path(p), self.salida)
+            return abrir(p)
+        for protegida in (self.archivo_base, self.c / RUTA, self.e / RUTA, self.c / self.REL, self.e / self.REL):
+            with self.subTest(protegida=protegida):
+                antes = protegida.read_bytes()
+                os.link(protegida, self.salida)
+                with mock.patch.object(vcc, "_abrir_lectura", espia):
+                    self.assertEqual(self.actualizar("--forzar")[0], 2)
+                self.assertEqual(protegida.read_bytes(), antes)
+                self.salida.unlink()
+
+    def test_solo_acepta_candidata_existente_identica_de_la_misma_operacion(self):
+        self.assertEqual(self.actualizar("--forzar")[0], 0)
+        antes = self.salida.read_bytes()
+        self.assertEqual(self.actualizar("--actualizar-ruta", "scripts_superficie/s.py", "--forzar")[0], 2)
+        self.assertEqual(self.salida.read_bytes(), antes)
+        man = json.loads(antes)
+        man["descripcion"] += " cambio ajeno"
+        self.salida.write_text(json.dumps(man), encoding="utf-8")
+        cambiado = self.salida.read_bytes()
+        self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertEqual(self.salida.read_bytes(), cambiado)
+
+    def test_creacion_exclusiva_no_sobrescribe_si_archivo_aparece_al_publicar(self):
+        enlazar = os.link
+        def carrera(origen, destino, **kwargs):
+            self.salida.write_bytes(b"trabajo tardio ajeno")
+            return enlazar(origen, destino, **kwargs)
+        with mock.patch.object(vcc.os, "link", carrera):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertEqual(self.salida.read_bytes(), b"trabajo tardio ajeno")
+        self.assertEqual(list(self.base.glob(".candidata.json.*.tmp")), [])
+
+    def test_revalida_identidad_de_fuente_justo_antes_de_publicar(self):
+        atomico = vcc._escribir_atomico
+        original = (self.c / self.REL).read_bytes()
+        def carrera(ruta, texto, **kwargs):
+            os.link(self.c / self.REL, ruta)
+            return atomico(ruta, texto, **kwargs)
+        with mock.patch.object(vcc, "_escribir_atomico", carrera):
+            self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertEqual((self.c / self.REL).read_bytes(), original)
+        self.assertEqual(self.salida.read_bytes(), original)
+        self.assertEqual(list(self.base.glob(".candidata.json.*.tmp")), [])
+
+    def test_refs_replace_de_blob_no_acreditan_bytes_de_sustituto(self):
+        texto = b"contenido sustituto, nunca fuente real\n"
+        sustituto = self.base / "sustituto.py"
+        sustituto.write_bytes(texto)
+        for repo in (self.c, self.e):
+            blob = self.git(repo, "rev-parse", "HEAD:" + self.REL).decode().strip()
+            otro = self.git(repo, "hash-object", "-w", str(sustituto)).decode().strip()
+            self.git(repo, "replace", blob, otro)
+            (repo / self.REL).write_bytes(texto)
+            self.assertEqual(self.git(repo, "show", "HEAD:" + self.REL), texto)
+            self.assertNotEqual(vcc._git_acotado(repo, "show", "HEAD:" + self.REL), texto)
+        self.assertEqual(self.actualizar("--forzar")[0], 2)
+        self.assertFalse(self.salida.exists())
+
+    def test_refs_replace_de_head_acreditan_solo_arbol_y_bytes_reales(self):
+        originales = {}
+        for repo in (self.c, self.e):
+            head = self.git(repo, "rev-parse", "HEAD").decode().strip()
+            padre = self.git(repo, "rev-parse", "HEAD^").decode().strip()
+            originales[repo] = (head, (repo / self.REL).read_bytes())
+            escribir(repo, self.REL, "arbol de sustitucion\n")
+            self.git(repo, "add", "--", self.REL)
+            arbol = self.git(repo, "write-tree").decode().strip()
+            sustituto = self.git(repo, "commit-tree", arbol, "-p", padre, "-m", "sustitución sintética").decode().strip()
+            self.git(repo, "restore", "--source=HEAD", "--staged", "--worktree", "--", self.REL)
+            self.git(repo, "replace", head, sustituto)
+            self.assertNotEqual(self.git(repo, "show", "HEAD:" + self.REL), originales[repo][1])
+            self.assertEqual(vcc._git_acotado(repo, "show", "HEAD:" + self.REL), originales[repo][1])
+        codigo, out, err = self.actualizar("--forzar")
+        self.assertEqual(codigo, 0, out + err)
+        registro = json.loads(self.salida.read_bytes())["actualizaciones_acotadas"][0]
+        for lado, repo in (("canonico", self.c), ("espejo", self.e)):
+            self.assertEqual(registro["fuentes"][lado]["commit"], originales[repo][0])
+        self.assertEqual(registro["seleccion"][0]["sha256"], hashlib.sha256(originales[self.c][1]).hexdigest())
+
+    def test_info_grafts_no_convierte_base_huerfana_en_ancestro_real(self):
+        arbol = self.git(self.c, "rev-parse", "HEAD^{tree}").decode().strip()
+        huerfano = self.git(self.c, "commit-tree", arbol, "-m", "base huérfana de juguete").decode().strip()
+        head = self.git(self.c, "rev-parse", "HEAD").decode().strip()
+        escribir(self.c, ".git/info/grafts", head + " " + huerfano + "\n")
+        self.git(self.c, "merge-base", "--is-ancestor", huerfano, head)  # Demuestra la historia injertada.
+        self.assertEqual(self.actualizar("--commit-base-canonico", huerfano, "--forzar")[0], 2)
+        self.assertFalse(self.salida.exists())
+
+    def test_cli_acotada_exige_base_salida_y_no_registro_global(self):
+        for args in (("--actualizar-ruta", self.REL), ("--base", str(self.archivo_base)),
+                     ("--actualizar-ruta", self.REL, "--base", str(self.archivo_base), "--salida", str(self.salida),
+                      "--registrar", str(self.base / "registro.jsonl"))):
+            self.assertEqual(self.correr(*args)[0], 2)
+
+    def test_integracion_r22_con_funciones_reales_y_rutas_de_juguete(self):
+        # Extraer sólo funciones de guardas: no importar módulos científicos ni ejecutar su nivel global.
+        import ast
+        import types
+        fuente = CARPETA_SCRIPTS.parent / "scripts_modelo_1km/v2/red_ampliada_v2.py"
+        arbol = ast.parse(fuente.read_text(encoding="utf-8"))
+        nombres = {"estado_git", "par_de_repositorios", "verificar_espejo", "verificar_componentes",
+                   "exigir_traduccion_confirmada"}
+        nodos = [n for n in arbol.body if isinstance(n, ast.FunctionDef) and n.name in nombres]
+        self.assertEqual({n.name for n in nodos}, nombres)
+        espacio = {"Path": Path, "json": json, "sha256_archivo": lambda p: hashlib.sha256(p.read_bytes()).hexdigest(),
+                   "ARCHIVOS_TRADUCCION": (self.REL, RUTA), "MANIFIESTO_COMPONENTES": RUTA,
+                   "ARCHIVOS_DEL_ESPEJO": {}, "NOMBRE_CANONICO": self.c.name, "NOMBRE_ESPEJO": self.e.name}
+        exec(compile(ast.Module(body=nodos, type_ignores=[]), str(fuente), "exec"), espacio)
+        def guarda(desde):
+            return espacio["exigir_traduccion_confirmada"](types.SimpleNamespace(repo=desde),
+                                                          cfg={"red_de_monitores": {}}, ratificacion=False)
+        with mock.patch.dict(sys.modules, {"_rutas_v2": types.ModuleType("_rutas_v2")}):
+            with self.assertRaises(SystemExit):
+                guarda(self.c)  # base confirmada, huella vieja
+            self.assertEqual(self.actualizar("--forzar")[0], 0)
+            for repo in (self.c, self.e):
+                escribir(repo, RUTA, self.salida.read_text(encoding="utf-8"))
+            with self.assertRaises(SystemExit):
+                guarda(self.e)  # manifiestos aún sin confirmar
+            for repo in (self.c, self.e):
+                self.confirmar(repo)
+            self.assertEqual(set(guarda(self.c)), {self.REL, RUTA})
+            self.assertEqual(set(guarda(self.e)), {self.REL, RUTA})
+            escribir(self.e, self.REL, "diferente\n")
+            with self.assertRaises(SystemExit):
+                guarda(self.c)
+
+
 if __name__ == "__main__":
     unittest.main()
