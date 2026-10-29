@@ -1,7 +1,7 @@
 """Pruebas del paquete: fachada, grafo de módulos, índice de §9, nombres, escritura, privacidad y S10 de la batería.
 
 Dueño: I0 (coordinador); ``PruebasS10`` es de I22 (ola 6). Las que llevan «sNN» son la prueba NN de §9 del texto.
-Leen, sin escribir, el texto vigente v2.3 con su sha256 (los nombres de la fachada y la numeración de §9); si falta, se
+Leen, sin escribir, el texto vigente v2.4 con su sha256 (los nombres de la fachada y la numeración de §9); si falta, se
 omiten con el motivo y no se dan por aprobadas. Todo lo demás se lee por AST, sin importar nada. Las de subproceso
 corren el intérprete actual con -B -I y terminan antes de devolver. Correr desde scripts_modelo_1km con
   ~/micromamba/envs/amb_v2/bin/python -B -m unittest discover -s meteo_combinada/tests -t .
@@ -49,7 +49,7 @@ DEPENDENCIAS = {
     "homogeneidad": (*_BASE, "numerico"),
     "sinca_meteo": (*_BASE, "entorno"),
     "decision": _BASE,
-    "salidas": ("tipos", "umbrales", "entorno", "ceguera"),
+    "salidas": ("tipos", "umbrales", "entorno", "ceguera", "addendum"),
     "qc_dmc_meteo": (*_BASE, "numerico", "fijados", "politicas", "homogeneidad", "fondo_era5l"),
     "candidatos": (*_BASE, "numerico", "particiones", "homogeneidad"),
     "validacion": (*_BASE, "numerico", "particiones"),
@@ -73,12 +73,12 @@ CAPAS = {
     "tipos": 0, "constantes": 0, "umbrales": 0, "entorno": 0,
     "fijados": 1, "numerico": 1, "ceguera": 1,
     "politicas": 2, "estaticas_nasadem": 2, "fondo_era5l": 2, "particiones": 2, "homogeneidad": 2, "sinca_meteo": 2,
-    "decision": 2, "salidas": 2,
+    "decision": 2, "addendum": 2, "salidas": 3,
     "qc_dmc_meteo": 3, "candidatos": 3, "validacion": 3,
     "tendencias": 4, "producto": 4,
     "salud": 5, "ambiental": 5,
     "orquestacion": 6,
-    "costo": 7, "addendum": 7,
+    "costo": 7,
     "verificar_meteo_combinada": 8,
 }
 FUERA = ("sintetico", "meteo_combinada")
@@ -119,13 +119,13 @@ _MARCA_NO_ESCRIBE = re.compile(r"#\s*no-escribe:\s*\S.{2,}")
 
 
 def _texto_vigente() -> str:
-    """El texto vigente (v2.3), comprobado por sha256; SkipTest si falta."""
+    """El texto vigente (v2.4), comprobado por sha256; SkipTest si falta."""
     ruta = _APH / umbrales.TEXTO_VIGENTE
     if not ruta.is_file():
         raise unittest.SkipTest(f"falta {ruta.name}; la prueba no se da por aprobada")
     datos = ruta.read_bytes()
     if hashlib.sha256(datos).hexdigest() != umbrales.SHA_TEXTO_VIGENTE:
-        raise AssertionError(f"{ruta.name} no es el texto vigente v2.3")
+        raise AssertionError(f"{ruta.name} no es el texto vigente v2.4")
     return datos.decode("utf-8")
 
 

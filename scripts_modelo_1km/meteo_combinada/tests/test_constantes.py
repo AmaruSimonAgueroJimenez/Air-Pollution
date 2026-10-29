@@ -1,6 +1,6 @@
 """Pruebas de constantes.py (anexo A2, repeticiones del Anexo A, exclusiones y lectura de números; §4.4 del diseño).
 
-Dueño: I2 (ola 1). Leen, sin escribir, el texto vigente v2.3 y los archivos de M0 de APH con su sha256; si falta uno,
+Dueño: I2 (ola 1). Leen, sin escribir, el texto vigente v2.4 y los archivos de M0 de APH con su sha256; si falta uno,
 se omiten con el motivo y no se dan por aprobadas. Correr desde scripts_modelo_1km con
   ~/micromamba/envs/amb_v2/bin/python -B -m unittest discover -s meteo_combinada/tests -t .
 """
@@ -43,13 +43,13 @@ class _ConTexto(unittest.TestCase):
             raise unittest.SkipTest(f"falta {_VIGENTE.name}; la prueba no se da por aprobada")
         cls.bytes_texto = _VIGENTE.read_bytes()
         if hashlib.sha256(cls.bytes_texto).hexdigest() != umbrales.SHA_TEXTO_VIGENTE:
-            raise AssertionError(f"{_VIGENTE.name} no es el texto vigente v2.3")
+            raise AssertionError(f"{_VIGENTE.name} no es el texto vigente v2.4")
         cls.texto = cls.bytes_texto.decode("utf-8")
 
 
 class PruebasConstantes(_ConTexto):
     def test_fragmentos_en_su_seccion(self):
-        """Cada fragmento (A2, definiciones, repeticiones y exclusiones) está tal cual en su sección del v2.3 y sus
+        """Cada fragmento (A2, definiciones, repeticiones y exclusiones) está tal cual en su sección del v2.4 y sus
         números calzan con el valor, con sus ajenos y sus negativos."""
         self.assertEqual(constantes.verificar_contra_texto(self.texto), [])
 

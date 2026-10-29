@@ -1,6 +1,6 @@
 """Pruebas de tipos.py (enumerados, identificadores, esquemas y clases de datos; §2 del diseño).
 
-Dueño: I0 (coordinador). Leen, sin escribir, el texto vigente v2.3 (la tabla de marcas de §2.4) con su sha256; si
+Dueño: I0 (coordinador). Leen, sin escribir, el texto vigente v2.4 (la tabla de marcas de §2.4) con su sha256; si
 falta, esas pruebas se omiten con el motivo y no se dan por aprobadas. Correr desde scripts_modelo_1km con
   ~/micromamba/envs/amb_v2/bin/python -B -m unittest discover -s meteo_combinada/tests -t .
 """
@@ -32,7 +32,7 @@ def _texto_vigente() -> str:
         raise unittest.SkipTest(f"falta {ruta.name}; la prueba no se da por aprobada")
     datos = ruta.read_bytes()
     if hashlib.sha256(datos).hexdigest() != umbrales.SHA_TEXTO_VIGENTE:
-        raise AssertionError(f"{ruta.name} no es el texto vigente v2.3")
+        raise AssertionError(f"{ruta.name} no es el texto vigente v2.4")
     return datos.decode("utf-8")
 
 

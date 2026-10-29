@@ -3,7 +3,7 @@
 §10 del texto: «todo umbral numérico del cuerpo o del Anexo B que no esté en el Anexo A es fijo, con el valor y el
 alcance de su frase. M1 los lista en un anexo A2 generado del texto, cada uno con su fragmento literal».
 
-Tres listas, todas con su sección y un fragmento literal del texto vigente (v2.3, desde la Enmienda 2; CON-n abajo):
+Tres listas, todas con su sección y un fragmento literal del texto vigente (v2.4, Enmienda 3; CON-n abajo):
 - ``CONSTANTES``: el anexo A2 (clase «umbral» u «operacion») y las definiciones físicas y de formato (clase
   «definicion»: Magnus, p_std, la hipsométrica, 287,05, 9,80665…). ``valor(nombre)`` las da.
 - ``REPETICIONES``: frases del cuerpo que repiten un valor del Anexo A, o de una constante de esta lista
@@ -57,7 +57,7 @@ Lecturas propias (CON-n), para el addendum de M1:
 - CON-7. Un valor de texto («2000-01-01», «EPSG:32719», «Q95», «½·σ²») debe aparecer tal cual en el fragmento, y
   cubre las cifras que contiene.
 - CON-8. ``PROCESOS`` (8, §8) repite la opción D2 de M0 (``opciones_m0``), que no es del Anexo A: va al A2 y una
-  prueba la compara con el JSON de umbrales.
+  prueba la compara con el JSON de umbrales. Desde EMC3-1 es un tope, no ocho obligatorios en toda fase.
 - CON-9. Las cotas de TF de §5.7 van por variable como (TF1 media, TF1 P95, TF2 media, TF2 P95); el texto las escribe
   iguales para TF1 y TF2. La red histórica de TF1 es (horas, desde, hasta) = (2.000, 2000, 2009); el 2.000 coincide con
   ``MIN_HORAS`` del Anexo A, pero la frase es otra regla (§4.4 del diseño la pone en el A2).
@@ -87,6 +87,8 @@ Lecturas propias (CON-n), para el addendum de M1:
   ``K4_COINC_FRAC`` en la viñeta del traslado, y ``K4_COINC_MESES`` y ``K4_T2B_HPA`` en la regla de T2a. Con ellas,
   ``verificar_contra_texto`` y ``completitud`` dan 0 problemas con el v2.3. Las repeticiones de §2.5 que siguen se
   renumeran (``REP_2.5_n`` sale del orden de la lista).
+- CON-16. **EMC3 (D65).** PROCESOS conserva el valor ocho y pasa a citar «hasta 8 procesos» en §8. Se repite en la
+  proyección conservada del recorte (EMC3-2). No cambian valores ni el alcance de los criterios científicos.
 Depende de: nada del paquete (biblioteca estándar); no importa numpy ni pandas.
 """
 from __future__ import annotations
@@ -272,7 +274,7 @@ CONSTANTES: tuple[ConstanteTexto, ...] = (
     # §8 Operación.
     _c("HILOS_ALGEBRA", 1, "§8", "`MKL_NUM_THREADS` = 1)", clase="operacion"),
     _c("COSTO_CARGA_MAX", 2, "§8", "con la máquina libre, carga < 2", clase="operacion"),
-    _c("PROCESOS", 8, "§8", "M3-4 con 8 procesos", clase="operacion"),
+    _c("PROCESOS", 8, "§8", "En M3-4 y M5 se usan hasta 8 procesos", clase="operacion"),
     _c("MEMORIA_MAX_GB", 8, "§8", "≤ 8 GB en la competencia", clase="operacion"),
     # §9 Pruebas sintéticas (criterios).
     _c("S1_RACHA_HR100_NO_H", 20, "§9", "rachas (HR = 100 de 20 h no se marca,", ajenos=(100,)),
@@ -459,6 +461,7 @@ _REPETICIONES_ESPEC = (
     (("FMT_ESC_UV", "FMT_ESC_P", "FMT_DESP_P"), (0.01, 0.02, 800), "§8",
      "u y v con 0,01 m/s; p con escala 0,02 hPa y desplazamiento 800 hPa"),
     (("SEL_MOD_RECORTE",), (23,), "§8", "(mód 23), fijado en el addendum de M1"),
+    (("PROCESOS",), (8,), "§8", "la proyección con 8 procesos"),
     (("HR_SAT",), (100,), "§9", "rachas (HR = 100 de"),
     (("HR_SAT",), (100,), "§9", "Td con HR = 100 no se marca"),
     (("CERO_C",), (0,), "§9", "bajo 0 °C sobre hielo"),

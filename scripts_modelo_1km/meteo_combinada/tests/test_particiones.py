@@ -39,7 +39,7 @@ _SHA_CONFIG_V2_M0 = "232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b
 
 # ---------------------------------------------------------------------------------------------------------------
 # Umbrales: los anclados en M0 (umbrales.cargar_m0, con las huellas del JSON y del v2.1, y el Anexo A del texto
-# vigente, el v2.3, idéntico). La red de prueba supone estos valores del Anexo A (filas «Selección anidada», «P1 / P2» y «Mínimos»);
+# vigente, el v2.4, idéntico). La red de prueba supone estos valores del Anexo A (filas «Selección anidada», «P1 / P2» y «Mínimos»);
 # ``test_valores_que_supone_la_red_son_los_del_anexo_a`` lo comprueba. (Integración de la ola 1: se quitó el
 # respaldo con valores de prueba que se usó mientras I2 escribía umbrales.)
 VALORES_ANEXO_A = {"GRUPO_KM": 2, "P1_PLIEGUES": 10, "P2_BLOQUE_KM": 75, "P2_AMORT_KM": 25, "SEL_PLIEGUES": 5,

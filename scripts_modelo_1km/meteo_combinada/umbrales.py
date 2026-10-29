@@ -38,9 +38,9 @@ Lecturas propias (UMB-n), para el addendum de M1:
 - UMB-7. Hallazgo m-8: el JSON se regenera desde el v2.1, su fuente declarada en ``generado_desde``, y ``cargar_m0``
   comprueba que la sección del Anexo A del texto vigente es idéntica, byte a byte, a la del v2.1 (``seccion_anexo_a``).
   ``Umbrales.sha256_texto`` es la del v2.1 (la fuente del JSON) y ``sha256_texto_vigente`` la del texto vigente.
-- UMB-13. **El texto vigente es el v2.3** (desde el 2026-10-27): el v2.2 con la Enmienda 2 del producto (EMC2-1, en
-  §2.5), anclada en APH ``dd6c1c6`` con su sello en ``e3f9f97``. Antes era el v2.2 (f059c14c…, Enmienda 1). El Anexo A
-  del v2.3 es byte a byte el del v2.2 y el del v2.1, así que ningún umbral cambia y el JSON de M0 sigue valiendo.
+- UMB-13. **El texto vigente es el v2.4** (2026-10-28): el v2.3 con la Enmienda 3 operativa (D65), posterior al
+  C4 de RELOJ, con ``post_hoc = true``. Se conserva el v2.3 (APH dd6c1c6) como historia. El Anexo A es byte a byte el
+  del v2.3 y el del v2.1; ningún umbral cambia y el JSON de M0 sigue valiendo.
 - UMB-8. La regeneración es más estricta que ``preparar_m0`` sin cambiar su resultado: los marcadores de sección deben
   aparecer una sola vez y toda línea «|» de la sección debe tener dos celdas (o ser la cabecera o el separador).
 - UMB-9. **Signos fijos por id.** Un número de una plantilla no admite signo, salvo los ids negativos del texto
@@ -71,14 +71,14 @@ from typing import Any, Mapping
 ESQUEMA_JSON = "meteo-combinada-umbrales/1"
 SHA_JSON_M0 = "156587f195f77009fe49bfa9497fd4a334d6b4bbe14064b46b8f3d3bca5e488a"
 SHA_TEXTO_M0 = "0d0972d8c8ebf09bb39bf45154496e72b524cdb8d57f9ce029aa53a16708edaf"
-SHA_TEXTO_VIGENTE = "b4175f785ec57811702352d9d063164a5dce05f325a48c327a6d554a09ceddc2"   # v2.3 (Enmienda 2; UMB-13)
+SHA_TEXTO_VIGENTE = "eaedb10998e1a3f37f83f036c478afb5cf3fd3ccb5262477bd394dc220b1908b"   # v2.4 (Enmienda 3; UMB-13)
 SHA_PREPARAR_M0 = "49503a3a88a9b9b331d8f51704708a7154bfc311a1f4a0eb6ca1f22d2f255d81"
 
 # Archivos anclados, relativos a APH (sólo se leen).
 TEXTO_M0 = "auditoria/20261023/meteo_combinada/m0/PROTOCOLO_METEO_COMBINADA_v2.1.md"
 JSON_M0 = "auditoria/20261023/meteo_combinada/m0/meteo_combinada_v1.json"
 PREPARAR_M0 = "auditoria/20261023/meteo_combinada/m0/preparar_m0.py"
-TEXTO_VIGENTE = "auditoria/20261023/meteo_combinada/enmienda2/PROTOCOLO_METEO_COMBINADA_v2.3.md"
+TEXTO_VIGENTE = "auditoria/20261023/meteo_combinada/enmienda3/PROTOCOLO_METEO_COMBINADA_v2.4.md"
 
 # Marcadores de la sección del Anexo A y texto literal de m0/preparar_m0.anexo_a (la «nota» del JSON).
 INICIO_ANEXO_A = "## Anexo A."
@@ -288,7 +288,7 @@ class Umbrales:
     sha256_json: str = ""
     sha256_texto: str = ""                 # el texto del que sale el JSON (v2.1, UMB-7)
     opciones_m0: Mapping[str, Any] = field(default_factory=dict)
-    sha256_texto_vigente: str = ""         # el texto vigente (v2.3), cuyo Anexo A se comprobó idéntico (m-8)
+    sha256_texto_vigente: str = ""         # el texto vigente (v2.4), cuyo Anexo A se comprobó idéntico (m-8)
 
     def __post_init__(self) -> None:
         if tuple(self.valores) != IDS:
@@ -496,7 +496,7 @@ def cargar_umbrales(ruta_json, ruta_texto, *, sha256_json: str | None = None) ->
 
 
 def cargar_m0(aph) -> Umbrales:
-    """JSON y texto de M0 (con sus huellas), más la comprobación de que el Anexo A del texto vigente (v2.3) es
+    """JSON y texto de M0 (con sus huellas), más la comprobación de que el Anexo A del texto vigente (v2.4) es
     idéntico (m-8)."""
     aph = Path(aph)
     texto_m0, sha_m0 = _leer_texto(aph / TEXTO_M0)

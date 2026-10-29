@@ -703,6 +703,15 @@ class PruebasNegativas(unittest.TestCase):
         fijado desde los umbrales, la deriva fijada, todas las claves de la lista cerrada (también los documentos y la
         salida de la batería) y las huellas fijadas."""
         casos = [
+            ("sin declarar la enmienda operativa", {"quitar": ("enmienda_operativa",)}, ["addendum"]),
+            ("enmienda presentada como anterior al C4", {"enmienda_operativa": {
+                **addendum.ENMIENDA_OPERATIVA, "post_hoc": False}}, ["addendum"]),
+            ("post_hoc numérico no es True", {"enmienda_operativa": {
+                **addendum.ENMIENDA_OPERATIVA, "post_hoc": 1}}, ["addendum"]),
+            ("lo visto falseado", {"enmienda_operativa": {
+                **addendum.ENMIENDA_OPERATIVA, "lo_visto": "no se vio nada"}}, ["addendum"]),
+            ("declaración C4 incompatible", {"declaracion_c4_reloj": {
+                **addendum.DECLARACION_C4, "lectura_propuesta": "todo es implementación, no enmienda"}}, ["addendum"]),
             ("batería no aprobada", {"aprobada": False}, ["addendum"]),
             ("sin la carpeta de la batería", {"bateria": {"aprobada": True}}, ["addendum"]),
             ("una clave de menos", {"quitar": ("acuerdos",)}, ["addendum"]),
@@ -723,11 +732,19 @@ class PruebasNegativas(unittest.TestCase):
         ]
         with tempfile.TemporaryDirectory() as tmp:
             m = _Mundo(tmp)
+            cfg_valida = m.cfg()
             for nombre, cambios, esperado in casos:
                 with self.subTest(caso=nombre):
                     m.escribir_addendum(**cambios)
                     m.confirmar_todo()
-                    self.assertEqual(_motivos(m.fallas()), esperado)
+                    if "enmienda_operativa" in cambios or "declaracion_c4_reloj" in cambios \
+                            or "enmienda_operativa" in cambios.get("quitar", ()):
+                        contenido = json.loads(m.ruta(_ADDENDUM).read_bytes())
+                        self.assertEqual(_motivos(V._fallas_contenido(cfg_valida, contenido)), esperado)
+                        with self.assertRaises(V.ErrorConfiguracion):
+                            m.cfg()
+                    else:
+                        self.assertEqual(_motivos(m.fallas()), esperado)
             # recorte «pendiente»: la corrida se arma (VER-13) y la negativa la niega, sin llegar a orquestacion
             m.escribir_addendum(recorte="pendiente")
             m.confirmar_todo()

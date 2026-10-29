@@ -11,7 +11,10 @@ import sys
 
 sys.dont_write_bytecode = True
 
+import gzip  # noqa: E402
 import hashlib  # noqa: E402
+import importlib.util  # noqa: E402
+import subprocess  # noqa: E402
 import json  # noqa: E402
 import tempfile  # noqa: E402
 import unittest  # noqa: E402
@@ -23,7 +26,7 @@ if str(_RAIZ) not in sys.path:
     sys.path.insert(0, str(_RAIZ))
 
 from meteo_combinada import addendum, ceguera, constantes, entorno, fijados, orquestacion, salidas  # noqa: E402
-from meteo_combinada import umbrales  # noqa: E402
+from meteo_combinada import umbrales, verificar_meteo_combinada as V  # noqa: E402
 
 _REALES = entorno.rutas_reales()
 _SHA_FALSO = "ab" * 32
@@ -93,6 +96,12 @@ class PruebasAddendum(_ConFuentes):
         self.assertEqual(lista[f"APH/{umbrales.TEXTO_M0}"], umbrales.SHA_TEXTO_M0)
         for rel in addendum.DECISIONES:
             self.assertIn(f"APH/{rel}", lista)
+        borrador = f"APH/{addendum.CARPETA_PRODUCTO}/enmienda3_borrador/BORRADOR_ENMIENDA_3_PROCESOS.md"
+        self.assertIn(borrador, addendum.claves_lista_cerrada(_REALES))
+        self.assertEqual(lista[borrador], "3f38021d5a110ae450b79aa6c9aa16652be35f7025ce735c7a8a1cebb3bfed90")
+        nota = f"APH/{addendum.CARPETA_PRODUCTO}/enmienda3/NOTA_FIRMAS_RECIBOS.md"
+        self.assertIn(nota, addendum.claves_lista_cerrada(_REALES))
+        self.assertEqual(lista[nota], "3fadd2244b83e77414c0752eb4ed301057928c87379998ad9f7310f49a918e0b")
         for repo, rel, sha, _ in fijados.HUELLAS_CODIGO:
             self.assertEqual(lista[f"{repo}/{rel}"], sha, rel)
         for m in fijados.ARCHIVOS_CLAUSURA:
@@ -182,7 +191,8 @@ class PruebasAddendum(_ConFuentes):
         self.assertTrue(all(x["seccion"].startswith("7") for x in c["lecturas_diseno"]))
         ids_d = [d["id"] for d in c["decisiones"]]
         self.assertEqual(ids_d, [f"D{n}" for n in range(1, len(ids_d) + 1)])
-        self.assertIn("D61", ids_d)
+        self.assertEqual(ids_d, [f"D{n}" for n in range(1, 68)])
+        self.assertEqual(c["preguntas_abiertas"], [])
         numeros = [int(d["numero"]) for d in c["diferencias"] if d["numero"]]
         self.assertTrue(set(range(1, 34)) <= set(numeros), "faltan diferencias con el diseño")
         abiertas = [p["id"] for p in c["preguntas_abiertas"]]
@@ -193,7 +203,8 @@ class PruebasAddendum(_ConFuentes):
         self.assertFalse(set(abiertas) & set(resueltas))
         self.assertTrue({f"P{n}" for n in range(1, 146)} <= set(resueltas), "D58, D59 y D60 cierran P79 a P145")
         for p, d in (("P1", "D11"), ("P28", "D52"), ("P33", "D43"), ("P41", "D53"), ("P47", "D56"),
-                     ("P78", "D53"), ("P79", "D58"), ("P122", "D60"), ("P145", "D59")):
+                     ("P78", "D53"), ("P79", "D58"), ("P122", "D60"), ("P145", "D59"),
+                     ("P146", "D63"), ("P147", "D64")):
             self.assertEqual(resueltas[p]["decision"], d, p)
         self.assertTrue(resueltas["P28"]["texto"].startswith("**P28."))
         acuerdos = {i for a in c["acuerdos"] for i in a["ids"]}
@@ -203,8 +214,20 @@ class PruebasAddendum(_ConFuentes):
         self.assertEqual(c["declaracion_c4_reloj"], dict(addendum.DECLARACION_C4))
         for clave, parte in (("hecho", "4e16614"), ("item_prospectivo", "ítem prospectivo de §1.9"),
                              ("olas", "olas 0 a 3"), ("olas", "Después: las olas 4 a 6"),
-                             ("lectura_propuesta", "post_hoc = true"), ("pregunta", "P122")):
+                             ("lectura_propuesta", "post_hoc = true"), ("lectura_propuesta", "D65"), ("pregunta", "P122")):
             self.assertIn(parte, c["declaracion_c4_reloj"][clave])
+        self.assertEqual(c["esquema"], "meteo-combinada-addendum-m1/2")
+        em = c["enmienda_operativa"]
+        self.assertEqual(em, dict(addendum.ENMIENDA_OPERATIVA))
+        self.assertIs(em["post_hoc"], True)
+        self.assertEqual((em["id"], em["decision"], em["sha256_anclado"], em["sha256_enmendado"]),
+                         ("EMC3", "D65", fijados.SHA_TEXTO_V2_3, umbrales.SHA_TEXTO_VIGENTE))
+        self.assertIn("sin costo final", em["lo_visto"].casefold())
+        self.assertIn("No se abrieron informes ni tablas de evidencia", em["lo_visto"])
+        self.assertIn("sí es enmienda", c["declaracion_c4_reloj"]["lectura_propuesta"])
+        self.assertNotIn("no es errata ni enmienda", c["declaracion_c4_reloj"]["lectura_propuesta"])
+        self.assertTrue(any(t["ruta"].endswith("v2.3.md") for t in c["textos_anteriores"]))
+        self.assertEqual(c["decisiones"][-1]["fuente"], "APH/" + addendum.DECISIONES[-1])
         fuentes = {f["ruta"]: f["sha256"] for f in c["fuentes"]}
         paquete = Path(__file__).resolve().parents[1]
         for nombre in (addendum.COORDINACION, addendum.DISENO):
@@ -243,7 +266,65 @@ class PruebasAddendum(_ConFuentes):
             sha = salidas.escribir(addendum.NOMBRE_JSON, c, clase="documento", raiz=m1, referencia=self.ref)
             self.assertEqual(_sha(m1 / addendum.NOMBRE_JSON), sha)
             salidas.escribir(addendum.NOMBRE_MD, md, clase="documento", raiz=m1, referencia=self.ref)
+            publicado = json.loads((m1 / addendum.NOMBRE_JSON).read_bytes())
+            self.assertEqual(publicado["enmienda_operativa"], dict(addendum.ENMIENDA_OPERATIVA))
+            self.assertIs(publicado["enmienda_operativa"]["post_hoc"], True)
+            self.assertEqual(publicado["declaracion_c4_reloj"], dict(addendum.DECLARACION_C4))
+            self.assertEqual(len(publicado["decisiones"]), 67)
+            self.assertEqual(publicado["preguntas_abiertas"], [])
+            publicado_md = (m1 / addendum.NOMBRE_MD).read_text()
+            self.assertIn("post_hoc: true", publicado_md)
+            self.assertIn(addendum.ENMIENDA_OPERATIVA["lo_visto"], publicado_md)
             self.assertEqual(ceguera.clase_de_ruta(f"{_M1}/{addendum.NOMBRE_JSON}"), "documento")
+
+    def test_declaraciones_rechazadas_por_lector_formato_y_publicacion(self):
+        """EMC3: cada entrada pública rechaza por sí misma declaraciones falsas; escribir tampoco deja un archivo."""
+        c = self._contenido()
+        md = addendum.addendum_md(c)
+        casos = []
+        for falso in (False, 1, 1.0, "true", None, []):
+            malo = json.loads(json.dumps(c))
+            malo["enmienda_operativa"]["post_hoc"] = falso
+            casos.append((f"post_hoc={falso!r}", malo, md.replace("- post_hoc: true", f"- post_hoc: {falso!r}")))
+        malo = json.loads(json.dumps(c)); del malo["enmienda_operativa"]
+        casos.append(("sin enmienda", malo, md.replace("## Enmienda operativa del producto (D65; §10)", "")))
+        malo = json.loads(json.dumps(c)); malo["enmienda_operativa"]["lo_visto"] = "No se vio nada."
+        casos.append(("lo visto falso", malo, md.replace(addendum.ENMIENDA_OPERATIVA["lo_visto"], "No se vio nada.")))
+        malo = json.loads(json.dumps(c)); malo["declaracion_c4_reloj"]["lectura_propuesta"] = "No es enmienda."
+        casos.append(("C4 incompatible", malo, md.replace(addendum.DECLARACION_C4["lectura_propuesta"], "No es enmienda.")))
+        with tempfile.TemporaryDirectory() as tmp:
+            rutas = entorno.rutas_sinteticas(tmp)
+            raiz = entorno.carpeta_salida(rutas, "m1", _SUB)
+            raiz.mkdir(parents=True)
+            alias_ = f"{_M1}/{addendum.NOMBRE_JSON}"
+            fichero = raiz / addendum.NOMBRE_JSON
+            for nombre, malo, md_malo in casos:
+                with self.subTest(caso=nombre):
+                    with self.assertRaises(addendum.ErrorAddendum):
+                        addendum.addendum_md(malo)
+                    fichero.write_bytes(entorno.json_canonico(malo))  # sólo datos fabricados: prueba del lector
+                    with self.assertRaises(V.ErrorConfiguracion):
+                        V.leer_addendum(alias_, rutas)
+                    fichero.unlink()
+                    for ruta, contenido in ((addendum.NOMBRE_JSON, malo),
+                                             (addendum.NOMBRE_JSON, entorno.json_canonico(malo)),
+                                             (addendum.NOMBRE_MD, md_malo),
+                                             (addendum.NOMBRE_MD + ".gz", gzip.compress(md_malo.encode()))):
+                        # La validación especializada debe bastar incluso sin la guarda documental genérica.
+                        with self.subTest(ruta=ruta), mock.patch.object(ceguera, "vigilar_salida"), \
+                                self.assertRaises(ceguera.SalidaProhibida):
+                            salidas.escribir(ruta, contenido, clase="documento", raiz=raiz, referencia=self.ref)
+                        self.assertFalse((raiz / ruta).exists())
+            # Orden de claves ajeno al de construcción: la declaración válida se formatea siempre igual.
+            ordenado = json.loads(entorno.json_canonico(c))
+            md_ordenado = addendum.addendum_md(ordenado)
+            inicio = "## Declaración sobre el C4 de RELOJ (§10; P122)"
+            fin = "## Lista cerrada de huellas (§10, M1)"
+            self.assertEqual(md_ordenado[md_ordenado.index(inicio):md_ordenado.index(fin)],
+                             md[md.index(inicio):md.index(fin)])
+            salidas.escribir(addendum.NOMBRE_JSON, c, clase="documento", raiz=raiz, referencia=self.ref)
+            self.assertEqual(V.leer_addendum(alias_, rutas)[0], c)
+            salidas.escribir(addendum.NOMBRE_MD, md, clase="documento", raiz=raiz, referencia=self.ref)
 
     def test_lo_que_falta_queda_pendiente(self):
         """ADD-6 y ADD-7: sin anexo, deriva, recorte, costo ni batería, todo «pendiente»; el recorte del costo manda;
@@ -262,7 +343,7 @@ class PruebasAddendum(_ConFuentes):
                         {"anexo_a2": {"ruta": "/tmp/anexo_a2.json", "sha256": _SHA_FALSO}},
                         {"bateria": {"carpeta": _M1, "resumen": resumen}},
                         {"bateria": {"carpeta": "LOCAL/meteo_combinada/v1/m1", "resumen": resumen, "aprobada": True}},
-                        {"lista": {k: v for k, v in self.lista.items() if "PROTOCOLO_METEO_COMBINADA_v2.3" not in k}}):
+                        {"lista": {k: v for k, v in self.lista.items() if "PROTOCOLO_METEO_COMBINADA_v2.4" not in k}}):
             with self.subTest(cambios=list(cambios)), self.assertRaises(addendum.ErrorAddendum):
                 self._contenido(**cambios)
         self.assertEqual(addendum.deriva_de_veredicto(addendum.veredicto_deriva({"B": True, "AB": False})),
@@ -284,9 +365,11 @@ class PruebasAddendum(_ConFuentes):
             linea = next(ln for ln in md.splitlines() if ln.startswith("- Costo: "))
             self.assertTrue(all(f"{f} {n}" in linea for fs in orquestacion.FASES_REPARTO.values() for f in fs))
         self.assertIn(addendum.DECLARACION_D59, md)
+        self.assertIn("post_hoc: true", md)
+        self.assertIn(addendum.ENMIENDA_OPERATIVA["lo_visto"], md)
         # la pared que se vuelve a proyectar decide el recorte de §4.9 (§8), así que D59 no cambia bits sólo por sí
         # mismo (P147)
-        for parte in ("por sí mismo (S9)", "§4.9", "desde la proyección", "costo_m1.json", "P147", "P146"):
+        for parte in ("por sí mismo (S9)", "§4.9", "desde la proyección", "costo_m1.json", "P147", "P146", "D65", "post_hoc = true"):
             self.assertIn(parte, addendum.DECLARACION_D59)
         self.assertNotIn("sólo la duración", addendum.DECLARACION_D59)
         primera = orquestacion.FASES_REPARTO["m34"][0]
@@ -311,7 +394,7 @@ class PruebasAddendum(_ConFuentes):
                 self._contenido(**cambios)
 
     def test_anexo_a2_del_texto_vigente(self):
-        """A32: ``anexo_a2.json`` sale de ``constantes.anexo_a2`` sobre el v2.3 y pasa la guarda del documento."""
+        """A32: ``anexo_a2.json`` sale de ``constantes.anexo_a2`` sobre el v2.4 y pasa la guarda del documento."""
         a2 = addendum.anexo_a2(_REALES)
         self.assertEqual(a2["texto_sha256"], umbrales.SHA_TEXTO_VIGENTE)
         ceguera.vigilar_salida("anexo_a2.json", a2, clase="documento", referencia=self.ref)
@@ -386,6 +469,67 @@ class PruebasExtraccion(unittest.TestCase):
         self.assertEqual(s["acuerdos"][0]["seccion"], "Ola 2 › Acuerdos de interfaces")
         with self.assertRaises(addendum.ErrorAddendum):                  # A2 sin A1
             addendum.secciones_coordinacion(texto.replace("- **A1. Uno.** texto\n", ""))
+
+
+class PruebasEnmienda3(unittest.TestCase):
+    """Sólo documentos y generación temporal: nunca ejecuta costo, S6 ni una batería."""
+
+    def test_fuentes_ausentes_no_se_dan_por_aprobadas(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch(__name__ + "._REALES", new=mock.Mock(aph=Path(tmp) / "APH_ausente")):
+                with self.assertRaises(unittest.SkipTest):
+                    self.test_generador_con_y_sin_optimizacion()
+
+    def test_generador_con_y_sin_optimizacion(self):
+        _exigir_textos()
+        carpeta = Path(_REALES.aph) / addendum.CARPETA_PRODUCTO
+        fuentes = (carpeta / "enmienda3/generar_v2_4.py", carpeta / "enmienda3/decisiones_autor_20261028.md",
+                   carpeta / "enmienda3_borrador/BORRADOR_ENMIENDA_3_PROCESOS.md",
+                   carpeta / "enmienda2/PROTOCOLO_METEO_COMBINADA_v2.3.md")
+        if any(not f.is_file() for f in fuentes):
+            self.skipTest("faltan fuentes EMC3; la prueba no se da por aprobada")
+        gen = Path(_REALES.aph) / addendum.CARPETA_PRODUCTO / "enmienda3/generar_v2_4.py"
+        texto = gen.with_name("PROTOCOLO_METEO_COMBINADA_v2.4.md").read_bytes()
+        self.assertEqual(hashlib.sha256(texto).hexdigest(), umbrales.SHA_TEXTO_VIGENTE)
+        codigo = r'''import importlib.util, pathlib, sys, tempfile
+spec = importlib.util.spec_from_file_location("gen", sys.argv[1])
+g = importlib.util.module_from_spec(spec); spec.loader.exec_module(g)
+def rechaza(accion):
+    try:
+        accion()
+    except SystemExit:
+        return
+    raise RuntimeError("la comprobación dejó pasar una mutación")
+if g.generar() != pathlib.Path(sys.argv[1]).with_name("PROTOCOLO_METEO_COMBINADA_v2.4.md").read_bytes():
+    raise RuntimeError("los bytes no coinciden")
+with tempfile.TemporaryDirectory(prefix="m1_emc3_") as tmp:
+    g.DESTINO = pathlib.Path(tmp) / "v24.md"
+    g.main()
+    rechaza(g.main)
+original = g.SHA_ORIGEN
+g.SHA_ORIGEN = "0" * 64
+rechaza(g.generar)
+g.SHA_ORIGEN = original
+original = g.REEMPLAZOS
+g.REEMPLAZOS = original + (("de RELOJ para lo que M1 cambie después de él.", "de RELOJ sin frontera."),)
+rechaza(g.generar)
+g.REEMPLAZOS = original
+for atributo in ("REGISTRO", "MEMORIA_NUEVA", "CAB_NUEVA"):
+    previo = getattr(g, atributo)
+    setattr(g, atributo, previo.replace("post_hoc = true", "post_hoc = false") if "post_hoc = true" in previo
+            else previo.replace("≤ 8 GB", "≤ 9 GB"))
+    g.REEMPLAZOS = tuple((a, getattr(g, atributo) if b == previo else b) for a, b in original)
+    rechaza(g.generar)
+    setattr(g, atributo, previo)
+    g.REEMPLAZOS = original
+print("comprobaciones activas")
+'''
+        for flags in ([], ["-O"]):
+            with self.subTest(flags=flags):
+                r = subprocess.run([sys.executable, "-B", "-I", *flags, "-c", codigo, str(gen)], capture_output=True,
+                                   text=True, timeout=60, check=False)
+                self.assertEqual(r.returncode, 0, r.stderr)
+                self.assertIn("comprobaciones activas", r.stdout)
 
 
 if __name__ == "__main__":

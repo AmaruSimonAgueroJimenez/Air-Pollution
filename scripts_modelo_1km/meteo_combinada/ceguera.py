@@ -1103,8 +1103,8 @@ def _comprobar_procedencia(nombre: str, contenido) -> None:
 
 
 # --- documento (CEG-18, D13) ---------------------------------------------------------------------------------------
-# Copia de umbrales.SHA_TEXTO_VIGENTE (v2.3, Enmienda 2): ceguera no importa umbrales; una prueba las compara.
-SHA_TEXTO_VIGENTE = "b4175f785ec57811702352d9d063164a5dce05f325a48c327a6d554a09ceddc2"
+# Copia de umbrales.SHA_TEXTO_VIGENTE (v2.4, Enmienda 3, D65; post_hoc): ceguera no importa umbrales; una prueba las compara.
+SHA_TEXTO_VIGENTE = "eaedb10998e1a3f37f83f036c478afb5cf3fd3ccb5262477bd394dc220b1908b"
 # Dónde pueden estar las fuentes de las lecturas, por componentes de la ruta por alias («*»: cualquier carpeta).
 RAICES_FUENTES = (("AP", "scripts_modelo_1km", "meteo_combinada"), ("APH", "auditoria", "*", "meteo_combinada"))
 _SUPERINDICES = "⁰¹²³⁴⁵⁶⁷⁸⁹"

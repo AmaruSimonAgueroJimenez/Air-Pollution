@@ -125,7 +125,10 @@ Lecturas propias (SLD-n), para el addendum de M1:
 - SLD-14. **El nombre de una salida** (H12): cada nombre relativo a la carpeta de la corrida tiene ya, al escribirse,
   la forma que exige ``sha256.json`` (sin espacios, decimales ni datos privados; la guarda de la procedencia de
   ``ceguera``), para no descubrirlo al sellar.
-Depende de: tipos, entorno, ceguera (umbrales, que el diseño permite, no hace falta). pyarrow, pandas y netCDF4 se
+- SLD-15. **Declaraciones EMC3 del addendum (D65).** Antes de escribir addendum_m1.json o .md (también .gz),
+  ``addendum`` valida las dos declaraciones exactas y post_hoc booleano True. La guarda documental general se conserva.
+  Dependencia técnica [delegada]: salidas → addendum, puro y sin dependencia inversa; ver §1 del diseño.
+Depende de: tipos, entorno, ceguera, addendum (umbrales, que el diseño permite, no hace falta). pyarrow, pandas y netCDF4 se
 cargan sólo al llamarse.
 """
 from __future__ import annotations
@@ -145,7 +148,7 @@ from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterator, Mapping
 
-from meteo_combinada import ceguera, entorno, tipos
+from meteo_combinada import addendum, ceguera, entorno, tipos
 from meteo_combinada.ceguera import SalidaProhibida
 
 # ---------------------------------------------------------------------------
@@ -742,6 +745,11 @@ def _comprobar_contenido(nombre: str, datos: bytes, *, clase: str, referencia) -
     """Privacidad (SLD-6), la guarda de la clase (``ceguera.vigilar_salida``) y los centinelas activos (SLD-7)."""
     _privacidad(nombre, datos)
     ceguera.vigilar_salida(nombre, datos, clase=clase, referencia=referencia)
+    if clase == "documento":
+        try:
+            addendum._validar_publicacion(nombre, datos)
+        except addendum.ErrorAddendum as e:
+            raise SalidaProhibida(f"{nombre}: {e}") from e
     with _CANDADO:
         guardas = list(_GUARDAS)
     for guarda in guardas:

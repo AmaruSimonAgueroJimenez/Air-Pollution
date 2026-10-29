@@ -3,12 +3,13 @@
 Notas del coordinador y de los implementadores para las olas siguientes y para el addendum de M1. Se agregan al final,
 por fecha, como `reloj_dmc/COORDINACION_C1.md`.
 
-- **Texto vigente:** `APH/auditoria/20261023/meteo_combinada/enmienda1/PROTOCOLO_METEO_COMBINADA_v2.2.md` (sha256
-  `f059c14c…`). **Manda el texto:** si difiere del diseño, gana el texto y la diferencia se anota aquí.
-- **Diseño:** `DISENO_IMPLEMENTACION_M1.md` (esta carpeta). **Decisiones del autor:** D1-D8 en
-  `APH/auditoria/20261023/meteo_combinada/enmienda1/decisiones_autor_20261026.md` y D9-D19 en
-  `APH/auditoria/20261023/meteo_combinada/m1/decisiones_autor_m1_20261026.md` (D11-D19 por delegación, marcadas
-  [delegada]: rigen igual mientras el autor no las cambie).
+- **Texto vigente del código (2026-10-28):** v2.4, `APH/auditoria/20261023/meteo_combinada/enmienda3/PROTOCOLO_METEO_COMBINADA_v2.4.md`
+  (eaedb109…). Enmienda 3 operativa adoptada por D65, `post_hoc = true`, pendiente de nuevo anclaje; se conserva el
+  v2.3 anclado (b4175f78…, APH dd6c1c6). **Manda el texto.**
+- **Diseño:** `DISENO_IMPLEMENTACION_M1.md`. **Decisiones:** D1-D8 en
+  `APH/auditoria/20261023/meteo_combinada/enmienda1/decisiones_autor_20261026.md`; D9-D64 en
+  `APH/auditoria/20261023/meteo_combinada/m1/decisiones_autor_m1_20261026.md`; D65-D67 en
+  `APH/auditoria/20261023/meteo_combinada/enmienda3/decisiones_autor_20261028.md`. No se alteran esas fuentes.
 - **Reglas de trabajo:** §0 del diseño. Un dueño por módulo y por su archivo de pruebas. Un cambio de `tipos.py` se pide
   al coordinador y se anota aquí; si cambia el comportamiento, va al addendum de M1.
 - **Preguntas para el autor:** en la sección «Preguntas para el autor» de cada ola, con cita y propuesta. Nadie decide
@@ -3535,3 +3536,169 @@ Validación de esta refijación: las pruebas de `test_fijados`, `test_particione
 paquete. La suite completa de 917 pruebas registrada para AP `b979586` sigue siendo la del cierre previo; no se afirma
 que se haya repetido después de esta actualización. La batería nocturna de sellado deberá usar el commit posterior a
 esta refijación y comprobar todas sus huellas; el costo y el addendum final siguen pendientes.
+
+## Enmienda 3 operativa: formalización de D59/D63/D64 por D65 (2026-10-28)
+
+El autor adoptó la formalización por §10, con `post_hoc = true`, y autorizó los pasos posteriores mediante D66-D67.
+La fuente nueva es `APH/auditoria/20261023/meteo_combinada/enmienda3/decisiones_autor_20261028.md`; no se agregan
+respuestas a fuentes anteriores. P79, P145 y P147 siguen cerradas. Esta tarea no ejecuta costo, batería, commit ni envío.
+
+### Alcance normativo y lo visto
+
+- EMC3-1: hasta ocho procesos por fase de M3-4/M5, el mayor número compatible con los topes del trabajador/principal y
+  con la memoria física del grupo. Si no cabe ni un trabajador, sigue bloqueado; reducir procesos no elimina el tope.
+- EMC3-2: el recorte se fija antes de M3-4 con la duración proyectada efectiva; se conserva la proyección con ocho y
+  se informa si daría otro recorte. No se afirma que reducir procesos sólo cambia duración: puede cambiar el recorte,
+  los días de selección y los resultados. S9 asegura igualdad para un recorte dado.
+- No cambian PROCESOS = 8, MEMORIA_MAX_GB = 8, el umbral de 36 h ni mód 11/mód 23. Anexos A/B, Referencias, §4.9 y §10
+  se conservan byte a byte. Tampoco se toca S6 ni la configuración de v2 (1bcb3ff4…).
+- Después del inicio del C4 de RELOJ: sí es enmienda operativa post_hoc del producto. Se vieron código, pruebas sintéticas,
+  ensayos preliminares de costo y S6 (ya congelada y ratificada en D58). No se vieron informes/evidencia del reloj ni
+  competencia meteorológica real para elegir estas reglas. No se abre ninguna salida de S6 ni del costo en esta tarea.
+
+### Código, documentos y esquema
+
+- En APH, sólo `enmienda3/`: `ENMIENDA_3.md`, `generar_v2_4.py` y v2.4 (eaedb109…). No se modifica el archivo de
+  decisiones. Generador: sha256 de origen/borrador/decisiones, reemplazos únicos, igualdad de bloques del diff y
+  resultado completo, marcas conservadas y SystemExit también con -O; nunca sobrescribe.
+- M1 usa v2.4 en `umbrales`, `ceguera`, `fijados` y las pruebas pertinentes. El v2.3 se conserva como historia y en la
+  lista cerrada. Se cambian citas/repeticiones de `constantes`, no valores. Verificación/completitud/repeticiones: cero
+  problemas. Se preserva la configuración v2 vigente y la clausura del reloj.
+- `addendum.DECISIONES` suma la fuente de D65-D67: 67 decisiones sin huecos, ninguna pregunta abierta. Se añaden
+  enmienda/generador/textos a su lista cerrada, sin cambiar fuentes ancladas.
+- La declaración C4 deja de negar genéricamente que las olas posteriores sean enmienda: exceptúa explícitamente
+  D59/D63/D64 formalizadas por D65. `enmienda_operativa` declara `post_hoc: true`, la fuente, el texto y la regla
+  anclados, los enmendados, lo visto y las prohibiciones conservadas. Esquema /2, sin cambios de firmas públicas;
+  el Anexo F sigue concordando con el código.
+- `verificar` rechaza metadatos ausentes, post_hoc falso o numérico, lo visto alterado y declaración C4 incompatible.
+  Las negativas de C5 para política post_hoc y errata posterior al C4 sin confirmar siguen pasando sus pruebas.
+
+### Validación y cierre
+
+Sólo pruebas dirigidas; el coordinador correrá la suite completa y la batería nocturna con costo después de confirmar
+código, anclaje y huellas. No se regenera `componentes_compartidos.json`. No se hacen commits ni envíos aquí, ni se
+escribe fuera de `meteo_combinada/` de AP y `enmienda3/` de APH (temporales propios de las pruebas, eliminados).
+
+### Pendiente técnico previo a la nocturna (no reabre preguntas)
+
+D65 exige el tope también en el principal. Se halló una discrepancia preexistente en la implementación del costo:
+`_procesos_que_caben` rechaza al trabajador que supera el tope y compara el grupo con la memoria física, pero no
+rechaza por sí mismo un principal sobre el tope. `_veredicto` sólo comprueba aparte `principal_m34_cabe`, no M5.
+Una llamada sintética con trabajador = tope/8, principal = tope + 1 y memoria física = 4·tope devuelve ocho procesos.
+No se midió memoria real. No se toca `costo.py` ni se decide una regla nueva: corresponde reconciliar la guarda con D65
+antes de dar por lista la batería nocturna. La formalización no asegura que ese caso esté ya protegido.
+
+### Pruebas dirigidas de esta formalización
+
+226 pruebas: 225 en verde, una omitida (huellas de datos reales) y ninguna falla. Se cubren addendum, generador con y sin
+-O, constantes/umbrales, ceguera, entorno, fijados, particiones, tipos, salidas, privacidad y anexo de firmas; además, las
+negativas del contenido del addendum y las de C5 post_hoc/errata sin confirmar. No se corre suite completa ni batería,
+ni S6 ni mediciones. El colector da D1-D67 y cero preguntas abiertas. No aparece bytecode nuevo en el paquete.
+
+**Huellas de la entrega inicial de formalización** (anteriores a la corrección del principal de M5; las posteriores se
+registran debajo. La de coordinación se informa aparte para evitar autorreferencia):
+- `DISENO_IMPLEMENTACION_M1.md` `942db15c05d939b06aab6f91957cd403369e5d888f6a24a54aeaf10184fc6185`
+- `__init__.py` `3418219a487520b716ca6744350a516bb268c95834d28af3f24e6971f73d6509`
+- `addendum.py` `55f46adcd9c7dbeab839de12ecf4b2b2fa2601443e7c29f124b98cb50232625e`
+- `ceguera.py` `a8fe8a2329cbba03a39c89e9ccd0d31a4b8a56c16b12ee071931460d8ef6829f`
+- `constantes.py` `8f9a2889063b808cf2418a258154f438f53c01ede5236983b3651b6951c47e36`
+- `fijados.py` `c8e36cdb2e2adb9e5d4ab6689d3925cf92ab3a8fb20fc23ba4d880948bab60ae`
+- `homogeneidad.py` `f910b76e624c6472587b1c1f90842d4bd78ce3ae7e7045b30a3efcafe9d5155a`
+- `politicas.py` `0e73444d6e4447a0d19427cc83f3242dffbdfb883b907b7d53fc9be46f3c5414`
+- `tests/test_addendum.py` `10f45b7f3aab94d21b60d476459ec4cf28886cfb2596bb1832aa8cbec9e7365b`
+- `tests/test_ceguera.py` `5ba039bbbe5d41bc512185aba2883495a8754654d5a69d6f23e084170a43b745`
+- `tests/test_constantes.py` `aaf70eef9e76dfd85549f78bd1c3f60ff8e7e00b45aeedefd88ccc750d0d6216`
+- `tests/test_entorno.py` `175fac62ff3c0dbb30df2161265f879bdf69b8039617dcf58fd43580b23e8b93`
+- `tests/test_meteo_combinada.py` `2667e4fe95e9efe688aee3a85c7d11984a486ebd06911d6d426420d1d61b8202`
+- `tests/test_particiones.py` `1e716a2cebea93445ea33c468c52f38a7d5d81d3bf037d7dab36f5e4225d9eb5`
+- `tests/test_politicas.py` `d88166a64289bab75ec080a41743a71878dfda0a0ea27b4ec80adde76e99c0c6`
+- `tests/test_salidas.py` `71eb2751c87abe98c7560ca8d8493ec31398bd7b2b5af27ef4d21b2ed80ac3f2`
+- `tests/test_tipos.py` `fece006ee18d32bd6a9aa72547028c41168b5d116c08b784459f99585a34ba6d`
+- `tests/test_umbrales.py` `6fa54b8781f17dee777f2a03b16817d5e1e13d2ccc134b1f8df4075ed9f486ef`
+- `tests/test_verificar_meteo_combinada.py` `c50e1ae3341a3d4347e67b4af07499d89eb446a74789b8aaa370e99a6602fc79`
+- `umbrales.py` `9131ae0d00002ccaae08e59fc13257d22c589ce5d3f3d9072152af6148e13a7e`
+- `verificar_meteo_combinada.py` `d655930f5d89336f640f3726e5f987cdf2e7de9e6d868900bcf440490aa8ef00`
+- `APH/auditoria/20261023/meteo_combinada/enmienda3/ENMIENDA_3.md` `b25a418f1f07b49176997eafedde320fe86fc61fc0e5cee61808c2d08c40a0ec`
+- `APH/auditoria/20261023/meteo_combinada/enmienda3/generar_v2_4.py` `043090e95a9ad98a910d8937eacc0aec2d057c7d3cb64518d4459d6377d5d526`
+- `APH/auditoria/20261023/meteo_combinada/enmienda3/PROTOCOLO_METEO_COMBINADA_v2.4.md` `eaedb10998e1a3f37f83f036c478afb5cf3fd3ccb5262477bd394dc220b1908b`
+
+### Corrección del tope del principal de M5 antes de la nocturna
+
+Al aplicar D65 se detectó que `_procesos_que_caben` rechazaba al trabajador sobre el tope, pero no al principal. El
+veredicto bloqueaba aparte un principal M3-4 excesivo; M5 podía admitirse si el grupo cabía en la memoria física.
+No se usó ningún pico real para modificar la guarda.
+
+Se agregaron primero dos pruebas: una del ayudante en el límite y un byte por encima, y otra con principal M5 sobre el
+tope pero trabajadores y grupo admisibles. Ambas fallaron con el código anterior, que devolvía ocho procesos. La
+condición pasa a rechazar si trabajador o principal superan el tope. Se conserva la igualdad exacta y la comparación de
+la suma del grupo con la memoria física. Las 31 pruebas de `test_costo` pasan con la corrección (146,100 s).
+
+Hubo una advertencia de compatibilidad binaria de NumPy en esa ejecución, sin fallas. No se alteró el entorno fijado ni
+se ocultó la advertencia. No cambiaron fórmulas de tiempo, escalas, factores, mediciones, muestras, S6 ni sus parámetros.
+Es una reconciliación de implementación con D65, no una nueva decisión científica. La suite completa y la batería de
+sellado deberán correr sobre el paquete posterior a esta corrección.
+
+Huellas posteriores a esa corrección:
+- `costo.py` `c18c27a857a63f564dc8bb6eb4d30d426b954fa29ecf143a3a2b6674826d45c4`
+- `tests/test_costo.py` `6fe99d1d87b60c0e23d5724cf10690f8dfcd429d3a772c79593e43b72d7607c3`
+- `APH/auditoria/20261023/meteo_combinada/enmienda3/ENMIENDA_3.md` `f9f78267751ba76ba51832a02b1e781ebad7485be5fee46e2b7551d6f92fe9fa`
+
+El texto consolidado v2.4 y las decisiones D65-D67 conservan sus huellas. La actualización posterior de este registro o
+cualquier archivo de la lista cerrada exige que la batería de sellado use esa versión final, no una anterior.
+
+## Correcciones acotadas de la revisión EMC3: lectura y publicación (2026-10-29)
+
+Se atendieron sólo los hallazgos 1, 2, 4 y 5. No se modifican orquestacion ni sus pruebas, costo ni sus pruebas ni S6.
+Se conserva la corrección del principal M5 realizada por el coordinador y su documentación; no se cambia v2.4 ni D65-D67.
+
+- **1, bloqueante.** La comprobación privada común de `addendum` exige las dos declaraciones exactas, el esquema
+  vigente y `post_hoc is True`, no igualdad numérica. La llaman el lector `leer_addendum`, el formateador `addendum_md`
+  y el escritor `salidas.escribir`, cada uno antes de aceptar o escribir. `_fallas_contenido` reutiliza esa comprobación.
+  Se rechazan False, 1, 1.0, 'true', None, [], ausencia de la enmienda, lo visto falso y declaración C4 incompatible.
+  La publicación comprueba JSON (también bytes) y el bloque Markdown canónico, incluyendo gzip. JSON repetido no es
+  válido; el orden de claves se normaliza para las declaraciones Markdown. Las guardas generales se conservan.
+- **Dependencia técnica [delegada].** salidas → addendum, sin dependencia inversa. Addendum es puro y depende sólo
+  de capas 0/1: pasa a capa 2; salidas pasa a capa 3. Se actualizan §1 y la prueba del grafo. No se cambia ningún
+  algoritmo científico ni firma pública. Se regeneró sólo el Anexo F por AST para reflejar la firma concurrente de
+  `repartir` con `registro`, que arregla otro agente; no se editó su código ni sus pruebas.
+- **2.** La lista obligatoria suma
+  `APH/auditoria/20261023/meteo_combinada/enmienda3_borrador/BORRADOR_ENMIENDA_3_PROCESOS.md`, con su sha256
+  3f38021d5a110ae450b79aa6c9aa16652be35f7025ce735c7a8a1cebb3bfed90 comprobada por prueba. No se altera el borrador.
+- **4.** `PruebasEnmienda3` verifica disponibilidad de texto y fuentes antes de leer; sin APH/fuentes, SkipTest y no
+  FileNotFoundError. Una prueba comprueba ese rechazo sin darse por omitida. No se agrega ninguna omisión permitida
+  a la batería: sin las fuentes no se puede aprobar M1.
+- **5.** `unittest.main` va al final. Descubrimiento y ejecución directa de `test_addendum.py` ejecutan las mismas
+  15 pruebas e incluyen `PruebasEnmienda3` y su generador.
+
+**Pruebas dirigidas finales:** 56 en verde, ninguna omitida y ninguna falla: addendum, salidas, grafo, firmas, privacidad,
+negativas del contenido y negativas de C5 post_hoc/errata. Aparte se comprobaron las dos entradas del archivo del addendum
+(descubrimiento y directo), ambas con 15 pruebas en verde. No se ejecutó suite completa, batería, costo ni S6.
+El v2.4, la enmienda documental actualizada por el coordinador, las decisiones y la configuración de v2 no se tocaron.
+Se conservan 67 decisiones y cero preguntas abiertas.
+
+## Recibos efectivos: cierre del hallazgo 3 de EMC3 (2026-10-29)
+
+El implementador corrigió sólo `orquestacion.py` y `tests/test_orquestacion.py`. `repartir` recibe un `registro` opcional,
+sin alterar su lista de resultados. La observación nace en la creación y asignación de trabajo, no en Cfg. Se propaga
+por las fases M3-4/M5 y por el sello tras una alarma. Un reparto vacío registra 0 procesos de ejecución/0 trabajadores;
+la ejecución en el principal, 1/0. Se separa el presupuesto, el detalle de llamadas, el máximo de procesos por fase y la
+suma de trabajadores creados. `alcance` es `repartos_de_esta_invocacion`: la reanudación cuenta lo pendiente de ese
+intento y las fases omitidas tienen 0 y detalle vacío. No se inventa un acumulado de intentos anteriores.
+
+El recibo rechaza límites por fase sin observaciones. Se usaron las claves enteras `procesos` y `unidades` ya admitidas;
+no se amplió ceguera. El registro normativo conserva el presupuesto del addendum, y las huellas analíticas no usan el
+entorno observado del recibo. La convención principal/trabajadores se documenta como precisión técnica [delegada].
+
+Prueba roja previa: el recibo aceptaba sólo límites y no lanzaba `ErrorOrquestacion`. Tras el arreglo, el implementador
+corrió 18 pruebas dirigidas aprobadas. El revisor independiente repitió 12 y seis reproducciones, con serialización,
+escritura/lectura, ceguera, vacío, 1/2/11 unidades, distintos límites y reanudación; todas pasaron. Los cierres 1/2/4/5
+mantienen su aprobación; los cinco hallazgos de código quedan cerrados, condicionados a la suite final y al costo.
+
+Huellas de los dos archivos: `orquestacion.py` 253eb120b49293da4d14fc1105382074ae5a31087888d271245c8b5ee1f67c78 y
+`tests/test_orquestacion.py` 950764fca444a386fa878864fda0bdf5c9958dd89b879200ba7600903ce6a949.
+
+Concordancia de firmas: la entrega inicial de `ENMIENDA_3.md` (f9f78267…) se conserva anclada en APH `ae670dd`, sello
+`b07791e`, enviados. Su frase sobre firmas describía la formalización inicial, no el arreglo final de recibos.
+`APH/auditoria/20261023/meteo_combinada/enmienda3/NOTA_FIRMAS_RECIBOS.md` (3fadd224…) precisa el ajuste técnico y se
+incluye como insumo obligatorio del addendum. El Anexo F se comprueba sobre las firmas finales. No se cambia el texto
+v2.4 ni D65-D67, S6 o sus parámetros por esta concordancia.

@@ -55,7 +55,7 @@ ETIQUETA = "HUMAN20261027_METEO_COMB_1"
 CASA_PRUEBA = "meteo_combinada_prueba_inexistente"
 # Un texto sintético para los documentos (D13): cita el vocabulario de S7 y sus números; su huella reemplaza a la del
 # texto vigente sólo al construir la referencia (como test_ceguera).
-TEXTO_SINTETICO = ("# Producto sintético, texto v2.3\n"
+TEXTO_SINTETICO = ("# Producto sintético, texto v2.4\n"
                    "§5.7: «el fondo ERA5-Land reescalado … las cotas de TF1 son 0,05/0,15 K».\n"
                    "La corrección R_T no se resume y «sin DMC» no se estima.\n")
 SHA_SINTETICO = hashlib.sha256(TEXTO_SINTETICO.encode("utf-8")).hexdigest()

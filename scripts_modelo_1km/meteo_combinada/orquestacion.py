@@ -327,15 +327,15 @@ Lecturas propias (ORQ-n), para el addendum de M1:
   cada fase). En el sintético es None. Cada ``repartir`` de esas fases usa mín(procesos, n) (``_procesos_de_fases``);
   con None, ``procesos``, como antes. M6 sigue con ``Cfg.procesos``, porque D59 no lo nombra. El registro de M3-4 lleva
   «procesos_por_fase» = el de ``Cfg`` (el del addendum; null en el sintético), que no cambia entre 1, 2 y 8 procesos.
-  El recibo de M3-4 y el de M5 llevan en su entorno, además de «procesos», los procesos con que corrió cada una de sus
-  fases que reparten (mín(procesos, n); ``repartir`` no lanza más trabajadores que unidades), como «procesos_por_fase»:
-  {fase: {«procesos»: n}}, porque la guarda de la procedencia (CEG-11, sin cambios) sólo admite enteros bajo sus claves
-  de conteo. No entra en la huella de la corrida (ORQ-8): una corrida cortada se reanuda con otros procesos por fase y
-  salta lo hecho. Ningún bit cambia (S9): con 3 procesos y topes de 1 y 2 en las cinco fases (el mínimo nunca es
-  ``procesos``), M3-4 y M5 dan los mismos bytes que con 1 proceso y sin ellos, salvo esa clave del registro, y M6, con
-  todos los topes en 1 y ``Cfg.procesos`` = 2, reparte con 2. Diferencia con la ola 6: el registro de M3-4 suma la clave
-  «procesos_por_fase» (null en el sintético), y el recibo, la de los procesos de cada fase; los demás archivos son los
-  mismos bytes.
+  EMC3-1 (D65): el recibo de M3-4 y el de M5 separa el «presupuesto» del uso observado en ``repartir``. Su entorno
+  lleva «procesos_por_fase»: el máximo de procesos de ejecución de cada fase, la suma de trabajadores creados y el
+  detalle ordenado de sus repartos (unidades pendientes, límite, procesos de ejecución y trabajadores creados).
+  Un reparto en el principal cuenta 1 proceso y 0 trabajadores; vacío, 0 y 0. Una fase sin llamadas cuenta 0.
+  «procesos» del entorno es el máximo de los repartos, no el límite configurado ni la suma de trabajadores de
+  llamadas sucesivas. El alcance explícito es esta invocación, no un acumulado de intentos anteriores: al reanudar
+  sólo se observa el trabajo pendiente. Los conteos se anidan bajo las claves admitidas por CEG-11, sin ampliarlas.
+  No entra en la huella de la corrida (ORQ-8), ni cambia el presupuesto fijo del registro normativo de M3-4.
+  Ningún bit científico cambia (S9); los recibos sí pueden diferir. M6 sigue con ``Cfg.procesos``.
 Preguntas para el autor (P-ORQ-n; rige la más estricta): P-ORQ-1 (ORQ-19: §5.6 no se cumple entero mientras tanto;
 propuesta: las coordenadas de las estaciones SINCA salen de «estaciones» de ``pliegues_v2_red2.json``, por código, y
 las que no están ahí se declaran sin comparación); P-ORQ-2, resuelta (ORQ-30); P-ORQ-3, las dos pasadas de ORQ-23
@@ -1122,18 +1122,26 @@ def _cerrar(procesos, pgid: int | None, *, matar: bool) -> None:
 
 
 def repartir(unidades, funcion, procesos: int, *, contexto=_SIN_CONTEXTO, al_terminar: Callable | None = None,
-             permitidas: Sequence[str] = ()) -> list:
+             permitidas: Sequence[str] = (), registro: list[dict] | None = None) -> list:
     """Resultados en el orden de las unidades (ORQ-10).
 
     ``funcion(unidad)`` o, con ``contexto``, ``funcion(unidad, contexto)``: una función de módulo (se pasa por
     referencia a los trabajadores) que no escribe. ``al_terminar(i, resultado)`` se llama en este proceso, en el orden de
-    las unidades, y lo que devuelve reemplaza al resultado en la lista. Con ``procesos`` = 1, todo corre aquí."""
+    las unidades, y lo que devuelve reemplaza al resultado en la lista. Con ``procesos`` = 1, todo corre aquí.
+    ``registro`` recibe una observación por llamada (EMC3-1): unidades pendientes, límite y procesos que reciben
+    trabajo, separados de los trabajadores creados. En el principal cuenta 1 y 0 trabajadores; sin unidades, 0 y 0.
+    Los conteos se actualizan al crear y asignar, incluso si después falla o se interrumpe el reparto."""
     unidades = list(unidades)
     if isinstance(procesos, bool) or not isinstance(procesos, int) or procesos < 1:
         raise ErrorOrquestacion("procesos: un entero ≥ 1")
     entorno.fijar_hilos()
     salida: list = [None] * len(unidades)
+    uso = {"unidades": len(unidades), "limite": {"procesos": procesos}, "procesos": 0,
+           "trabajadores_creados": {"procesos": 0}}
+    if registro is not None:
+        registro.append(uso)
     if procesos == 1 or len(unidades) <= 1:
+        uso["procesos"] = int(bool(unidades))
         # H18: con un proceso, las unidades corren con el mismo bloqueo que en un trabajador
         with ceguera.RegistroAccesos(("/Volumes",), bloquear=True, permitidas=tuple(permitidas)), ceguera.SinRed():
             for i, u in enumerate(unidades):
@@ -1159,6 +1167,7 @@ def repartir(unidades, funcion, procesos: int, *, contexto=_SIN_CONTEXTO, al_ter
                                  stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, bufsize=0,
                                  env=_entorno_hijos(), process_group=0 if pgid is None else pgid)
             lanzados.append(p)
+            uso["trabajadores_creados"]["procesos"] = len(lanzados)
             if pgid is None:
                 pgid = p.pid
             _enviar(p.stdin, cuerpo=inicial)
@@ -1176,6 +1185,7 @@ def repartir(unidades, funcion, procesos: int, *, contexto=_SIN_CONTEXTO, al_ter
             if pendientes:
                 i = pendientes.pop()
                 _enviar(p.stdin, (i, unidades[i]))
+                uso["procesos"] += 1
                 sel.register(p.stdout, selectors.EVENT_READ, p)
         activos = len(sel.get_map())
         while activos:
@@ -1299,10 +1309,20 @@ def _numeros_python(obj):
     return obj
 
 
-def _entorno_recibo(procesos: int, fases: Mapping[str, int] | None = None) -> dict:
-    """El entorno del recibo: las versiones fijadas y los procesos; con ``fases`` (M3-4 y M5), además los procesos con
-    que corrió cada fase que reparte (ORQ-45, D59: mín(procesos, n)), como {fase: {"procesos": n}}: la guarda de la
-    procedencia (CEG-11) sólo admite enteros bajo sus claves de conteo, y «procesos» es una."""
+def _entorno_recibo(procesos: int, fases: Mapping[str, int] | None = None, *,
+                    repartos: Mapping[str, Sequence[Mapping]] | None = None) -> dict:
+    """Versiones y uso efectivo de los repartos de esta invocación (EMC3-1; no acumula intentos anteriores).
+
+    En M3-4/M5, ``fases`` son límites, nunca observaciones: exige ``repartos`` recogidos por ``repartir``. «procesos»
+    resume el máximo por reparto (no suma concurrencia ni incluye al principal cuando sólo coordina); cada fase
+    conserva el detalle y la suma de trabajadores creados entre sus llamadas. Una fase omitida por avance da 0 y
+    detalle vacío. El presupuesto queda aparte; nada de esto entra en registros normativos ni huellas de entrada.
+    Los conteos de trabajadores y límites se anidan bajo «procesos», admitida por CEG-11, sin ampliar su lista.
+    Sin ``fases`` se conserva el entorno de M2a/M6."""
+    if fases is not None and (repartos is None or set(repartos) != set(fases)):
+        raise ErrorOrquestacion("el recibo exige repartos observados para cada fase; los límites no son uso efectivo")
+    if fases is None and repartos is not None:
+        raise ErrorOrquestacion("repartos sin los límites de sus fases")
     import numpy
     import pandas
     import pyarrow
@@ -1311,7 +1331,15 @@ def _entorno_recibo(procesos: int, fases: Mapping[str, int] | None = None) -> di
               "numpy": numpy.__version__, "pyarrow": pyarrow.__version__, "scipy": scipy.__version__,
               "procesos": int(procesos)}
     if fases is not None:
-        salida["procesos_por_fase"] = {fase: {"procesos": int(n)} for fase, n in fases.items()}
+        salida["presupuesto"] = {"procesos": int(procesos), "procesos_por_fase": {
+            fase: {"procesos": int(n)} for fase, n in fases.items()}}
+        salida["alcance"] = "repartos_de_esta_invocacion"
+        salida["procesos_por_fase"] = {
+            fase: {"procesos": max((r["procesos"] for r in repartos[fase]), default=0),
+                   "trabajadores_creados": {"procesos": sum(r["trabajadores_creados"]["procesos"]
+                                                           for r in repartos[fase])},
+                   "repartos": _a_plano(repartos[fase])} for fase in fases}
+        salida["procesos"] = max((r["procesos"] for r in salida["procesos_por_fase"].values()), default=0)
     return salida
 
 
@@ -2219,7 +2247,8 @@ def correr_m34(cfg, *, avance, procesos: int) -> dict:
         lecturas[c] = politicas.politicas_de_lectura(pol, infos[c], tramos, U, sha_protocolo=U.sha256_texto_vigente,
                                                      sha_catalogo=sha_catalogo)
     fases.append("politicas_de_lectura")
-    por_fase = _procesos_de_fases(cfg, "m34", procesos)         # ORQ-45 (D59): los de cada fase que reparte
+    por_fase = _procesos_de_fases(cfg, "m34", procesos)         # ORQ-45 (D59): límites, no procesos observados
+    repartos = {fase: [] for fase in por_fase}                # EMC3-1: sólo esta invocación, tras filtrar el avance
     # 2-4. por estación (ORQ-11); ORQ-44: el fondo de cada estación, como referencia (se lee donde se usa)
     fondo_ref: dict[str, _Ref | None] = {}
     for c in infos:
@@ -2260,7 +2289,7 @@ def correr_m34(cfg, *, avance, procesos: int) -> dict:
         avance.registrar("artefactos", f"estacion-{c}", unidades[i]["entrada"], {nombre: sha})
         return None
     repartir(unidades, _unidad_estacion, por_fase["artefactos"], contexto=ctx_est, al_terminar=al_terminar_estacion,
-             permitidas=cfg.permitidas)
+             permitidas=cfg.permitidas, registro=repartos["artefactos"])
     fases.append("artefactos")
     # lo de cada estación, leído del disco (ORQ-8); ORQ-44: de cada tabla ancha quedan sus metadatos y su referencia
     efectivas_de, resultados_art, nums, dens, sin_traslado = {}, [], [], [], []
@@ -2302,7 +2331,7 @@ def correr_m34(cfg, *, avance, procesos: int) -> dict:
                      "procesos_por_fase": _a_plano(cfg.procesos_por_fase)}       # ORQ-45 (D59): los del addendum
     if resumen.get("detener"):
         r = _sellar_m34(cfg, avance, m2a, base_registro | {"detenida": True, "fases": fases}, efectivas, None,
-                        huellas_salida, procesos, huella_manifiestos, por_fase)
+                        huellas_salida, procesos, huella_manifiestos, por_fase, repartos=repartos)
         raise DetencionPorAlarma("M3-4 se detiene por una alarma de §2.7 (qc/resumen_qc.json)", r)
     # 6. residuos, tramos homogéneos, A y filas de C (MC-45); ORQ-44: de a una estación, con sólo las columnas de la
     # tabla ancha que se usan, y con ellas las horas válidas (TEN-1; A24: una sola vez para validacion y tendencias)
@@ -2385,7 +2414,7 @@ def correr_m34(cfg, *, avance, procesos: int) -> dict:
     unidades_sel = [{"pliegue": p, "selecciones": sel_pliegue} for p in pliegues]
     unidades_sel.append({"pliegue": produccion, "selecciones": sel_prod, "produccion": True})
     resultados = repartir(unidades_sel, _unidad_seleccion, por_fase["seleccion_y_prediccion"], contexto=ctx_sel,
-                          permitidas=cfg.permitidas)
+                          permitidas=cfg.permitidas, registro=repartos["seleccion_y_prediccion"])
     hiper_prod = resultados[-1]
     por_pliegue = resultados[:-1]
     fases.append("seleccion_y_prediccion")
@@ -2445,7 +2474,7 @@ def correr_m34(cfg, *, avance, procesos: int) -> dict:
         ctx_tf = {"U": U, "clave_pasada": clave_pasada, "args_pasada": args_pasada, "h_ultima": _h_ultima(cfg),
                   "e0": e0}
         res_tf = repartir(unidades_tf, _unidad_mes_tf, por_fase["tendencias_y_finitud"], contexto=ctx_tf,
-                          permitidas=cfg.permitidas)
+                          permitidas=cfg.permitidas, registro=repartos["tendencias_y_finitud"])
         medias = pasada.acumular([r["sumas"] for r in res_tf if "sumas" in r])
         por_uso_tf[pasada_uso] = tendencias.resultados_tf(medias, U)
         renormalizadas[f"celdas_{pasada_uso}"] = int(sum(r["renormalizadas"] for r in res_tf))
@@ -2536,7 +2565,7 @@ def correr_m34(cfg, *, avance, procesos: int) -> dict:
     registro = base_registro | {"sinca": sinca, "fases": [*fases, "sello"], "renormalizadas": renormalizadas,
                                 "ganadores": {f"{d.uso.value}/{d.grupo.value}": d.ganador for d in decisiones}}
     return _sellar_m34(cfg, avance, m2a, registro, efectivas, registro_dec, huellas_salida, procesos,
-                       huella_manifiestos, por_fase)
+                       huella_manifiestos, por_fase, repartos=repartos)
 
 
 def _unidad_seleccion(unidad: Mapping, ctx: Mapping):
@@ -2704,7 +2733,8 @@ def _sinca(cfg: Cfg) -> dict:
 
 
 def _sellar_m34(cfg, avance, m2a, registro, efectivas, registro_dec, huellas_salida, procesos,
-                huella_manifiestos, por_fase: Mapping[str, int] | None = None) -> dict:
+                huella_manifiestos, por_fase: Mapping[str, int] | None = None, *,
+                repartos: Mapping[str, Sequence[Mapping]] | None = None) -> dict:
     """§2.5, paso 12: la política efectiva (si no se escribió antes, H10), el registro y el sello (``sha256.json`` y el
     recibo, con los procesos de cada fase que reparte, ORQ-45), con la huella agregada de los manifiestos (H9)."""
     from meteo_combinada import politicas
@@ -2715,7 +2745,7 @@ def _sellar_m34(cfg, avance, m2a, registro, efectivas, registro_dec, huellas_sal
         **dict(sorted(cfg.huellas.items())), **m2a["huellas"], **huella_manifiestos}}))
     sha_reg = _escribir(avance, REGISTRO_M34, registro)
     recibo = salidas.sellar_corrida(avance.carpeta, {**dict(cfg.huellas), **m2a["huellas"], **huella_manifiestos},
-                                    _entorno_recibo(procesos, por_fase), rutas=cfg.rutas)
+                                    _entorno_recibo(procesos, por_fase, repartos=repartos), rutas=cfg.rutas)
     return {"registro": registro, "registro_sha256": sha_reg, "decision": registro_dec, "recibo_sha256": recibo,
             "carpeta": avance.carpeta}
 
@@ -3446,7 +3476,8 @@ def _anios_de_paneles(cfg: Cfg) -> dict:
     return salida
 
 
-def _correr_anual(cfg: Cfg, avance: Avance, p: Mapping, ctx: Mapping, base: str, procesos: int) -> dict:
+def _correr_anual(cfg: Cfg, avance: Avance, p: Mapping, ctx: Mapping, base: str, procesos: int, *,
+                  registro: list[dict] | None = None) -> dict:
     """ORQ-23: las unidades anuales (una por año UTC de ``meses_era5l`` y, con laterales, de los paneles; en orden) y su
     escritura en este proceso, en el orden de las unidades. Devuelve {año: línea de avance.jsonl}."""
     from meteo_combinada import ambiental, salud
@@ -3497,7 +3528,8 @@ def _correr_anual(cfg: Cfg, avance: Avance, p: Mapping, ctx: Mapping, base: str,
         archivos = {n: _escribir(avance, n, c, esquema=e, metadatos=m) for n, c, e, m in escritos}
         avance.registrar("anual", f"anio-{anio}", u["entrada"], archivos)
         return None
-    repartir(unidades, _unidad_anio, procesos, contexto=ctx, al_terminar=al_terminar, permitidas=cfg.permitidas)
+    repartir(unidades, _unidad_anio, procesos, contexto=ctx, al_terminar=al_terminar, permitidas=cfg.permitidas,
+             registro=registro)
     for u in unidades:
         registros[u["anio"]] = avance.hecha("anual", f"anio-{u['anio']}", u["entrada"]) or {"archivos": {}}
     return dict(sorted(registros.items()))
@@ -3548,7 +3580,8 @@ def correr_m5(cfg, *, avance, procesos: int) -> dict:
 
     U = cfg.U
     fases: list[str] = []
-    por_fase = _procesos_de_fases(cfg, "m5", procesos)          # ORQ-45 (D59, P146): los de cada fase que reparte
+    por_fase = _procesos_de_fases(cfg, "m5", procesos)          # ORQ-45 (D59, P146): límites
+    repartos = {fase: [] for fase in por_fase}                # EMC3-1: observaciones de esta invocación
     # 1. negativas (H5, H7)
     if avance.compuerta != "m5":
         raise ErrorOrquestacion("M5 sigue el avance.jsonl de su M3-4 con su línea de compuerta (abrir_avance(cfg, "
@@ -3586,7 +3619,7 @@ def correr_m5(cfg, *, avance, procesos: int) -> dict:
         unidades = [{"mes": m, "ruta": str(ruta_de_alias(cfg.rutas, a)), "sha256": _exigir_huella(cfg, a),
                      "pixeles": unicos} for m, a in meses]
         res = repartir(unidades, _unidad_t2m, por_fase["representatividad"], contexto={"h_ultima": _h_ultima(cfg)},
-                       permitidas=cfg.permitidas)
+                       permitidas=cfg.permitidas, registro=repartos["representatividad"])
         h = np.concatenate([r["h"] for r in res])
         t2m = np.concatenate([r["t2m"] for r in res], axis=0)
         obs, serie = {}, {}
@@ -3627,7 +3660,7 @@ def correr_m5(cfg, *, avance, procesos: int) -> dict:
                           operador_ref=_ref_de_archivo(carpeta, OPERADOR_GRILLA, sha_op))
     registros = _correr_anual(cfg, avance, p, ctx, _huella_unidad(base=base, excluidas=sha_excl, operador=sha_op,
                                                                   productos=[_clave_producto(x) for x in productos]),
-                              por_fase["anual"])
+                              por_fase["anual"], registro=repartos["anual"])
     fases.append("anual")
     # 6. las laterales enteras (ORQ-27)
     laterales = _ensamblar_laterales(avance, registros)
@@ -3650,7 +3683,7 @@ def correr_m5(cfg, *, avance, procesos: int) -> dict:
     # 8. sello (§8, «Cadena de huellas»; SLD-10: el recibo de M3-4 y su sha256.json se archivan y el nuevo los cita)
     _OPERADORES.clear()
     recibo = salidas.sellar_corrida(carpeta, {**dict(cfg.huellas), **p["m2a"]["huellas"]},
-                                    _entorno_recibo(procesos, por_fase), rutas=cfg.rutas)
+                                    _entorno_recibo(procesos, por_fase, repartos=repartos), rutas=cfg.rutas)
     fases.append("sello")
     archivos = {EXCLUIDAS: sha_excl, OPERADOR_GRILLA: sha_op, CRONICO_ANUAL: sha_cro, **laterales,
                 **{n: s for r in registros.values() for n, s in r["archivos"].items()}}

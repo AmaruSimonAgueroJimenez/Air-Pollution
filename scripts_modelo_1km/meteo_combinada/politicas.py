@@ -98,7 +98,7 @@ Lecturas propias (POL-n), para el addendum de M1:
   UMB-11). QFE de float(p_std(z_s)) + ``QQFE_BAJO`` a float(p_std(z_s)) + ``QQFE_ALTO`` (``numerico.p_std``), sólo con
   la z_s del catálogo (K3 pasa y ``z_s_fuente`` = «catalogo»); si no, QFE queda sin regla (§2.3 y MC-11). RR06 y QNH sin
   regla ``quality``.
-- POL-8. ``sha_protocolo`` debe ser el del texto vigente (``Umbrales.sha256_texto_vigente``, b4175f78…, el v2.3), y
+- POL-8. ``sha_protocolo`` debe ser el del texto vigente (``Umbrales.sha256_texto_vigente``, eaedb109…, el v2.4), y
   ``sha_catalogo`` un sha256 en minúscula.
 - POL-9. **Política efectiva** (MC-53; acuerdo A5). Los meses de corte son los de todos los quiebres de K4, más el
   último traslado y el último barómetro. El corte del mes k va en la etiqueta L_k = u_k + ``fixed_offset_minutes`` del

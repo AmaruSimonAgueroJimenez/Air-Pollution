@@ -1,7 +1,7 @@
-"""Producto meteorológico combinado ERA5-Land + DMC (protocolo v2.3; compuerta M1).
+"""Producto meteorológico combinado ERA5-Land + DMC (protocolo v2.4; compuerta M1).
 
 Paquete del código de M1. Manda el texto del protocolo
-(``APH/auditoria/20261023/meteo_combinada/enmienda2/PROTOCOLO_METEO_COMBINADA_v2.3.md``); este código lo
+(``APH/auditoria/20261023/meteo_combinada/enmienda3/PROTOCOLO_METEO_COMBINADA_v2.4.md``); este código lo
 implementa y ``DISENO_IMPLEMENTACION_M1.md`` fija módulos, firmas y pruebas.
 
 Al importarse, y sin ninguna E/S:

@@ -84,8 +84,8 @@ Lecturas propias (HOM-n), para el addendum de M1:
   D(k) en el tramo es el mismo que en todo el registro: tomar las ventanas en todo el registro es una mutación
   equivalente y no lleva prueba propia.
   **Texto vigente.** El código sigue EMC2-1 desde su adopción (D52). Desde el anclaje de la Enmienda 2 (APH
-  ``dd6c1c6``, sello ``e3f9f97``), ``umbrales.TEXTO_VIGENTE`` y sus copias en ``ceguera`` y ``fijados`` son el v2.3
-  (b4175f78…).
+  ``dd6c1c6``, sello ``e3f9f97``), ``umbrales.TEXTO_VIGENTE`` y sus copias en ``ceguera`` y ``fijados`` son ahora el v2.4
+  (eaedb109…; EMC3 no cambia K4).
 - HOM-8. **Salida de K4.** ``quiebres`` en orden de (mes, estadístico); ``ultimo_traslado`` y ``ultimo_barometro``
   son el mayor k de cada clase (las marcas 1 y 16 van en las horas con mes2000 < k; A4). ``sin_prueba`` (marca 21) es
   «sin QFE válida» en todo el registro (A4); entonces no hay quiebres. Con QFE pero sin p_F en ninguna hora (estación

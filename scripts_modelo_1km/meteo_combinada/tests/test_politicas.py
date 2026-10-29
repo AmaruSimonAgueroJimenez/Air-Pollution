@@ -799,7 +799,7 @@ class PruebasPoliticas(unittest.TestCase):
                         politicas.coordenadas_inconsistentes(registro, ap=ap)
 
     def test_source_con_huellas(self):
-        """Textos source de §2.5 con el sha256 del catálogo y del protocolo vigente (v2.3)."""
+        """Textos source de §2.5 con el sha256 del catálogo y del protocolo vigente (v2.4)."""
         U = _umbrales(self)
         texto = (APH / umbrales.TEXTO_VIGENTE).read_bytes()
         if hashlib.sha256(texto).hexdigest() != umbrales.SHA_TEXTO_VIGENTE:

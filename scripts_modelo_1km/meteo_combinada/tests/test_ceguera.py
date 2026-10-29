@@ -61,9 +61,9 @@ _APH = _RAIZ.parent.parent / "Air-Pollution-Health-Chile"
 _VIGENTE = _APH / umbrales.TEXTO_VIGENTE
 _ALIAS_VIGENTE = "APH/" + umbrales.TEXTO_VIGENTE
 # Un texto sintético que cita el vocabulario de S7 y números en las formas del texto (CEG-18). Lleva la versión del
-# texto vigente (hoy el v2.3), porque los documentos citan su ruta (``_ALIAS_VIGENTE``) y la versión es un número.
+# texto vigente (hoy el v2.4), porque los documentos citan su ruta (``_ALIAS_VIGENTE``) y la versión es un número.
 TEXTO_SINTETICO = (
-    "# Producto sintético, texto v2.3\n"
+    "# Producto sintético, texto v2.4\n"
     "§5.7: «el fondo ERA5-Land reescalado … las cotas de TF1 son 0,05/0,15 K, con ≥ 10 estaciones en 2000-2009».\n"
     "La corrección R_T no se resume y «sin DMC» no se estima. A 2.500 m; el 10⁻⁶ de A; «½·σ²»; ≈ 2,0·10¹¹ "
     "celda-horas; 1e-9 en S14; semilla 20261023.\n")

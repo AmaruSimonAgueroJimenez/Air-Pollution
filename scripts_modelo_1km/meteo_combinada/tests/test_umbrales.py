@@ -1,6 +1,6 @@
 """Pruebas de umbrales.py (Anexo A, §4.3 del diseño) y el detector de literales (§4.5).
 
-Dueño: I2 (ola 1). Leen, sin escribir, el texto de M0 (v2.1), el vigente (v2.3), el JSON de umbrales y
+Dueño: I2 (ola 1). Leen, sin escribir, el texto de M0 (v2.1), el vigente (v2.4), el JSON de umbrales y
 ``m0/preparar_m0.py`` de APH, cada uno con su sha256, y el Anexo P de ``DISENO_IMPLEMENTACION_M1.md``; si falta un
 archivo, se omiten con el motivo y no se dan por aprobadas. Correr desde scripts_modelo_1km con
   ~/micromamba/envs/amb_v2/bin/python -B -m unittest discover -s meteo_combinada/tests -t .
@@ -82,7 +82,7 @@ def _anexo_p() -> dict[str, list[str]]:
 class PruebasM1Umbrales(_ConM0):
     def test_json_regenerado_byte_a_byte(self):
         """§4.3, punto 1: desde el v2.1 (su fuente declarada) el JSON sale igual byte a byte (156587f1…); m-8: el
-        Anexo A del texto vigente (v2.3) es idéntico, y regenerar desde él sólo cambia generado_desde."""
+        Anexo A del texto vigente (v2.4) es idéntico, y regenerar desde él sólo cambia generado_desde."""
         self.assertEqual(hashlib.sha256(self.bytes_json).hexdigest(), umbrales.SHA_JSON_M0)
         regenerado = self.regenerado()
         self.assertEqual(umbrales.serializar(regenerado), self.bytes_json)

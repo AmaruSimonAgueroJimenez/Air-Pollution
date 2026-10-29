@@ -3,7 +3,18 @@
 **Qué es.** El plan para escribir, entre varios implementadores en paralelo, el código del «Producto meteorológico combinado
 ERA5-Land + DMC» y sus pruebas S1 a S16, sin datos DMC. Es la compuerta M1 del protocolo (§10).
 
-**Texto vigente (desde el 2026-10-27).** `APH/auditoria/20261023/meteo_combinada/enmienda2/PROTOCOLO_METEO_COMBINADA_v2.3.md`
+**Texto vigente de M1 (Enmienda 3 adoptada el 2026-10-28 y anclada el 2026-10-29).**
+`APH/auditoria/20261023/meteo_combinada/enmienda3/PROTOCOLO_METEO_COMBINADA_v2.4.md`, sha256
+`eaedb10998e1a3f37f83f036c478afb5cf3fd3ccb5262477bd394dc220b1908b`. D65 formaliza D59/D63/D64 como Enmienda 3 operativa,
+`post_hoc = true` por §10: posterior al inicio del C4 de RELOJ, sin competencia meteorológica real vista. Anclaje del texto:
+APH `ae670dd`, sello `b07791e`, enviados al remoto privado. El v2.3 se conserva como antecedente. Esto no sella M1:
+no se lanza la batería de costo hasta confirmar el paquete final y comprobar sus precondiciones.
+
+**Fuente de D65-D67:** `APH/auditoria/20261023/meteo_combinada/enmienda3/decisiones_autor_20261028.md`, tercer archivo que
+suma el colector, sin modificar los anteriores. D1-D8 y D9-D64 se conservan en sus rutas; D1-D67 sin huecos. P79, P145,
+P146 y P147 siguen cerradas. D66 y D67 autorizan los pasos posteriores, no son una ejecución ni un envío en esta tarea.
+
+**Historia: texto vigente desde el 2026-10-27 hasta esta formalización.** `APH/auditoria/20261023/meteo_combinada/enmienda2/PROTOCOLO_METEO_COMBINADA_v2.3.md`
 (sha256 `b4175f78…`): el v2.2 con la Enmienda 2 del producto (EMC2-1, la coincidencia de T2a y T2b en K4, §2.5; decisiones
 D52, D55 y D56; APH `dd6c1c6`, sello `e3f9f97`). El v2.2
 (`APH/auditoria/20261023/meteo_combinada/enmienda1/PROTOCOLO_METEO_COMBINADA_v2.2.md`, sha256 `f059c14c…`) es el v2.1 de M0
@@ -17,6 +28,15 @@ Anexo A. Tabla de anclaje: `m0/tabla_anclaje_m0.json`; huellas: `m0/huellas_m0.j
 este diseño y el protocolo difieren, gana el protocolo, y la diferencia se anota como riesgo (§7).
 
 **Decisiones posteriores a M0 que este diseño ya incorpora:**
+- **Enmienda 3 operativa del producto (D65).** §8 usa hasta ocho procesos, el mayor número admisible por fase de
+  M3-4/M5; se conservan los topes por trabajador/principal y del grupo frente a memoria física. El recorte se fija con
+  la duración efectiva antes de M3-4, conservando la proyección con ocho y avisando si daría otro recorte. No cambian
+  8 GB, PROCESOS = 8, 36 h, mód 11/mód 23 ni el Anexo A, §4.9 o §10. No cambia S6.
+  El nuevo esquema del addendum es `meteo-combinada-addendum-m1/2`: agrega `enmienda_operativa` y concilia
+  `declaracion_c4_reloj` (ADD-13). La publicación exige las declaraciones exactas, sin cambiar las negativas de C5.
+  La formalización documental no cambia firmas. La corrección posterior de recibos añade el registro opcional de
+  observaciones de reparto a `repartir`; su firma exacta y vigente queda en el Anexo F.
+
 - **Enmienda 2 ambiental, bloque «red ampliada»** (APH `f2c6cfc`, sello `65afe8a`;
   `APH/auditoria/20261024/sinca_al_modelo/ENMIENDA_2_BLOQUE_RED_AMPLIADA.md`). Su punto R21 (decisión P7, «Con la red ampliada»)
   dice que π^mon usa el `pliegues_v2.json` de ese bloque y que las tablas laterales de M6 se arman sobre el panel de R11
@@ -76,7 +96,7 @@ Ningún valor de ERA5-Land, NASADEM, GHS-POP ni SINCA, y ninguna métrica de mod
      Todas están instaladas en amb_v2.
    - Pruebas con `unittest`.
    - Hilos del álgebra lineal en 1 (`OMP_NUM_THREADS`, `OPENBLAS_NUM_THREADS` y `MKL_NUM_THREADS`; §8 del texto).
-   - Sólo `orquestacion.py` lanza procesos (8 en M3-4 y M5, por D2). El resultado debe ser idéntico, bit a bit, con 1 y con
+   - Sólo `orquestacion.py` lanza procesos (hasta 8, por fase de M3-4/M5, D59/D63/D65; antes, 8 por D2). El resultado debe ser idéntico, bit a bit, con 1 y con
      8 procesos (S9).
 4. **Datos.**
    - S1-S13, S15 y S16 usan sólo carpetas temporales con datos fabricados por `sintetico.py`.
@@ -142,7 +162,7 @@ solape y la integración quede en un solo lugar, como en el reloj:
 | `salud.py` | Días civil, UTC−4 y regional con 23, 24 o 25 horas; medias comunales con w_ghs; esquema de `meteo_civil_v3`; lluvia; lista de representatividad; anual crónico; regresión S14 | §3, §7.2, §7.3, §9 (S8, S14) | tipos, constantes, umbrales, numerico, fijados, producto, fondo_era5l [ola 5, SAL-12] |
 | `ambiental.py` | `lateral_monitores`, `operador_grilla` y `mc_bloque` (§7.1), con las columnas de I y de D y metadatos que acepta `unir_sidecar` | §7.1, Anexo B | tipos, constantes, umbrales, fijados, producto, fondo_era5l, candidatos |
 | `orquestacion.py` | Fases de M2a, M3-4, M5 y M6; unidades reanudables, `avance.jsonl`, reparto en procesos con orden fijo de agregación, fábrica de entradas | §2.1, §8, §10 | los de ciencia, más ceguera, sinca_meteo, entorno |
-| `salidas.py` | La única escritura: atómica, vigilada por `ceguera`; esquemas de archivos; `recibo_corrida.json`, `resumen_qc.json`, `decision.json`; carpeta de publicación para M5 (paso aparte); privacidad | §8 | tipos, umbrales, entorno, ceguera |
+| `salidas.py` | La única escritura: atómica, vigilada por `ceguera`; esquemas de archivos; `recibo_corrida.json`, `resumen_qc.json`, `decision.json`; carpeta de publicación para M5 (paso aparte); privacidad | §8 | tipos, umbrales, entorno, ceguera, addendum [delegada: validación EMC3 sin ciclo] |
 | `costo.py` | Medición a escala (sintética y un mes real de ERA5L), proyección de M3-4, M5, M6 y de la grilla v2, y la regla de mód 23 | §4.9, §7.1, §8 | sintetico, candidatos, tendencias, producto, ambiental, orquestacion, entorno; además tipos, constantes, fijados, fondo_era5l, particiones, politicas, salud y ceguera [ola 6, PED-1 y PED-3 de I21, COS-1] |
 | `addendum.py` | Addendum de M1: lista cerrada de huellas, anexo A2, compuerta de deriva, recorte, costo, lecturas y commits | §10 | umbrales, constantes, fijados, entorno, ceguera |
 | `verificar_meteo_combinada.py` | Ejecutable con `--sintetico` (M1, con `--costo`), `--estaticos` (M2a), `--aplicar` (M3-4), `--producir` (M5) y `--m6`; negativas de §10 y del Anexo B; cerrojos `intentos_aplicar.jsonl` e `intentos_m6.jsonl`; carpeta `HUMAN<AAAAMMDD>_METEO_COMB_1`; consola sin métricas | §8, §10, Anexo B | orquestacion, salidas, costo, addendum, ceguera, fijados, umbrales, entorno; además politicas, tendencias, salud, tipos y constantes [ola 6, PED-1 de I22] |
@@ -153,16 +173,20 @@ solape y la integración quede en un solo lugar, como en el reloj:
 ```
 capa 0  tipos, constantes, umbrales, entorno
 capa 1  fijados, numerico, ceguera
-capa 2  politicas, estaticas_nasadem, fondo_era5l, particiones, homogeneidad, sinca_meteo, decision, salidas
-capa 3  qc_dmc_meteo, candidatos, validacion
+capa 2  politicas, estaticas_nasadem, fondo_era5l, particiones, homogeneidad, sinca_meteo, decision, addendum
+capa 3  qc_dmc_meteo, candidatos, validacion, salidas
 capa 4  tendencias, producto
 capa 5  salud, ambiental
 capa 6  orquestacion
-capa 7  costo, addendum
+capa 7  costo
 capa 8  verificar_meteo_combinada
 fuera   sintetico (no importa el paquete), meteo_combinada (fachada; no importa nada al cargarse)
 ```
 
+- **Validación EMC3 [delegada], revisión de 2026-10-28.** `salidas` depende de `addendum` para exigir las declaraciones
+  exactas de D65 antes de publicar sus documentos. No hay dependencia inversa: `addendum` es puro y depende sólo de
+  capas 0/1. Pasa a capa 2, y `salidas` a capa 3; no cambia ningún algoritmo ni firma pública. La validación privada
+  común la usan el lector, el formateador y el publicador. No se debilita la guarda documental general ni C5.
 - **Prueba del grafo.** `test_meteo_combinada.test_grafo_sin_ciclos` lee por AST las importaciones `meteo_combinada.*` y
   `reloj_dmc.*` de cada módulo, y exige el grafo de arriba. También exige que `sintetico` no importe el paquete y que sólo
   `entorno` y `fijados` importen `reloj_dmc`. Todo lo demás del reloj (el validador de §7.5 y, en M5, `elegir_pixel`) llega
@@ -1291,6 +1315,9 @@ a escala real:
 
 > T = Σ_u t_u · n_u / P + T_serie, con P = 8 (D2), más el máximo desequilibrio entre procesos.
 
+[EMC3-2, D64/D65: esa proyección con P = 8 se conserva como referencia. Para decidir el recorte se usa la pared
+reproyectada con los procesos efectivos de cada fase. No se ajusta durante M3-4.]
+
 Si T > 36 h, `costo.recorte` da «mod23», y el addendum lo fija antes de M2a. La grilla v2 se mide para las dos variantes y va
 al plan v2 (§7.1).
 
@@ -1495,6 +1522,20 @@ Los ids repetidos entre grupos (`SEMILLA`, `SEL_MOD`, `SEL_RESTO` y `HR_SAT`) de
 la traducción falla.
 
 ---
+
+## Concordancia técnica de recibos EMC3 (2026-10-29)
+
+La formalización documental no cambiaba firmas; su implementación final sí añade un argumento técnico opcional
+`registro` a `repartir`, propagado por ayudantes privados. La firma completa del Anexo F es la vigente. El documento
+inicial de la enmienda se conserva como referencia anclada; su frase sobre firmas se precisa en
+`APH/auditoria/20261023/meteo_combinada/enmienda3/NOTA_FIRMAS_RECIBOS.md` (3fadd224…), incluida en la lista cerrada.
+
+Los recibos separan `presupuesto` de la observación, con `alcance = "repartos_de_esta_invocacion"`. Cada llamada guarda
+`unidades`, `limite.procesos`, `procesos` de ejecución y `trabajadores_creados.procesos`. Por fase se conserva el detalle,
+el máximo de procesos de ejecución y la suma de creaciones. Un reparto vacío tiene 0/0; uno secuencial en el principal,
+1/0. Reanudar sólo cuenta unidades pendientes de esa invocación, sin fabricar un acumulado histórico. El número fijado
+en Cfg y en el registro normativo no se sustituye por esa observación; las huellas analíticas no incorporan el entorno
+variable del recibo. La convención principal/trabajadores es una precisión técnica [delegada], sin cambio de cálculos.
 
 ## Anexo F. Firmas públicas (generadas por AST del código; cierre de M1, 2026-10-28)
 
@@ -2211,7 +2252,7 @@ print(len(salida), "líneas")
   - `parcial_pendiente(self, nombres: Iterable[str], unidad: str) -> None`
   - `registrar(self, fase: str, unidad: str, entrada: str, archivos: Mapping[str, str]) -> str`
 - `abrir_avance(cfg: Cfg, compuerta: str, *, interrumpir_tras: int | None=None) -> Avance`
-- `repartir(unidades, funcion, procesos: int, *, contexto=_SIN_CONTEXTO, al_terminar: Callable | None=None, permitidas: Sequence[str]=()) -> list`
+- `repartir(unidades, funcion, procesos: int, *, contexto=_SIN_CONTEXTO, al_terminar: Callable | None=None, permitidas: Sequence[str]=(), registro: list[dict] | None=None) -> list`
 - `correr_m2a(cfg, *, avance) -> dict`
 - `correr_m34(cfg, *, avance, procesos: int) -> dict`
 - `correr_m5(cfg, *, avance, procesos: int) -> dict`

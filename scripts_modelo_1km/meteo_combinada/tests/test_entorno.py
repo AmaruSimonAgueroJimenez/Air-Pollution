@@ -33,8 +33,8 @@ from reloj_dmc import entorno as entorno_reloj  # noqa: E402
 from reloj_dmc import fijados as fijados_reloj  # noqa: E402
 
 _RR = entorno.rutas_reales()
-_TEXTO_VIGENTE = "auditoria/20261023/meteo_combinada/enmienda2/PROTOCOLO_METEO_COMBINADA_v2.3.md"   # v2.3 (Enmienda 2)
-_SHA_TEXTO_VIGENTE = "b4175f785ec57811702352d9d063164a5dce05f325a48c327a6d554a09ceddc2"
+_TEXTO_VIGENTE = "auditoria/20261023/meteo_combinada/enmienda3/PROTOCOLO_METEO_COMBINADA_v2.4.md"   # v2.4 (Enmienda 3)
+_SHA_TEXTO_VIGENTE = "eaedb10998e1a3f37f83f036c478afb5cf3fd3ccb5262477bd394dc220b1908b"
 _SHA_PESOS_PY = "2f19fa53bc7893d5220fd19034277eb840d11c020d43a3f83769ad2f09b310ed"
 _SHA_CONFIG_V3 = "ab248343239b58853d59516b1409d937e0b6a7ee36461c9df3b1eb7c09d17d94"
 ARROBA = chr(64)

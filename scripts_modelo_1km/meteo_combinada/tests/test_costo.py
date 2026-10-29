@@ -483,6 +483,34 @@ class PruebasProcesosPorFase(unittest.TestCase):
         for falta in ((None, 1.0, 9.0), (1.0, None, 9.0), (1.0, 1.0, 0.0), (math.nan, 1.0, 9.0)):
             self.assertEqual(f(*(x if x is None else x * _GB for x in falta), tope, _P), 0, falta)
 
+    def test_principal_tambien_debe_caber_en_el_tope(self):
+        """D65: reducir trabajadores no permite que el principal supere su propio tope."""
+        tope = float(constantes.valor("MEMORIA_MAX_GB")) * _GB
+        f = costo._procesos_que_caben
+        for principal in (tope - 1, tope):
+            with self.subTest(principal=principal):
+                self.assertEqual(f(tope / _P, principal, 4 * tope, tope, _P), _P)
+        self.assertEqual(f(tope / _P, tope + 1, 4 * tope, tope, _P), 0)
+
+    def test_principal_m5_sobre_tope_bloquea_aunque_el_grupo_quepa(self):
+        """M5: trabajador y grupo caben, pero el principal solo excede el tope; no se decide recorte."""
+        U = self.U
+        tope = float(constantes.valor("MEMORIA_MAX_GB"))
+        m = _mediciones(pico_m5=0.01)
+        m["puntos"]["grilla"]["operador_mayor"]["bytes"] = int(5.2 * _GB)
+        p = costo.proyectar(m, U)
+        mem = p["memoria"]
+        self.assertLessEqual(mem["principal_gb"]["m34"], tope)
+        self.assertGreater(mem["principal_gb"]["m5"], tope)
+        for trabajador in ("m5", "representatividad"):
+            with self.subTest(trabajador=trabajador):
+                self.assertLessEqual(mem["trabajador_gb"][trabajador], tope)
+                self.assertLessEqual(mem["fases"][trabajador]["grupo_gb"], mem["fisica_gb"])
+        self.assertEqual(p["procesos_por_fase"]["m5"], {"representatividad": 0, "anual": 0})
+        self.assertEqual(costo.recorte(p, U), costo.PENDIENTE)
+        self.assertIn("m5/representatividad", " ".join(p["veredicto"]["motivos"]))
+        self.assertIn("m5/anual", " ".join(p["veredicto"]["motivos"]))
+
     def test_fases_de_reparto_de_orquestacion(self):
         """Las fases son exactamente las de ``orquestacion.FASES_REPARTO`` y cada una sale de una memoria medida."""
         fases = {f for fs in orquestacion.FASES_REPARTO.values() for f in fs}

@@ -50,6 +50,8 @@ import tempfile  # noqa: E402
 import time  # noqa: E402
 import unittest  # noqa: E402
 from pathlib import Path  # noqa: E402
+from types import SimpleNamespace  # noqa: E402
+from unittest.mock import Mock, patch  # noqa: E402
 
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
@@ -88,6 +90,15 @@ def _cuadrado(x):
 
 def _con_contexto(x, ctx):
     return (x, ctx["suma"] + x)
+
+
+def _t2m_emc3(unidad, ctx):
+    """Sólo formas sintéticas para recorrer M5 sin entradas ambientales ni código de RELOJ."""
+    return {"h": np.array([0]), "t2m": np.empty((1, len(unidad["pixeles"])))}
+
+
+def _anio_emc3(unidad, ctx):
+    return {"nc": {}, "salud": {}, "laterales": {}}
 
 
 def _grupo_e_hilos(x):
@@ -2081,6 +2092,240 @@ class PruebasS9M5(unittest.TestCase):
 # ---------------------------------------------------------------------------
 # Los procesos por fase (D59, A39; ORQ-45)
 # ---------------------------------------------------------------------------
+class PruebasRecibosEMC3(unittest.TestCase):
+    """Regresiones breves, sin _Mundo, textos anclados, datos reales, costo ni S6."""
+
+    def setUp(self):
+        registro, red = _guardas()
+        self.enterContext(registro)
+        self.enterContext(red)
+        self.addCleanup(self.assertEqual, registro.accesos, [])
+        self.addCleanup(self.assertEqual, red.intentos, [])
+
+    def assertUso(self, uso, unidades, limite, procesos, trabajadores):
+        self.assertEqual(uso, {"unidades": unidades, "limite": {"procesos": limite}, "procesos": procesos,
+                               "trabajadores_creados": {"procesos": trabajadores}})
+
+    def test_limites_solos_no_son_procesos_observados(self):
+        """EMC3-1: un límite no acredita trabajadores ni procesos de ejecución observados."""
+        with self.assertRaisesRegex(orquestacion.ErrorOrquestacion, "repartos"):
+            orquestacion._entorno_recibo(8, {"fase": 8})
+
+    def test_reparto_0_1_2_y_varias_unidades_con_limite_8(self):
+        """Cuenta PIDs de ejecución y creaciones reales, no el límite 8; conserva orden y cierre."""
+        for n in (0, 1, 2, 11):
+            with self.subTest(unidades=n):
+                registro = []
+                with patch.object(orquestacion.subprocess, "Popen", wraps=orquestacion.subprocess.Popen) as crear:
+                    salida = orquestacion.repartir(range(n), _grupo_e_hilos, 8, registro=registro)
+                ejecutores = min(n, 8)
+                trabajadores = ejecutores if n > 1 else 0
+                self.assertEqual([r["x"] for r in salida], list(range(n)))
+                self.assertEqual(len({r["pid"] for r in salida}), ejecutores)
+                # La comprobación de cierre también usa Popen para «ps», pero no crea trabajadores.
+                creaciones = [c for c in crear.call_args_list if c.args[0][0] == sys.executable]
+                self.assertEqual(len(creaciones), trabajadores)
+                if n == 1:
+                    self.assertEqual(salida[0]["pid"], os.getpid())
+                self.assertUso(registro[0], n, 8, ejecutores, trabajadores)
+                self.assertEqual(ceguera.procesos_hijos_vivos(), [])
+
+    def test_limite_de_fase_secuencial_y_resumen_de_varios_repartos(self):
+        """Los topes siguen intactos; cada llamada secuencial crea 0 hijos; el resumen usa máximo, no suma."""
+        with tempfile.TemporaryDirectory(prefix="emc3-limites-") as tmp:
+            cfg = Cfg(rutas=entorno.rutas_sinteticas(tmp), umbrales=None, entradas={}, huellas={}, procesos=8,
+                      procesos_por_fase=_POR_FASE_CORRIDA)
+            limites = orquestacion._procesos_de_fases(cfg, "m34", 8)
+            repartos = {f: [] for f in limites}
+            for n in (0, 1, 2, 5):
+                for fase, limite in limites.items():
+                    salida = orquestacion.repartir(range(n), _con_contexto, limite, contexto={"suma": 10},
+                                                   al_terminar=lambda i, r: (i, r[1]), registro=repartos[fase])
+                    self.assertEqual(salida, [(i, i + 10) for i in range(n)])
+            recibo = orquestacion._entorno_recibo(8, limites, repartos=repartos)
+            self.assertEqual(recibo["procesos"], 2)
+            self.assertEqual(recibo["presupuesto"]["procesos"], 8)
+            self.assertEqual(recibo["alcance"], "repartos_de_esta_invocacion")
+            for fase, limite in limites.items():
+                detalle = recibo["procesos_por_fase"][fase]
+                self.assertEqual(detalle["procesos"], limite)
+                self.assertEqual(detalle["trabajadores_creados"]["procesos"], 4 if limite == 2 else 0)
+                for uso, n in zip(detalle["repartos"], (0, 1, 2, 5)):
+                    self.assertUso(uso, n, limite, min(n, limite), min(n, limite) if n > 1 and limite > 1 else 0)
+            # El recibo es una instantánea: otra llamada no modifica el detalle ya construido.
+            antes = entorno.json_canonico(recibo)
+            orquestacion.repartir([0], _cuadrado, 1, registro=repartos["artefactos"])
+            self.assertEqual(entorno.json_canonico(recibo), antes)
+            salidas.recibo_corrida({"LOCAL/entrada.json": "a" * 64}, recibo)  # CEG-11 sin cambios
+
+    def test_avance_interrumpido_reanudado_y_ya_completo(self):
+        """La contabilidad se toma después de saltar unidades: al reanudar quedan 1, 2 y finalmente 0."""
+        for total in (3, 4):
+            with self.subTest(total=total), tempfile.TemporaryDirectory(prefix="emc3-avance-") as tmp:
+                rutas = entorno.rutas_sinteticas(tmp)
+                carpeta = entorno.carpeta_salida(rutas, "m34", _ETIQUETA)
+
+                def correr(avance):
+                    pendientes = [u for u in range(total) if avance.hecha("artefactos", f"u-{u}", _sha(str(u).encode()))
+                                  is None]
+                    usos = []
+
+                    def guardar(i, resultado):
+                        u = pendientes[i]
+                        nombre = f"salud/civil/u-{u}.json"
+                        sha = orquestacion._escribir(avance, nombre, {"n": resultado})
+                        avance.registrar("artefactos", f"u-{u}", _sha(str(u).encode()), {nombre: sha})
+                        return resultado
+                    try:
+                        orquestacion.repartir(pendientes, _cuadrado, 8, al_terminar=guardar, registro=usos)
+                    finally:
+                        self.assertEqual(ceguera.procesos_hijos_vivos(), [])
+                    return usos
+
+                cortado = orquestacion.Avance(carpeta, corrida=_ETIQUETA, huella="b" * 64, interrumpir_tras=2)
+                with self.assertRaises(orquestacion.InterrupcionSimulada):
+                    correr(cortado)
+                reanudado = orquestacion.Avance(carpeta, corrida=_ETIQUETA, huella="b" * 64)
+                n = total - 2
+                self.assertUso(correr(reanudado)[0], n, 8, n, 0 if n == 1 else n)
+                completo = orquestacion.Avance(carpeta, corrida=_ETIQUETA, huella="b" * 64)
+                self.assertUso(correr(completo)[0], 0, 8, 0, 0)
+                for u in range(total):
+                    self.assertEqual(json.loads((carpeta / f"salud/civil/u-{u}.json").read_bytes()), {"n": u * u})
+
+    def test_m34_recibo_efectivo_y_s9_datos_huellas_cfg_1_2_8(self):
+        """Sello M3-4 real sobre dos unidades triviales: mismos datos/registro/hash, distinto entorno de ejecución."""
+        inventarios, registros, huellas = [], [], []
+        presupuesto = {c: dict.fromkeys(fases, 8) for c, fases in orquestacion.FASES_REPARTO.items()}
+        for procesos in (1, 2, 8):
+            with self.subTest(procesos=procesos), tempfile.TemporaryDirectory(prefix="emc3-s9-") as tmp:
+                rutas = entorno.rutas_sinteticas(tmp)
+                cfg = Cfg(rutas=rutas, umbrales=None, entradas={}, huellas={}, etiqueta=_ETIQUETA,
+                          procesos=procesos, procesos_por_fase=presupuesto)
+                avance = orquestacion.abrir_avance(cfg, "m34")
+                avance.iniciar()
+                huellas.append(orquestacion.huella_de_corrida(cfg, "m34"))
+                limites = orquestacion._procesos_de_fases(cfg, "m34", procesos)
+                repartos = {f: [] for f in limites}
+                for fase, limite in limites.items():
+                    valores = orquestacion.repartir(range(2), _cuadrado, limite, registro=repartos[fase])
+                    self.assertEqual(valores, [0, 1])
+                sal = {salidas.POLITICA: orquestacion._escribir(avance, salidas.POLITICA, b"[]"),
+                       "qc/resumen_qc.json": orquestacion._escribir(avance, "qc/resumen_qc.json", {"n": sum(valores)})}
+                r = orquestacion._sellar_m34(cfg, avance, {"huellas": {}},
+                                           {"esquema": orquestacion.ESQUEMA_REGISTRO_M34,
+                                            "procesos_por_fase": presupuesto}, [], None, sal, procesos, {}, limites,
+                                           repartos=repartos)
+                registros.append(r["registro"])
+                inventarios.append(json.loads((avance.carpeta / salidas.SHA256_JSON).read_bytes())["archivos"])
+                recibo = json.loads((avance.carpeta / salidas.RECIBO).read_bytes())["entorno"]
+                self.assertEqual(recibo["procesos"], min(procesos, 2))
+                self.assertEqual(recibo["presupuesto"]["procesos"], procesos)
+                for fase in limites:
+                    self.assertEqual(recibo["procesos_por_fase"][fase]["procesos"], min(procesos, 2))
+        self.assertEqual(len(set(huellas)), 1)
+        self.assertEqual(registros, [registros[0]] * 3)
+        self.assertEqual(inventarios, [inventarios[0]] * 3)
+
+    def test_m34_principal_y_fases_no_ejecutadas(self):
+        """Al sellar una detención, las fases no ejecutadas no heredan ficticiamente el límite 8."""
+        with tempfile.TemporaryDirectory(prefix="emc3-m34-principal-") as tmp:
+            cfg = Cfg(rutas=entorno.rutas_sinteticas(tmp), umbrales=None, entradas={}, huellas={},
+                      etiqueta=_ETIQUETA, procesos=8)
+            avance = orquestacion.abrir_avance(cfg, "m34")
+            avance.iniciar()
+            limites = orquestacion._procesos_de_fases(cfg, "m34", 8)
+            repartos = {f: [] for f in limites}
+            orquestacion.repartir([0], _cuadrado, 8, registro=repartos["artefactos"])
+            sal = {salidas.POLITICA: orquestacion._escribir(avance, salidas.POLITICA, b"[]")}
+            orquestacion._sellar_m34(cfg, avance, {"huellas": {}}, {"detenida": True}, [], None, sal, 8, {}, limites,
+                                    repartos=repartos)
+            recibo = json.loads((avance.carpeta / salidas.RECIBO).read_bytes())["entorno"]
+            self.assertEqual(recibo["procesos"], 1)
+            self.assertEqual(recibo["procesos_por_fase"]["artefactos"]["trabajadores_creados"], {"procesos": 0})
+            for fase in ("seleccion_y_prediccion", "tendencias_y_finitud"):
+                self.assertEqual(recibo["procesos_por_fase"][fase],
+                                 {"procesos": 0, "trabajadores_creados": {"procesos": 0}, "repartos": []})
+
+    def test_anual_solo_cuenta_los_anios_pendientes(self):
+        """La función anual real filtra el avance antes de repartir; la unidad científica se sustituye."""
+        meses = {f"{anio}02": f"ERA5L/sintetico_{anio}.nc" for anio in (2019, 2020, 2021)}
+        with tempfile.TemporaryDirectory(prefix="emc3-anual-") as tmp:
+            cfg = Cfg(rutas=entorno.rutas_sinteticas(tmp), umbrales=None, entradas={"meses_era5l": meses},
+                      huellas={a: "a" * 64 for a in meses.values()})
+            for n in (0, 1, 2):
+                with self.subTest(pendientes=n):
+                    pendientes = {f"anio-{anio}" for anio in (2019, 2020, 2021)[:n]}
+                    avance = Mock()
+                    avance.hecha.side_effect = lambda fase, unidad, entrada: (None if unidad in pendientes else
+                                                                             {"archivos": {"x": "b" * 64}})
+                    usos = []
+                    with patch.object(orquestacion, "_unidad_anio", _anio_emc3):
+                        orquestacion._correr_anual(cfg, avance, {}, {"pixeles": True}, "b" * 64, 8, registro=usos)
+                    self.assertUso(usos[0], n, 8, n, 0 if n <= 1 else n)
+                    self.assertEqual(len(avance.saltadas.append.call_args_list), 3 - n)
+
+    def test_m5_recibo_1_2_y_reanudacion_sin_trabajo(self):
+        """M5 real con cálculo sustituido: propaga las observaciones hasta el recibo, aun al saltar una fase."""
+        from meteo_combinada import ambiental, salud
+        inventarios, huellas = {1: [], 2: []}, {1: [], 2: []}
+        for n, procesos in ((n, p) for n in (1, 2) for p in (1, 2, 8)):
+            with self.subTest(unidades=n, procesos=procesos), tempfile.TemporaryDirectory(prefix="emc3-m5-") as tmp:
+                rutas = entorno.rutas_sinteticas(tmp)
+                meses = {f"2020{m:02d}": f"ERA5L/sintetico_{m}.nc" for m in range(1, n + 1)}
+                cfg = Cfg(rutas=rutas, umbrales=None, entradas={"meses_era5l": meses, "h_ultima": 0,
+                          "catalogo_pixeles": "LOCAL/catalogo.json"}, huellas={a: "a" * 64 for a in
+                          (*meses.values(), "LOCAL/catalogo.json")}, etiqueta=_ETIQUETA, procesos=procesos)
+                carpeta = orquestacion.carpeta_de(cfg, "m34")
+                orquestacion.Avance(carpeta, corrida=_ETIQUETA, huella="b" * 64).iniciar()
+                p = {"datos": SimpleNamespace(estaciones={"s": SimpleNamespace(lat=0., lon=0.)}), "decision": {},
+                     "validos": [], "cat_pix": None, "corrida": {"sha": lambda _: "c" * 64, "leer": lambda _: b""},
+                     "m2a": {"carpeta": entorno.carpeta_salida(rutas, "m2a"), "sha": lambda _: "d" * 64,
+                             "huellas": {}}}
+                pendientes = n
+
+                def anual(cfg, avance, p, ctx, base, procesos, *, registro):
+                    orquestacion.repartir(range(pendientes), _cuadrado, procesos, registro=registro)
+                    return {}
+
+                unica = orquestacion._unidad_unica
+
+                def unidad(avance, fase, unidad, entrada, nombre, producir, **kwargs):
+                    return (unica(avance, fase, unidad, entrada, nombre, producir, **kwargs)
+                            if nombre == orquestacion.EXCLUIDAS else "e" * 64)
+
+                sustituciones = {"_negativas": lambda *a: [], "_leer_carpeta": lambda *a: {},
+                    "_negativas_registro": lambda *a: [], "_produccion": lambda *a, **k: p,
+                    "_base_de": lambda *a: "f" * 64, "_ganador_y_hiper": lambda *a: ("A", {}),
+                    "_parquet": lambda *a: pd.DataFrame({"h": [0], "Ts": [0.], "valido_T": [True]}),
+                    "_unidad_t2m": _t2m_emc3, "_producto_salud": lambda *a: {}, "_clave_producto": lambda *a: {},
+                    "_contexto_pixeles": lambda *a: None, "_contexto_anual": lambda *a, **k: {},
+                    "_correr_anual": anual, "_ensamblar_laterales": lambda *a: {}, "_unidad_unica": unidad}
+                with (patch.multiple(orquestacion, **sustituciones),
+                      patch.object(ambiental, "ganador_ambiental", return_value=({}, {})),
+                      patch.object(salud, "representatividad", return_value=[]),
+                      patch.object(fijados, "cargar_elegir_pixel", return_value=Mock(
+                          enlazar=Mock(return_value=SimpleNamespace(pixel_id=None))))):
+                    for repeticion in (0, 1):
+                        avance = orquestacion.abrir_avance(cfg, "m5")
+                        orquestacion.correr_m5(cfg, avance=avance, procesos=procesos)
+                        recibo = json.loads((carpeta / salidas.RECIBO).read_bytes())["entorno"]
+                        esperado = min(n, procesos) if repeticion == 0 else 0
+                        if not repeticion:
+                            inventarios[n].append(json.loads((carpeta / salidas.SHA256_JSON).read_bytes())["archivos"])
+                            huellas[n].append(orquestacion.huella_de_corrida(cfg, "m5"))
+                        self.assertEqual(recibo["procesos"], esperado)
+                        for fase in orquestacion.FASES_REPARTO["m5"]:
+                            self.assertEqual(recibo["procesos_por_fase"][fase]["procesos"], esperado)
+                        self.assertEqual(recibo["presupuesto"]["procesos"], procesos)
+                        if repeticion:
+                            self.assertEqual(recibo["procesos_por_fase"]["representatividad"]["repartos"], [])
+                        pendientes = 0
+        for n in (1, 2):
+            self.assertEqual(inventarios[n], [inventarios[n][0]] * 3)
+            self.assertEqual(len(set(huellas[n])), 1)
+
+
 class PruebasProcesosPorFase(unittest.TestCase):
     def test_cfg_procesos_por_fase_forma_modos_reales_y_huella(self):
         """ORQ-45 (D59, A39): ``Cfg.procesos_por_fase`` es None o exactamente {compuerta: {fase: n}} con las compuertas
@@ -2158,9 +2403,15 @@ class PruebasProcesosPorFase(unittest.TestCase):
             self.assertEqual(list(orquestacion._procesos_de_fases(cfg, "m5", malo).values()), [malo, malo])
             with self.assertRaises(orquestacion.ErrorOrquestacion):
                 orquestacion.repartir([1, 2], _cuadrado, orquestacion._procesos_de_fases(cfg, "m5", malo)["anual"])
-        recibo = orquestacion._entorno_recibo(2, {"representatividad": 1, "anual": 2})
-        self.assertEqual((recibo["procesos"], recibo["procesos_por_fase"]),
-                         (2, {"representatividad": {"procesos": 1}, "anual": {"procesos": 2}}))
+        limites = {"representatividad": 1, "anual": 2}
+        repartos = {f: [] for f in limites}
+        for fase, limite in limites.items():
+            orquestacion.repartir([0, 1], _cuadrado, limite, registro=repartos[fase])
+        recibo = orquestacion._entorno_recibo(2, limites, repartos=repartos)
+        self.assertEqual((recibo["procesos"], {f: r["procesos"] for f, r in recibo["procesos_por_fase"].items()}),
+                         (2, limites))
+        self.assertEqual(recibo["presupuesto"]["procesos_por_fase"],
+                         {f: {"procesos": n} for f, n in limites.items()})
         self.assertNotIn("procesos_por_fase", orquestacion._entorno_recibo(2))
         sello = salidas.recibo_corrida({"LOCAL/x.json": _sha(b"x")}, recibo)    # la guarda de la procedencia lo admite
         self.assertEqual(sello["entorno"]["procesos_por_fase"], recibo["procesos_por_fase"])
@@ -2190,11 +2441,15 @@ class PruebasProcesosPorFase(unittest.TestCase):
                     self.assertEqual(n, esperados[de_fase[nombre][1]], nombre)
                     vistas[de_fase[nombre][1]] = n
                 self.assertEqual(vistas, esperados)
-                self.assertEqual((c["recibo"]["entorno"]["procesos"], c["recibo"]["entorno"]["procesos_por_fase"]),
-                                 (procesos, {f: {"procesos": n} for f, n in esperados.items()}))
+                env = c["recibo"]["entorno"]
+                self.assertEqual(env["presupuesto"],
+                                 {"procesos": procesos, "procesos_por_fase": {f: {"procesos": n}
+                                                                           for f, n in esperados.items()}})
+                self.assertEqual((env["procesos"], {f: r["procesos"] for f, r in env["procesos_por_fase"].items()}),
+                                 (max(esperados.values()), esperados))
                 recibo_base = json.loads((base["carpeta"] / salidas.RECIBO).read_text(encoding="utf-8"))
-                self.assertEqual(recibo_base["entorno"]["procesos_por_fase"],
-                                 {f: {"procesos": 1} for f in orquestacion.FASES_REPARTO[compuerta]})
+                self.assertEqual({f: r["procesos"] for f, r in recibo_base["entorno"]["procesos_por_fase"].items()},
+                                 dict.fromkeys(orquestacion.FASES_REPARTO[compuerta], 1))
                 if compuerta == "m34":
                     self.assertEqual(c["r"]["decision"], base["r"]["decision"])
                     reg, reg_base = (json.loads((x["carpeta"] / orquestacion.REGISTRO_M34).read_text(encoding="utf-8"))

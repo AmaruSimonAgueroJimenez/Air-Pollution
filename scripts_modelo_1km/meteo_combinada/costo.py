@@ -2097,12 +2097,12 @@ def _memoria(mediciones: Mapping, P: int) -> dict:
 
 
 def _procesos_que_caben(trabajador, principal, fisica, tope, procesos: int) -> int:
-    """D59 (COS-25): el mayor n de 1 a ``procesos`` con el trabajador bajo el tope de §8 y n·trabajador + principal
-    bajo la memoria física (todo en bytes, «≤»); 0 si no cabe ni con un proceso o si falta alguna medida."""
+    """D59 (COS-25), D65: el mayor n de 1 a ``procesos`` con trabajador y principal bajo el tope de §8 y
+    n·trabajador + principal bajo la memoria física (bytes, «≤»); 0 si no cabe ni con uno o falta alguna medida."""
     medidas = (trabajador, principal, fisica, tope)
     if any(x is None or not math.isfinite(float(x)) for x in medidas) or trabajador <= 0 or fisica <= 0:
         return 0
-    if trabajador > tope:
+    if trabajador > tope or principal > tope:
         return 0
     for n in range(int(procesos), 0, -1):
         if n * trabajador + principal <= fisica:
@@ -2134,7 +2134,7 @@ def _memoria_estacion(qc: Mapping, horas: int) -> float:
 def _veredicto(mediciones: Mapping, proy: Mapping, U) -> dict:
     """COS-12, COS-22, COS-25: el recorte se decide sólo con una proyección completa, con P = ``PROCESOS``, a la escala
     de §8.1, con el mes real, con la máquina libre en toda la medición, si cada fase de reparto cabe con al menos un
-    proceso (D59) y si el principal de M3-4 queda bajo el tope. Si no, «pendiente» con sus motivos. Decide la cota
+    proceso (D59) y si los principales de M3-4 y M5 quedan bajo el tope. Si no, «pendiente» con sus motivos. Decide la cota
     superior (la regla y el ganador más caros; P-COS-5); si una fase corre con menos de P, una nota lo dice."""
     motivos = []
     if not proy["m34"]["completa"]:

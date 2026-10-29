@@ -38,7 +38,7 @@ Lecturas propias (VER-n), para el addendum de M1:
   y la salida de ``unittest`` en verbosidad 2, sin trazas: de una falla sólo su identificador, porque una traza trae
   rutas de la carpeta de usuario, números de línea y valores; se vigila con los archivos de ``tests/`` como fuentes y,
   si aun así no pasa, va en su forma reducida, sin las descripciones ni los motivos de omisión), ``anexo_a2.json``
-  (documento, ``constantes.anexo_a2`` del v2.3), ``deriva_s6.json`` (resumen, ``tendencias.contenido_deriva_s6``),
+  (documento, ``constantes.anexo_a2`` del v2.4), ``deriva_s6.json`` (resumen, ``tendencias.contenido_deriva_s6``),
   ``costo_m1.json`` (resumen, ``costo.contenido_costo``; con ``--costo``), ``resumen_m1.json`` (resumen: conteos,
   ``ceguera`` y huellas), ``sha256.json`` (procedencia) y, si la batería es completa, ``addendum_m1.json`` y
   ``addendum_m1.md`` (documento; ``addendum``), que citan la subcarpeta y si la batería aprobó: uno no aprobado no
@@ -80,7 +80,7 @@ Lecturas propias (VER-n), para el addendum de M1:
   Anexo B. Sobre ellas se exige ``git status --porcelain --untracked-files=all`` vacío y ``git diff --quiet origin/main``
   en cada repositorio: el código y los textos del disco son los del remoto (el testigo externo).
 - VER-7. **M3-4 se niega a correr** (§10), juntando todos los motivos: el **contenido del addendum** (las claves exactas
-  de ``addendum.CLAVES``, el texto vigente v2.3 con su huella, la batería aprobada y su subcarpeta, el recorte en
+  de ``addendum.CLAVES``, el texto vigente v2.4 con su huella, la batería aprobada y su subcarpeta, el recorte en
   {«mod11», «mod23»} desde los umbrales, la deriva fijada, los procesos por fase de D59 con su forma exacta y el
   veredicto del costo igual al recorte (VER-22), y todas las claves de ``addendum.claves_lista_cerrada`` con
   las seis salidas de la batería y las huellas fijadas del código y de la clausura); la lista cerrada (cada huella, del
@@ -784,6 +784,10 @@ def leer_addendum(alias_: str, rutas) -> tuple[dict, str]:
     contenido = _json(datos, "addendum de M1")
     if not isinstance(contenido, dict) or contenido.get("esquema") != addendum.ESQUEMA:
         raise ErrorConfiguracion(f"el addendum no es un «{addendum.ESQUEMA}»")
+    try:
+        addendum._validar_declaraciones(contenido)
+    except addendum.ErrorAddendum as e:
+        raise ErrorConfiguracion(str(e)) from e
     lista = contenido.get("lista_cerrada")
     if not isinstance(lista, dict) or not lista or not all(
             isinstance(a, str) and ceguera.es_ruta_por_alias(a) and isinstance(s, str) and _SHA.fullmatch(s)
@@ -885,11 +889,15 @@ def _fallas_contenido(cfg, contenido: Mapping) -> list[Falla]:
     fallas = []
     if set(contenido) != set(addendum.CLAVES):        # el JSON canónico las ordena (salidas): sólo el conjunto
         fallas.append(Falla("addendum", "el addendum no tiene las claves exactas de addendum_m1 (ADD-10)"))
+    try:
+        addendum._validar_declaraciones(contenido)
+    except addendum.ErrorAddendum as e:
+        fallas.append(Falla("addendum", str(e)))
     lista = contenido.get("lista_cerrada", {})
     vigente = f"APH/{umbrales.TEXTO_VIGENTE}"
     if contenido.get("texto_vigente") != {"ruta": vigente, "sha256": umbrales.SHA_TEXTO_VIGENTE} \
             or lista.get(vigente) != umbrales.SHA_TEXTO_VIGENTE:
-        fallas.append(Falla("addendum", "el addendum no cita el texto vigente v2.3 con su huella"))
+        fallas.append(Falla("addendum", "el addendum no cita el texto vigente v2.4 con su huella"))
     bateria = contenido.get("bateria")
     carpeta = None
     if not isinstance(bateria, Mapping) or bateria.get("aprobada") is not True:
