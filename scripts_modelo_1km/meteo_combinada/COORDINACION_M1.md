@@ -3702,3 +3702,41 @@ Concordancia de firmas: la entrega inicial de `ENMIENDA_3.md` (f9f78267…) se c
 `APH/auditoria/20261023/meteo_combinada/enmienda3/NOTA_FIRMAS_RECIBOS.md` (3fadd224…) precisa el ajuste técnico y se
 incluye como insumo obligatorio del addendum. El Anexo F se comprueba sobre las firmas finales. No se cambia el texto
 v2.4 ni D65-D67, S6 o sus parámetros por esta concordancia.
+
+## Corrección de procedencia del costo tras rechazo de escritura (2026-10-30)
+
+El intento completo iniciado el 29 a las 18:33 terminó con salida 1 el 30 a las 02:29 al escribir `costo_m1.json`:
+el nombre del mes en `lecturas_reales` activa correctamente la guarda léxica de un resumen. Las 930 pruebas de ese
+intento terminaron (928 aprobadas y dos omisiones), pero no quedaron costo, resumen final ni addendum acreditados.
+El cierre y diagnóstico están en `APH/auditoria/20261029/meteo_combinada/`; se conservan la versión fallida, sus
+registros y los originales previos al cambio. El autor pidió avanzar con corrección/pruebas/revisión, no otra batería
+larga ni un envío remoto.
+
+Corrección del productor, sin tocar `ceguera.py`, `salidas.py`, umbrales, recorte o algoritmos: el punto del mes devuelve
+el digest de los mismos bytes ya calculados para su lectura y el tamaño medido, en `huellas_lecturas_reales`.
+La ruta completa se conserva por alias bajo la estructura cerrada de huellas ya permitida por CEG-15. **[delegada]**
+En la lista de lecturas se usa el identificador técnico `mes_real`, enlazado a esa única huella y sólo cuando el punto
+es el del mes y existe su apertura registrada. Se exige coincidencia de rutas completas permitidas, huella válida,
+tamaño concordante y ausencia de accesos inesperados. `celdas.parquet` conserva su nombre; no se filtran lecturas
+ni se hace pasar por libre una carga alta.
+
+Regresión roja inicial reproducida con un mes inventado. Diez pruebas nuevas cubren escritura completa, procedencia
+sin evento, rutas distintas con igual nombre, aperturas inesperadas, punto equivocado, tamaños/digest inválidos y
+vocabulario prohibido fuera de huellas. Se amplía además el ensayo existente con seis puntos y trabajadores sobre
+insumos inventados hasta la serialización, guarda y escritura real del informe. La proyección pendiente de un ensayo
+reducido no se transforma en aprobación a escala real.
+
+Pruebas dirigidas terminadas: **174 aprobadas, cero fallas, errores u omisiones, 357,830 s**. Cinco módulos:
+`test_costo`, `test_ceguera`, `test_salidas`, `test_meteo_combinada` y `test_verificar_meteo_combinada`.
+Incluyen el camino de seis puntos con trabajadores e insumos inventados hasta guarda/escritura. Huellas de los
+archivos Python estables antes/después. No es la suite completa ni costo a escala real.
+
+Revisión independiente acotada terminada: sin defectos concretos atribuibles al diff de `costo.py` y sus pruebas;
+repetición directa de las diez regresiones, 10/10 aprobadas en 0,127 s. No ejecutó los ensayos de medición/camino real
+ni el costo real; no acredita insumos reales o resistencia a sustituciones concurrentes. La revisión informó una
+ejecución automática adicional fuera del alcance solicitado, cuyo resultado se descartó y no sustenta este cierre.
+
+Cambio local sin nuevo commit, anclaje ni sello. El espejo de los tres archivos se coteja por bytes y se registra
+por separado; no se actualiza el manifiesto compartido ni la lista histórica de 179 huellas del intento fallido.
+No se añade persistencia/reutilización de mediciones. El futuro addendum debe registrar este cambio de representación
+conforme §0 del diseño; esta nota no sustituye el addendum de una batería aprobada ni la suite completa pendiente.

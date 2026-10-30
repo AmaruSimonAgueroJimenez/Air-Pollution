@@ -1465,7 +1465,8 @@ def _medir_mes_real(ctx) -> dict:
         mes = fondo_era5l.leer_mes(ruta, sha256=sha)
         fondo_era5l.comprobar_unidades(mes)
     return {"bytes": n_bytes, "pixeles": int(np.asarray(mes.pixel_id).size), "horas": int(np.asarray(mes.tiempos).size),
-            "huella": t_h.dict(), "lectura": t_l.dict()}
+            "huella": t_h.dict(), "lectura": t_l.dict(),
+            "huellas_lecturas_reales": {entorno.alias(ruta, ctx["rutas"]): {"sha256": sha, "bytes": n_bytes}}}
 
 
 def _medir_contencion(ctx) -> dict:
@@ -1530,6 +1531,33 @@ def _permitidas(ctx) -> tuple:
     return (str(Path(rutas.grilla) / "celdas.parquet"), str(ruta_mes_real(rutas)))
 
 
+def _procedencia_lecturas(nombre: str, resultado: Mapping, eventos, ctx: Mapping) -> list[str]:
+    """Nombres neutros sólo para accesos registrados y permitidos; la identidad del mes queda en huellas."""
+    normalizar = lambda p: os.path.normpath(os.path.abspath(os.fspath(p)))    # noqa: E731
+    abiertas = {normalizar(p) for e, p in eventos if e == "open"}
+    permitidas = {normalizar(p) for p in _permitidas(ctx)}
+    if abiertas - permitidas:
+        raise ErrorCosto("el punto registró una lectura fuera de los dos insumos permitidos (COS-21)")
+    mes = ruta_mes_real(ctx["rutas"])
+    mes_abierto = normalizar(mes) in abiertas
+    huellas = resultado.get("huellas_lecturas_reales")
+    if mes_abierto:
+        if nombre != "mes_real" or abiertas != {normalizar(mes)}:
+            raise ErrorCosto("la lectura del mes sólo corresponde al punto mes_real (COS-10)")
+        alias = entorno.alias(mes, ctx["rutas"])
+        if not isinstance(huellas, Mapping) or set(huellas) != {alias}:
+            raise ErrorCosto("la lectura del mes exige su ruta por alias y su huella medida")
+        ceguera.vigilar_salida("costo_m1.json", {"huellas_lecturas_reales": huellas}, clase="resumen")
+        evidencia = huellas[alias]
+        if (not isinstance(evidencia, Mapping) or set(evidencia) != {"sha256", "bytes"}
+                or isinstance(resultado.get("bytes"), bool) or not isinstance(resultado.get("bytes"), int)
+                or evidencia["bytes"] != resultado["bytes"]):
+            raise ErrorCosto("la huella del mes exige el tamaño efectivamente medido")
+    elif huellas is not None or (nombre == "mes_real" and ctx["real_era5"]):
+        raise ErrorCosto("la procedencia del mes requiere un evento de apertura registrado")
+    return sorted("mes_real" if p == normalizar(mes) else Path(p).name for p in abiertas)
+
+
 def _punto(unidad: Mapping, ctx: Mapping) -> dict:
     """La unidad de ``orquestacion.repartir``: un punto en su trabajador (COS-3), bajo su propio
     ``ceguera.RegistroAccesos`` en bloqueo (COS-21); la vacía no hace nada."""
@@ -1540,7 +1568,7 @@ def _punto(unidad: Mapping, ctx: Mapping) -> dict:
     with ceguera.RegistroAccesos(_vigiladas(ctx["rutas"]), bloquear=True, permitidas=_permitidas(ctx)) as reg:
         with _Reloj() as t:
             r = _MEDIDORES[nombre](ctx)
-    lecturas = sorted({Path(p).name for e, p in reg.lecturas_permitidas if e == "open"})
+    lecturas = _procedencia_lecturas(nombre, r, reg.lecturas_permitidas, ctx)
     return {**r, "total": t.dict(), "memoria_inicio_gb": inicio, "memoria_pico_gb": _rss_gb(), "pid": os.getpid(),
             "lecturas_reales": lecturas}
 

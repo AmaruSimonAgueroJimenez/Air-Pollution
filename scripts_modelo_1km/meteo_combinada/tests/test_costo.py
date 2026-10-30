@@ -27,7 +27,7 @@ _RAIZ = Path(__file__).resolve().parents[2]
 if str(_RAIZ) not in sys.path:
     sys.path.insert(0, str(_RAIZ))
 
-from meteo_combinada import ceguera, constantes, costo, entorno, orquestacion, sintetico, tendencias  # noqa: E402
+from meteo_combinada import ceguera, constantes, costo, entorno, orquestacion, salidas, sintetico, tendencias  # noqa: E402
 from meteo_combinada import umbrales  # noqa: E402
 
 _APH = _RAIZ.parent.parent / "Air-Pollution-Health-Chile"
@@ -915,6 +915,106 @@ class PruebasMedicion(unittest.TestCase):
         self.assertGreaterEqual(c["factor"], 1.0)
 
 
+class PruebasProcedenciaCosto(unittest.TestCase):
+    """Regresión del rechazo de procedencia, con un mes inventado y el escritor real."""
+
+    def setUp(self):
+        import hashlib
+        import numpy as np
+        self.U = _umbrales()
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.rutas = entorno.rutas_sinteticas(self.tmp.name)
+        self.mes = costo.ruta_mes_real(self.rutas)
+        cat = sintetico.catalogo_pixeles(-32.9, -71.2, 2, 2)
+        pid = cat["pixel_id"].to_numpy()
+        t = sintetico.horas_del_mes(2024, 1)
+        forma = (t.size, pid.size)
+        campos = {"t2m": np.full(forma, 290.0), "d2m": np.full(forma, 280.0), "sp": np.full(forma, 95000.0),
+                  "u10": np.ones(forma), "v10": np.ones(forma),
+                  "tp": sintetico.tp_acumulado(t, np.full(forma, 1e-4))}
+        sintetico.mes_era5_netcdf(self.mes, campos, t, pid)
+        self.sha = hashlib.sha256(self.mes.read_bytes()).hexdigest()
+        self.n_bytes = self.mes.stat().st_size
+        self.alias = entorno.alias(self.mes, self.rutas)
+        self.ctx = {"rutas": self.rutas, "real_era5": True}
+
+    def resultado(self):
+        return {"bytes": self.n_bytes, "huellas_lecturas_reales": {
+            self.alias: {"sha256": self.sha, "bytes": self.n_bytes}}}
+
+    def test_mes_inventado_hasta_informe_serializado_guarda_y_escritura(self):
+        r = costo._punto({"punto": "mes_real"}, self.ctx)
+        self.assertEqual(r["lecturas_reales"], ["mes_real"])
+        self.assertEqual(r["huellas_lecturas_reales"], self.resultado()["huellas_lecturas_reales"])
+        m = _mediciones()
+        m["puntos"]["mes_real"] = r
+        p = costo.proyectar(m, self.U)
+        contenido = costo.contenido_costo(m, p, self.U)
+        texto = json.dumps(contenido, ensure_ascii=False, allow_nan=False)
+        ceguera.vigilar_salida("costo_m1.json", texto, clase="resumen")
+        carpeta = entorno.carpeta_salida(self.rutas, "m1", "procedencia")
+        huella = salidas.escribir("costo_m1.json", contenido, clase="resumen", raiz=carpeta)
+        escrito = carpeta / "costo_m1.json"
+        import hashlib
+        self.assertEqual(hashlib.sha256(escrito.read_bytes()).hexdigest(), huella)
+        self.assertEqual(json.loads(escrito.read_bytes()), contenido)
+        self.assertEqual(contenido["mediciones"]["mes_real"]["huellas_lecturas_reales"],
+                         self.resultado()["huellas_lecturas_reales"])
+        self.assertNotIn(str(Path.home()), texto)
+        self.assertNotIn(chr(64), texto)
+
+    def test_nombre_original_fuera_de_huellas_sigue_prohibido(self):
+        malo = {"lecturas_reales": [self.mes.name]}
+        with self.assertRaises(ceguera.SalidaProhibida):
+            ceguera.vigilar_salida("costo_m1.json", malo, clase="resumen")
+
+    def test_evento_del_mes_exige_digest_y_bytes_validos(self):
+        for valor in (None, {}, {self.alias: "mala"}, {self.alias: {"sha256": self.sha}},
+                      {self.alias: {"sha256": self.sha, "bytes": True}},
+                      {self.alias: {"sha256": self.sha, "bytes": -1}},
+                      {self.alias: {"sha256": self.sha, "bytes": self.n_bytes + 1}},
+                      {self.alias: {"sha256": self.sha, "bytes": self.n_bytes, "extra": 1}}):
+            r = {**self.resultado(), "huellas_lecturas_reales": valor}
+            with self.subTest(valor=valor), self.assertRaises((costo.ErrorCosto, ceguera.SalidaProhibida)):
+                costo._procedencia_lecturas("mes_real", r, [("open", str(self.mes))], self.ctx)
+
+    def test_huella_sin_evento_del_mes_no_es_procedencia(self):
+        with self.assertRaises(costo.ErrorCosto):
+            costo._procedencia_lecturas("mes_real", self.resultado(), [], self.ctx)
+
+    def test_ruta_con_mismo_nombre_no_se_acepta_por_basename(self):
+        otra = Path(self.tmp.name) / "otra" / self.mes.name
+        with self.assertRaises(costo.ErrorCosto):
+            costo._procedencia_lecturas("mes_real", self.resultado(), [("open", str(otra))], self.ctx)
+
+    def test_ruta_desconocida_no_se_filtra(self):
+        eventos = [("open", str(self.mes)), ("open", str(Path(self.tmp.name) / "inesperada.nc"))]
+        with self.assertRaises(costo.ErrorCosto):
+            costo._procedencia_lecturas("mes_real", self.resultado(), eventos, self.ctx)
+
+    def test_mes_en_otro_punto_no_se_reetiqueta(self):
+        with self.assertRaises(costo.ErrorCosto):
+            costo._procedencia_lecturas("tf", self.resultado(), [("open", str(self.mes))], self.ctx)
+
+    def test_celdas_conserva_nombre_y_duplicados_de_eventos_no_inventan_lecturas(self):
+        ruta = self.rutas.grilla / "celdas.parquet"
+        eventos = [("open", str(ruta)), ("open", str(ruta)), ("os.stat", str(ruta))]
+        self.assertEqual(costo._procedencia_lecturas("tf", {}, eventos, self.ctx), ["celdas.parquet"])
+
+    def test_sin_real_era5_rechaza_cualquier_lectura_real(self):
+        ctx = {**self.ctx, "real_era5": False}
+        self.assertEqual(costo._procedencia_lecturas("qc", {}, [], ctx), [])
+        with self.assertRaises(costo.ErrorCosto):
+            costo._procedencia_lecturas("mes_real", self.resultado(), [("open", str(self.mes))], ctx)
+
+    def test_huellas_no_admiten_rutas_sin_alias_ni_metricas_encubiertas(self):
+        for clave, valor in ((str(self.mes), {"sha256": self.sha}),
+                             (self.alias, {"sha256": self.sha, "rmse": 0.1})):
+            with self.subTest(clave=clave), self.assertRaises(ceguera.SalidaProhibida):
+                ceguera.vigilar_salida("costo_m1.json", {"huellas_lecturas_reales": {clave: valor}}, clase="resumen")
+
+
 class PruebasCaminoReal(unittest.TestCase):
     def test_camino_real_con_insumos_sinteticos(self):
         """El camino de ``real_era5=True`` (COS-4, COS-10, COS-21) con los seis puntos, cada uno en su trabajador y
@@ -944,9 +1044,21 @@ class PruebasCaminoReal(unittest.TestCase):
             m = costo.medir(rutas, real_era5=True, umbrales=U, temporal=Path(tmp) / "costo",
                             escala=costo.ESCALA_PRUEBA, aislar=True,
                             puntos=("qc", "pliegue", "tf", "m5", "grilla", "mes_real"))
+            import hashlib
+            esperado = {entorno.alias(ruta_mes, rutas): {"sha256": hashlib.sha256(ruta_mes.read_bytes()).hexdigest(),
+                                                       "bytes": ruta_mes.stat().st_size}}
+            self.assertEqual(m["puntos"]["mes_real"]["huellas_lecturas_reales"], esperado)
+            contenido = costo.contenido_costo(m, costo.proyectar(m, U), U)
+            texto = json.dumps(contenido, ensure_ascii=False, allow_nan=False)
+            ceguera.vigilar_salida("costo_m1.json", texto, clase="resumen")
+            carpeta = entorno.carpeta_salida(rutas, "m1", "camino_real_sintetico")
+            sha = salidas.escribir("costo_m1.json", contenido, clase="resumen", raiz=carpeta)
+            escrito = (carpeta / "costo_m1.json").read_bytes()
+            self.assertEqual(hashlib.sha256(escrito).hexdigest(), sha)
+            self.assertEqual(json.loads(escrito), contenido)
         lecturas = {k: v["lecturas_reales"] for k, v in m["puntos"].items()}
         self.assertEqual(lecturas, {"qc": [], "pliegue": [], "tf": ["celdas.parquet"], "m5": ["celdas.parquet"],
-                                    "grilla": ["celdas.parquet"], "mes_real": [ruta_mes.name]})
+                                    "grilla": ["celdas.parquet"], "mes_real": ["mes_real"]})
         r = m["puntos"]["mes_real"]
         self.assertEqual((r["pixeles"], r["horas"]), (pid.size, t.size))
         self.assertGreater(r["bytes"], 0)
