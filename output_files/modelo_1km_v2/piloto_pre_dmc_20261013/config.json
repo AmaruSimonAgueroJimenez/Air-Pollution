@@ -1,0 +1,133 @@
+{
+  "schema": "piloto-perdidas-sin-dmc/v1",
+  "fuentes": {
+    "pm25": {
+      "ruta": "/Users/amaruagueroj/Asesorias_Data_local/AirPollution/modelado_1km/paneles/panel_pm25.parquet",
+      "bytes": 778963905,
+      "mtime_ns": 1790127664359132782,
+      "filas": 9740634,
+      "columnas": 81,
+      "unidad": "µg/m³",
+      "sha256_declarado_panel": "955ed14469dce75e2c6da6452fbd5749ff3f391345a910758b5550330a9f56cb",
+      "predictores_n": 65,
+      "qc_ruta": "/Users/amaruagueroj/Asesorias_Data_local/AirPollution/modelado_1km_v2/paneles/calidad_pm25.parquet",
+      "qc_meta_sha256": "e81ae777f6b17aafeeb2b4b01e082a7d050b7f9485e8fa4548a58193df34efcf",
+      "sha256_verificado_panel": "955ed14469dce75e2c6da6452fbd5749ff3f391345a910758b5550330a9f56cb",
+      "qc_sha256": "f10d0bab00eb4b7c7d6358aabd7f4a75f45a012cc6459c40d8ad61f0f8d46eff"
+    },
+    "no2": {
+      "ruta": "/Users/amaruagueroj/Asesorias_Data_local/AirPollution/modelado_1km/paneles/panel_no2.parquet",
+      "bytes": 425232563,
+      "mtime_ns": 1790127777174419068,
+      "filas": 5711491,
+      "columnas": 81,
+      "unidad": "ppb",
+      "sha256_declarado_panel": "513394a296a5bc64ce850e1f7b5b726d86001e738c66db1413ecd889214118a3",
+      "predictores_n": 64,
+      "qc_ruta": "/Users/amaruagueroj/Asesorias_Data_local/AirPollution/modelado_1km_v2/paneles/calidad_no2.parquet",
+      "qc_meta_sha256": "0c9b4ac59fc0af06a3e7778df3c0ca86795d6dc29b4371f44216357c8eb30a99",
+      "sha256_verificado_panel": "513394a296a5bc64ce850e1f7b5b726d86001e738c66db1413ecd889214118a3",
+      "qc_sha256": "c6c45e6c42f58976b532a990039539b963dccd69cf842990f3e96a332d90a8ab"
+    }
+  },
+  "versiones": {
+    "numpy": "2.2.6",
+    "pandas": "2.3.3",
+    "pyarrow": "25.0.0",
+    "lightgbm": "4.7.0",
+    "xgboost": "3.4.2",
+    "scikit-learn": "1.9.1"
+  },
+  "motores": [
+    "lightgbm",
+    "xgboost"
+  ],
+  "variantes": [
+    "l2_original",
+    "l2_log_smearing",
+    "huber",
+    "q05",
+    "q50",
+    "q95"
+  ],
+  "rondas": 150,
+  "hilos": 2,
+  "semilla": 20261013,
+  "max_ajuste": 50000,
+  "max_cal_test": 20000,
+  "dias_mes": [
+    5,
+    12,
+    19,
+    26
+  ],
+  "periodo": [
+    2019,
+    2024
+  ],
+  "reloj": "UTC−4 fijo del panel; inicio del bin, no día civil America/Santiago",
+  "limite_segundos": 900,
+  "deadline": "cooperativo, comprobado entre lotes y antes/después de cada fit; no cancelación exacta a 900 s",
+  "salida_base": "/Users/amaruagueroj/Asesorias_Data_local/AirPollution/modelado_1km_v2/pilotos_exploratorios",
+  "ablacion": {
+    "excluidas": [
+      "obs_vec",
+      "peso_vec",
+      "dist_est_km",
+      "acag_pm25",
+      "acag_clim"
+    ],
+    "motivo": "Sin vecindario de observaciones; sin ACAG calibrado con monitores ni su climatología 2018–2024, potencial anticipación temporal. Whitelist explícita restante."
+  },
+  "calibracion": "global, separada, sin refit; Duan y delta Huber sólo con cal; sin CQR",
+  "advertencia": "Histórico ya explorado en v1. Piloto no confirmatorio; Huber y cuantiles no estiman la media. Transferencia retrospectiva, no pronóstico operativo. Entrenamiento mixto; métricas test globales y subconjunto QC validado/usable_native. Cal no es evaluación independiente.",
+  "etiqueta": "pre_dmc_20261013_a",
+  "recetas": {
+    "lightgbm": {
+      "params": {
+        "objective": "regression",
+        "learning_rate": 0.03,
+        "num_leaves": 127,
+        "min_data_in_leaf": 50,
+        "bagging_fraction": 0.8,
+        "bagging_freq": 1,
+        "feature_fraction": 0.8,
+        "lambda_l2": 1.0,
+        "deterministic": true,
+        "force_col_wise": true,
+        "num_threads": 2,
+        "seed": 42,
+        "verbose": -1
+      },
+      "num_boost_round": 150
+    },
+    "xgboost": {
+      "params": {
+        "tree_method": "hist",
+        "max_leaves": 127,
+        "grow_policy": "lossguide",
+        "eta": 0.03,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "lambda": 1.0,
+        "min_child_weight": 50.0,
+        "max_depth": 0,
+        "max_bin": 255,
+        "nthread": 2,
+        "seed": 42,
+        "verbosity": 0
+      },
+      "num_boost_round": 150,
+      "min_child_weight_equivalencia": "hessiana_1",
+      "determinismo": "tree_method hist en CPU, QuantileDMatrix, nthread y seed fijos; se verifica con dos corridas idénticas bit a bit (tests/test_correr_v2.py)"
+    }
+  },
+  "codigo": {
+    "piloto_perdidas_sin_dmc.py": "550f24be5c96ae07e4857c62deb9309865a29870a633fef1714b9b34eec6b7ee",
+    "motores_v2.py": "389f23f210bfe2dba55dca524b093f620adf6267309c42ceac2cb93ab3e35c57",
+    "perdidas_v2.py": "c8caaf6b426447bcb0e86197a0935794746cb92503eed6531225321538fff471"
+  },
+  "config_sha256": "232c75b3376b6fd7c4f73c885c812e170abff7c1a8817d1ac64cc76c68b0534c",
+  "pliegues_sha256": "f001d48ca14a14a7f11c748f7ea1d349977727468cd8ed0d7bbb0f5092895053",
+  "config_hash": "89749bfc6695bc3ad187374892ccee0a5e9867dc9562304dfe04dbf64a3c528e"
+}
