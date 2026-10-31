@@ -1301,8 +1301,10 @@ Los ids MC-nn son de este diseño y no se reutilizan.
 
 ### 8.1 Qué mide M1 y cómo proyecta
 
-`costo.medir` corre, con la máquina libre (carga < 2, sin la descarga TROPOMI ni otra corrida pesada) y con datos sintéticos
-a escala real:
+`costo.medir` corre con datos sintéticos a escala real. [EMC4-1, D68, 2026-10-31: la carga inicial y durante la
+medición se registra como diagnóstico, no excluye la medición, la proyección ni el recorte. La referencia histórica
+carga < 2 no es un requisito vigente ni se falsea su indicador. Los tiempos pueden variar por actividad concurrente;
+no se garantiza una estimación de máquina libre. Se mantienen las demás comprobaciones.]
 1. `cargar_dmc` + envoltorio sobre ≥ 50 artefactos sintéticos de un año, en ms por hora de dato;
 2. un pliegue externo de P2 completo, con 579 estaciones y H horas: selección de B, AB, A, C y C_est;
 3. un año de TF en las 108.579 celdas pobladas, con la geometría real de `celdas.parquet` (LOCAL, no DMC) y campos
@@ -1475,7 +1477,9 @@ Calculadas al escribir este diseño; M1 las vuelve a calcular.
    nuevo; la clausura es la de AP `1da0236` y va al addendum de M1.]
 3. **Decisiones del autor:** MC-03 (sin valor por omisión) y MC-01 (enmienda o literal). Las lecturas [D] van al addendum;
    el autor puede pasar cualquiera a [E].
-4. **Máquina libre** para la medición del costo (§8.1), fuera de la descarga TROPOMI y del C4 del reloj.
+4. **Carga registrada, no excluyente** para el costo (§8.1, EMC4-1/D68). Se recomienda no añadir otras corridas
+   pesadas, pero la carga observada no rechaza inicio, proyección o recorte. No se autoriza por ello abrir resultados
+   del C4 del reloj ni ejecutar otras tareas concurrentes sin permiso.
 5. **Espejo en APH.** `meteo_combinada/` entra en un grupo de `config/componentes_compartidos.json`, regenerado con su
    generador, y se confirma en AP y en APH con el envío al remoto privado que autorice el autor (testigo externo de M1).
 6. **El addendum de M1** (MC-54), con commit, envío y sello OpenTimestamps de su línea en

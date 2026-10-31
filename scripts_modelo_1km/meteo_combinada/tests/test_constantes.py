@@ -48,6 +48,13 @@ class _ConTexto(unittest.TestCase):
 
 
 class PruebasConstantes(_ConTexto):
+    def test_carga_es_referencia_diagnostica_no_umbral_operativo(self):
+        c = constantes.POR_NOMBRE["COSTO_CARGA_MAX"]
+        self.assertEqual((c.valor, c.clase), (2, "definicion"))
+        self.assertEqual(c.fragmento, "referencia diagnóstica histórica: carga < 2")
+        self.assertIn(c.fragmento, self.texto)
+        self.assertIn("[EMC4-1]", self.texto)
+
     def test_fragmentos_en_su_seccion(self):
         """Cada fragmento (A2, definiciones, repeticiones y exclusiones) está tal cual en su sección del v2.4 y sus
         números calzan con el valor, con sus ajenos y sus negativos."""

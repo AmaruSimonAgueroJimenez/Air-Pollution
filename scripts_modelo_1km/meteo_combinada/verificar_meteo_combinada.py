@@ -49,7 +49,7 @@ Lecturas propias (VER-n), para el addendum de M1:
   lista cambió entre los dos armados, o no se pudo escribir), el resumen ya escrito dice «aprobada», pero no hay
   addendum (ninguna corrida se habilita), la consola dice «no aprobada: addendum» y el proceso sale con 1.
 - VER-3. **Cuándo se aprueba M1** (§10, M1: «S1-S16 aprobadas y guardadas; costo medido con la máquina libre; … la
-  compuerta de deriva y el recorte fijados»). ``resumen_m1.json["aprobada"]`` exige: la suite entera (sin ``--solo``),
+  compuerta de deriva y el recorte fijados»; EMC4/D68 retira el veto por carga de esa condición histórica). ``resumen_m1.json["aprobada"]`` exige: la suite entera (sin ``--solo``),
   ninguna falla, error, falla esperada ni éxito inesperado; ninguna prueba omitida fuera de la lista cerrada
   ``OMISIONES_PERMITIDAS`` (identificador y comienzo del motivo: la de 2.500 m de D56 y la de las huellas de datos; la
   del cierre de M1 ya no se omite, porque ``EN_CURSO`` quedó vacía); **S14 corrida y aprobada**
@@ -167,9 +167,10 @@ Lecturas propias (VER-n), para el addendum de M1:
   ``orquestacion`` con la huella que ya trae ``Cfg.huellas``: el recibo la cita.
 - VER-17. **El costo** (§8.1 del diseño; A32; COS-1 a COS-13). Con ``--costo``, ``costo.medir`` (con
   ``real_era5=True``), ``proyectar``, ``recorte`` y ``contenido_costo`` corren **antes** de la suite, bajo el mismo
-  aislamiento, porque la medición exige la máquina libre (carga < 2) y la suite la carga; ``costo_m1.json`` (resumen)
-  lleva lo medido y el addendum sólo su ruta, su huella y el recorte. Si la medición no corre (por ejemplo, con la
-  máquina ocupada), el resumen dice el tipo del error y M1 no se aprueba.
+  aislamiento, para no sumar la suite a la medición; EMC4/D68 deja la carga como diagnóstico no excluyente.
+  ``costo_m1.json`` (resumen) lleva lo medido y el addendum sólo su ruta, su huella y el recorte. Si la medición no
+  corre por otro error, el resumen dice el tipo del error y M1 no se aprueba. La carga real no se falsea ni hace
+  pasar una máquina ocupada por libre; los tiempos y la proyección pueden variar por trabajo concurrente.
 - VER-18. **El directorio de trabajo** (CEG-4: «Un acceso por descriptor (un entero) no tiene ruta»). Mientras
   duran la batería y las corridas reales, el directorio de trabajo es la carpeta temporal del sistema y vuelve al
   terminar (``directorio_neutro``). ``shutil.rmtree`` (y con él ``tempfile.TemporaryDirectory``) borra con nombres
@@ -1836,7 +1837,7 @@ def _omisiones_no_permitidas(resultado) -> list[str]:
 
 
 def _medir_costo(medidor, reales, U) -> tuple[dict | None, str | None, str | None, str]:
-    """(contenido de ``costo_m1.json``, recorte, error, carpeta temporal) con la máquina libre (§8.1; PED-3)."""
+    """(contenido, recorte, error, temporal); carga registrada, no excluyente (EMC4/D68; §8.1)."""
     temporal = Path(tempfile.gettempdir()) / f"meteo_combinada_costo_{os.getpid()}_{uuid.uuid4().hex}"
     try:
         mediciones = medidor.medir(reales, real_era5=True, umbrales=U, temporal=temporal)
@@ -1946,7 +1947,7 @@ def correr_bateria(rutas, *, servicios: Servicios | None = None, patrones: Seque
                 ceguera.RegistroAccesos(_zonas_ciegas(reales), bloquear=True) as ciego, \
                 contextlib.redirect_stdout(captura), contextlib.redirect_stderr(captura):
             contenido_costo, recorte, error_costo, temporal = (None, None, None, None)
-            if costo:                                               # VER-17: primero, con la máquina libre (§8.1)
+            if costo:                                               # VER-17: primero; carga informativa (EMC4)
                 contenido_costo, recorte, error_costo, temporal = _medir_costo(medidor, reales, U)
             clases_s14 = _clases_s14(suite)
             ventana = _Ventana(estricto, clases_s14)
@@ -2127,7 +2128,7 @@ def analizar_argumentos(argv: Sequence[str] | None) -> argparse.Namespace:
     g = p.add_mutually_exclusive_group(required=True)
     for m in MODOS:
         g.add_argument(f"--{m}", dest="modo", action="store_const", const=m)
-    p.add_argument("--costo", action="store_true", help="con --sintetico: mide el costo (§8.1; máquina libre)")
+    p.add_argument("--costo", action="store_true", help="con --sintetico: mide el costo (§8.1; carga informativa, EMC4)")
     p.add_argument("--solo", action="append", default=[], metavar="PATRON",
                    help="con --sintetico: sólo las pruebas cuyo nombre calza (batería parcial, no aprueba M1)")
     p.add_argument("--commits", nargs=2, metavar=("COMMIT_AP", "COMMIT_APH"),

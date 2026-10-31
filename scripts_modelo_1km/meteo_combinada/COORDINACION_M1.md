@@ -3740,3 +3740,31 @@ Cambio local sin nuevo commit, anclaje ni sello. El espejo de los tres archivos 
 por separado; no se actualiza el manifiesto compartido ni la lista histórica de 179 huellas del intento fallido.
 No se añade persistencia/reutilización de mediciones. El futuro addendum debe registrar este cambio de representación
 conforme §0 del diseño; esta nota no sustituye el addendum de una batería aprobada ni la suite completa pendiente.
+
+## EMC4: carga informativa por decisión D68 (2026-10-31)
+
+El autor indicó «no quiero que se rechaze por carga» y, en mensaje separado, «y lanzalo». La primera orden cambia
+la regla operativa del costo y se formaliza como Enmienda 4 del producto, texto v2.5, `post_hoc = true` conforme §10.
+La segunda autoriza una sola batería nueva después de integrar, verificar y confirmar el cambio, no un reintento
+automático ilimitado. Los intentos anteriores y sus fuentes confirmadas se conservan.
+
+Cambio explícito: la carga al inicio y durante la medición no excluye el costo, la proyección ni el recorte.
+Se conservan lecturas brutas/ajenas, máximos, no finitas e indicador diagnóstico histórico de máquina libre;
+no se sustituyen por ceros ni por `libre: true`. El valor histórico de referencia permanece sin aumentar el tope
+ni usar infinito para eludirlo. No se identifica la medición bajo actividad concurrente con una de máquina libre.
+Los tiempos y la proyección pueden variar; por D64 una proyección distinta puede cambiar el recorte antes de M3-4.
+No se garantiza una cota superior ni se elige por métricas meteorológicas.
+
+No cambian límites de memoria, número de procesos, factores/muestras de proyección, semillas, algoritmos, S6 y
+sus parámetros, pruebas de ceguera, procedencia de archivos, integridad, reloj DMC, modelos de contaminantes,
+descargas ni condiciones de publicación. El addendum conserva EMC3 y agrega una declaración separada de EMC4/D68,
+con las versiones anclada y enmendada y lo ya visto. La regla de memoria que no cabe sigue bloqueando la ejecución.
+
+Lo observado antes de esta decisión: la batería del 29 terminó por rechazo de escritura de procedencia, corregido
+sin retirar la guarda; después la suite de 940 pruebas pasó (938 aprobadas y dos omisiones). Dos intentos posteriores
+completaron la suite pero quedaron sin costo, con `ErrorCosto` sin mensaje persistido y cargas altas en el control.
+Eso es compatible con el veto anterior, no prueba concluyente de su mensaje interno. No se abrieron informes ni
+tablas de evidencia del reloj ni resultados de la competencia meteorológica real para elegir esta regla.
+
+Estado al registrar esta nota: integración y pruebas en curso; no hay todavía batería bajo EMC4 ejecutada ni costo,
+recorte o aprobación inventados. La formalización y el código deben recibir sus identidades nuevas antes de lanzar.

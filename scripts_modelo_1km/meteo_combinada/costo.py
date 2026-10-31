@@ -1,6 +1,7 @@
 """Medición del costo a escala y proyección de M3-4, M5, M6 y de la grilla v2 (§4.9, §7.1, §8; §8.1 del diseño).
 
-Mide con la máquina libre (carga < 2, sin la descarga TROPOMI ni otra corrida pesada).
+La carga se mide como diagnóstico, no como exclusión (D68, Enmienda 4). Continuar no equivale a máquina libre:
+los tiempos medidos y la proyección pueden variar por la carga ajena.
 
 Qué hay:
 - ``medir(rutas, *, real_era5, umbrales, temporal=None, escala=ESCALA_REAL, aislar=True, puntos=PUNTOS,
@@ -109,15 +110,17 @@ Lecturas propias (COS-n), para el addendum de M1:
 - COS-12. **El recorte** (§4.9; §8: «Recorte por costo: sólo el de §4.9»): «mod23» si la pared proyectada de M3-4
   (con los procesos de cada fase, COS-25) pasa de ``SEL_UMBRAL_H`` horas (> 36 h; 36 h exactas es «mod11»), sólo si el
   veredicto decide (COS-22); si no, «pendiente», y ``costo_m1.json`` lo lleva marcado con sus motivos.
-- COS-13. **La máquina libre** (§8.1: «con la máquina libre (carga < 2, sin la descarga TROPOMI ni otra corrida
-  pesada)»; ``COSTO_CARGA_MAX``; H3). Lo que se exige es que no haya otro trabajo pesado, no que la medición no cargue
-  la máquina. ``medir`` lee la carga de 1 min (``os.getloadavg``): al empezar, la bruta debe ser < 2 (la escala de
-  §8.1 se niega a empezar si no); mientras corre cada punto, cada ``_INTERVALO_CARGA_S`` segundos (un hilo del
-  principal), la carga ajena —la bruta menos los procesos de la medición que corren en ese momento (el que mide el
-  punto: su trabajador, o este proceso sin aislar), sin bajar de 0— debe ser < 2 en toda lectura. Una lectura no finita
-  no es libre. La contención carga la máquina a propósito y no cuenta. No se buscan otras corridas pesadas con ``ps``:
-  haría falta lanzar un proceso, y sólo ``orquestacion`` los lanza (§0, regla 3). ``costo_m1.json`` lleva las dos series
-  (bruta y ajena) de cada punto (P-COS-6).
+- COS-13. **La carga como diagnóstico** (D68, Enmienda 4; sustituye la exclusión de §8.1; H3).
+  ``COSTO_CARGA_MAX`` = 2 y ``_carga_libre`` se conservan sólo como referencia histórica: ninguna carga inicial ni
+  durante la medición impide empezar, invalida la proyección o deja el recorte pendiente. ``medir`` lee la carga de
+  1 min (``os.getloadavg``): al empezar, la bruta; mientras corre cada punto, cada ``_INTERVALO_CARGA_S`` segundos
+  (un hilo del principal), la bruta y la ajena —la bruta menos los procesos de la medición que corren en ese momento
+  (el que mide el punto: su trabajador, o este proceso sin aislar), sin bajar de 0—. El indicador histórico «libre»
+  exige lecturas finitas menores que 2; una lectura no finita o ausente no se declara libre. La contención carga la
+  máquina a propósito y no cuenta. No se buscan otras corridas pesadas con ``ps``: haría falta lanzar un proceso, y
+  sólo ``orquestacion`` los lanza (§0, regla 3). ``costo_m1.json`` conserva las dos series (bruta y ajena), sus máximos
+  y las lecturas no finitas (P-COS-6), con ``carga_referencia_historica`` y ``carga_es_excluyente=False``. Continuar
+  no equivale a máquina libre; los tiempos medidos y la proyección pueden variar por la carga ajena.
 - COS-14. **La grilla por muestra de lotes.** Un mes de la grilla entera con C cuesta ≈ 1,5 h por variante (ensayo a
   escala intermedia: ≈ 1,8 µs por celda-hora y variable, CAN-18) y el barrido mide diez ganadores: la escala real mide
   ``lotes_grilla`` = 16 lotes de ``LOTE_CELDAS`` repartidos parejo en el orden de las celdas (65.536 de 838.430) y
@@ -166,8 +169,8 @@ Lecturas propias (COS-n), para el addendum de M1:
   su nombre: 579 estaciones, H horas desde 2000-01-01, la cobertura de los conteos, ≥ 50 artefactos de un año, doce
   meses de TF con 2 y 3 redes, 108.579 celdas en la TF y en salud y las 838.430 de la grilla. El recorte decide sólo
   si la proyección está completa (los seis puntos y la contención), con P = ``PROCESOS``, a la escala de §8.1, con el
-  mes real, con la máquina libre en toda la medición, si cada fase de reparto de M3-4 y de M5 cabe en memoria con al
-  menos un proceso y si el principal de M3-4 queda bajo el tope (COS-25); si no, «pendiente» con sus motivos.
+  mes real, si cada fase de reparto de M3-4 y de M5 cabe en memoria con al menos un proceso y si el principal de
+  M3-4 queda bajo el tope (COS-25); si no, «pendiente» con sus motivos. La carga sólo diagnostica (D68, COS-13).
 - COS-23. **La carpeta de trabajo** (H10; PED-3 de I22). Sin ``temporal``, ``medir`` corre en una carpeta nueva de
   ``entorno.carpeta_de_trabajo(PREFIJO_TRABAJO)`` (0700, directamente bajo la temporal del sistema), que se borra al
   terminar, también si un punto falla, sin seguir enlaces (ENT-9); ``costo`` no crea ni borra nada (§0, regla 8).
@@ -205,10 +208,9 @@ grupo frente a la memoria física?; P-COS-3, respondida por D59 (P145; P146 la e
 memoria con 8 procesos corre con el mayor número que quepa y su pared se proyecta con ese número; si no cabe ni con uno,
 el recorte queda «pendiente» (COS-25); P-COS-4, la unidad del tope:
 ¿8 GB son 8·10⁹ B (rige, la estricta) u 8·2³⁰ B?; P-COS-5, ¿qué proyección decide el recorte: la cota superior
-coherente (rige: la regla de red y el ganador más caros) o la esperada?; P-COS-6 (revisada), ¿«carga < 2» es la carga
-ajena a la medición —la bruta al empezar y, durante cada punto, la bruta menos los procesos de la medición que corren,
-sin la contención— (rige, COS-13) o la bruta en toda la medición (que aquí nunca se cumple: el fondo de la máquina
-ronda 1,3-1,7 y el trabajador suma ≈ 1)?; P-COS-7, ¿la grilla con 16
+coherente (rige: la regla de red y el ganador más caros) o la esperada?; P-COS-6, resuelta por D68 (Enmienda 4):
+la carga no excluye; se conservan la bruta inicial y, durante cada punto, la bruta y la ajena sin la contención,
+con el indicador histórico «libre» (COS-13); P-COS-7, ¿la grilla con 16
 lotes repartidos (COS-14) vale como «un mes de la grilla» de §8.1? (rige: sí, proyectada por celda-hora; con
 ``lotes_grilla`` = None, el mes entero); P-COS-8, ¿seis meses de 2017 y seis de 2012 (COS-8) valen como «un año de
 TF»? (rige: sí, son los dos tipos de año de la proyección).
@@ -1603,7 +1605,7 @@ def _redes_reales(anio: int) -> int:
 
 
 def _carga_libre(cargas) -> bool:
-    """COS-13: libre si toda lectura es finita y menor que ``COSTO_CARGA_MAX`` (una NaN no es libre)."""
+    """COS-13, D68: indicador histórico, no exclusión; libre si toda lectura es finita y < ``COSTO_CARGA_MAX``."""
     tope = float(constantes.valor("COSTO_CARGA_MAX"))
     cargas = list(cargas)
     return bool(cargas) and all(math.isfinite(c) and c < tope for c in cargas)
@@ -1702,9 +1704,6 @@ def medir(rutas, *, real_era5: bool, umbrales, temporal=None, escala: Escala = E
         raise ErrorCosto("la medición de §8.1 lee un mes real y la geometría de la grilla: exige real_era5=True "
                          "(COS-10, COS-22)")
     carga0 = _carga()
-    if a_escala and not _carga_libre([carga0]):
-        raise ErrorCosto(f"la máquina no está libre: carga {carga0:.2f} (tope {constantes.valor('COSTO_CARGA_MAX')}; "
-                         "§8.1; COS-13)")
     if temporal is None:                               # COS-23 (PED-4, ENT-9): la crea y la borra entorno
         with entorno.carpeta_de_trabajo(PREFIJO_TRABAJO) as carpeta:
             return medir(rutas, real_era5=real_era5, umbrales=umbrales, temporal=carpeta, escala=escala,
@@ -2161,9 +2160,9 @@ def _memoria_estacion(qc: Mapping, horas: int) -> float:
 
 def _veredicto(mediciones: Mapping, proy: Mapping, U) -> dict:
     """COS-12, COS-22, COS-25: el recorte se decide sólo con una proyección completa, con P = ``PROCESOS``, a la escala
-    de §8.1, con el mes real, con la máquina libre en toda la medición, si cada fase de reparto cabe con al menos un
-    proceso (D59) y si los principales de M3-4 y M5 quedan bajo el tope. Si no, «pendiente» con sus motivos. Decide la cota
-    superior (la regla y el ganador más caros; P-COS-5); si una fase corre con menos de P, una nota lo dice."""
+    de §8.1, con el mes real, si cada fase de reparto cabe con al menos un proceso (D59) y si los principales de M3-4 y
+    M5 quedan bajo el tope. Si no, «pendiente» con sus motivos. Decide la cota superior (la regla y el ganador más caros;
+    P-COS-5); si una fase corre con menos de P, una nota lo dice. La carga sólo diagnostica (D68, COS-13)."""
     motivos = []
     if not proy["m34"]["completa"]:
         motivos.append("proyección incompleta: " + ", ".join(proy["m34"]["faltan"]))
@@ -2173,8 +2172,6 @@ def _veredicto(mediciones: Mapping, proy: Mapping, U) -> dict:
         motivos.append("la medición no es la de §8.1 (COS-22)")
     if not mediciones.get("real_era5"):
         motivos.append("sin el mes real (COS-10)")
-    if not (mediciones.get("carga") or {}).get("libre"):
-        motivos.append("la máquina no estuvo libre en toda la medición (COS-13)")
     mem = proy["memoria"]
     tope = f"{constantes.valor('MEMORIA_MAX_GB')}·10⁹ B"
     if mem["sin_procesos"]:
@@ -2184,6 +2181,9 @@ def _veredicto(mediciones: Mapping, proy: Mapping, U) -> dict:
         motivos.append(f"el principal de M3-4 pasa del tope de {tope}, o no se midió (COS-11; P-ORQ-11)")
     umbral = float(U.a("SEL_UMBRAL_H"))
     notas = []
+    if not (mediciones.get("carga") or {}).get("libre"):
+        notas.append("D68 (COS-13): la carga no es excluyente; continuar no equivale a máquina libre. "
+                     "Los tiempos medidos y la proyección pueden variar por la carga ajena.")
     menos = [f"{c}/{f} con {n}" for c, fs in proy["procesos_por_fase"].items() for f, n in fs.items()
              if 0 < n < proy["procesos"]]
     if menos:
@@ -2254,7 +2254,8 @@ def contenido_costo(mediciones: dict, proyeccion: dict, umbrales) -> dict:
         "esquema": ESQUEMA_COSTO, "escala": dict(mediciones["escala"]), "a_escala": bool(mediciones.get("a_escala")),
         "fallas_escala": list(mediciones.get("fallas_escala", [])), "mes_real_leido": bool(mediciones["real_era5"]),
         "aislada": bool(mediciones["aislada"]), "sistema": mediciones.get("sistema", {}),
-        "carga": mediciones.get("carga", {}), "carga_maxima_permitida": float(constantes.valor("COSTO_CARGA_MAX")),
+        "carga": mediciones.get("carga", {}), "carga_referencia_historica": float(constantes.valor("COSTO_CARGA_MAX")),
+        "carga_es_excluyente": False,
         "mediciones": puntos, "proyeccion": {k: v for k, v in proyeccion.items() if k not in ("esquema", "veredicto")},
         "veredicto": proyeccion["veredicto"], "recorte": rec, "recorte_pendiente": rec == PENDIENTE,
         "procesos_por_fase": proyeccion["procesos_por_fase"],                 # A39 (D59): los usa el addendum

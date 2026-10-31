@@ -710,6 +710,13 @@ class PruebasNegativas(unittest.TestCase):
                 **addendum.ENMIENDA_OPERATIVA, "post_hoc": 1}}, ["addendum"]),
             ("lo visto falseado", {"enmienda_operativa": {
                 **addendum.ENMIENDA_OPERATIVA, "lo_visto": "no se vio nada"}}, ["addendum"]),
+            ("sin declarar enmienda de carga", {"quitar": ("enmienda_carga",)}, ["addendum"]),
+            ("carga sin post_hoc", {"enmienda_carga": {
+                **addendum.ENMIENDA_CARGA, "post_hoc": False}}, ["addendum"]),
+            ("carga con post_hoc numérico", {"enmienda_carga": {
+                **addendum.ENMIENDA_CARGA, "post_hoc": 1}}, ["addendum"]),
+            ("regla de carga alterada", {"enmienda_carga": {
+                **addendum.ENMIENDA_CARGA, "regla_enmendada": "se rechaza por carga"}}, ["addendum"]),
             ("declaración C4 incompatible", {"declaracion_c4_reloj": {
                 **addendum.DECLARACION_C4, "lectura_propuesta": "todo es implementación, no enmienda"}}, ["addendum"]),
             ("batería no aprobada", {"aprobada": False}, ["addendum"]),
@@ -738,6 +745,7 @@ class PruebasNegativas(unittest.TestCase):
                     m.escribir_addendum(**cambios)
                     m.confirmar_todo()
                     if "enmienda_operativa" in cambios or "declaracion_c4_reloj" in cambios \
+                            or "enmienda_carga" in cambios or "enmienda_carga" in cambios.get("quitar", ()) \
                             or "enmienda_operativa" in cambios.get("quitar", ()):
                         contenido = json.loads(m.ruta(_ADDENDUM).read_bytes())
                         self.assertEqual(_motivos(V._fallas_contenido(cfg_valida, contenido)), esperado)

@@ -3,8 +3,9 @@
 Dueño: I21 (ola 6). Correr desde scripts_modelo_1km con
   ~/micromamba/envs/amb_v2/bin/python -B -m unittest discover -s meteo_combinada/tests -t .
 Datos sólo sintéticos, en carpetas temporales: ninguna prueba abre DMC, la meteorología SINCA real, NASADEM real,
-GHS-POP real, ERA5-Land real ni ``celdas.parquet``. La medición a escala real (§8.1, horas) no corre aquí: la corre el
-coordinador con la máquina libre. Aquí: la proyección, la memoria, el veredicto y el recorte con mediciones fabricadas
+GHS-POP real, ERA5-Land real ni ``celdas.parquet``. La medición científica a escala real (§8.1, horas) no corre aquí.
+D68 prueba esa escala con medidores y reparto sustituidos, sin excluir por carga. Aquí: la proyección, la memoria,
+el veredicto y el recorte con mediciones fabricadas
 (con factores de escala distintos de 1 y los bordes de 36 h); la escala de §8.1 y sus negativas (por tamaños, antes de
 lanzar nada); la medición a escala mínima en este proceso, un punto y la contención en trabajadores, y el camino de
 ``real_era5`` con los seis puntos sobre un árbol sintético; y que ``costo_m1.json`` pasa la guarda de su clase.
@@ -214,15 +215,14 @@ class PruebasCosto(unittest.TestCase):
 
     def test_recorte_pendiente_sin_veredicto(self):
         """H1-H3 (COS-22, COS-25): «pendiente», con su motivo, si la proyección está incompleta, si P ≠ 8, si la
-        medición no es la de §8.1, sin el mes real, si la carga llegó al tope (también una lectura NaN), si una fase de
-        reparto no cabe ni con un proceso (D59) o no se midió su memoria; ``contenido_costo`` lo lleva marcado."""
+        medición no es la de §8.1, sin el mes real, si una fase de reparto no cabe ni con un proceso (D59) o no se midió
+        su memoria; ``contenido_costo`` lo lleva marcado. La carga no excluye (D68, COS-13)."""
         U = self.U
         casos = {
             "incompleta": lambda m: m["puntos"].pop("qc"),
             "contencion": lambda m: m["puntos"].pop("contencion"),
             "escala": lambda m: m.update(a_escala=False),
             "mes real": lambda m: m.update(real_era5=False),
-            "carga": lambda m: m.update(carga={"libre": False}),
             "memoria": lambda m: m["puntos"]["pliegue"].update(memoria_pico_gb=9.0),
             "fisica": lambda m: m.update(sistema={"memoria_fisica_bytes": 5 * _GB}),
             "representatividad": lambda m: m["puntos"]["mes_real"].pop("memoria_pico_gb"),
@@ -376,7 +376,7 @@ class PruebasCosto(unittest.TestCase):
         for cambio in ({"estaciones": 578}, {"celdas_grilla": 1}, {"qc_meses": 9}, {"meses_tf": E.meses_tf[:6]}):
             self.assertTrue(costo.fallas_escala(dataclasses.replace(E, **cambio)), cambio)
 
-    def test_escala_real_exige_real_era5_y_la_maquina_libre(self):
+    def test_escala_real_exige_real_era5_y_precondiciones(self):
         """Las negativas de §8.1 (por los tamaños: también con otro nombre) ocurren antes de lanzar ningún trabajador
         y de abrir nada (``orquestacion.repartir`` reemplazado por una guarda que falla; registro en bloqueo)."""
         U = self.U
@@ -388,10 +388,6 @@ class PruebasCosto(unittest.TestCase):
             for escala in (costo.ESCALA_REAL, otra):
                 with self.assertRaisesRegex(costo.ErrorCosto, "real_era5"):
                     costo.medir(rutas, real_era5=False, umbrales=U, temporal=tmp, escala=escala)
-            for carga in (float(constantes.valor("COSTO_CARGA_MAX")), math.nan):
-                with mock.patch.object(costo, "_carga", return_value=carga), \
-                        self.assertRaisesRegex(costo.ErrorCosto, "libre"):
-                    costo.medir(rutas, real_era5=True, umbrales=U, temporal=tmp, escala=otra)
             with self.assertRaises(costo.ErrorCosto):
                 costo.medir(rutas, real_era5=False, umbrales=U, temporal=tmp, escala=costo.ESCALA_PRUEBA,
                             puntos=("otro",))
@@ -459,6 +455,164 @@ def _pared_seleccion(U, n: int, c: float = 1.25) -> float:
     t_sel, frio, t_est, datos = (70.0 - 5 * 4.0) * _F_H, (80.0 - 70.0) * _F_H, 4.0 * _F_H / _F_N, 40.0 * _F_N
     return ((n_pl * t_sel + 2 * C["estaciones"] * t_est) * c / n + datos + frio + t_sel
             + math.ceil(20 * _F_N) * t_est) / 3600
+
+
+class PruebasCargaNoExcluyente(unittest.TestCase):
+    """D68 (Enmienda 4): la carga sólo diagnostica; no invalida ni decide el recorte. Sin trabajo científico."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.U = _umbrales()
+
+    def _medir_con_cargas(self, lecturas):
+        """ESCALA_REAL con el medidor y el reparto sustituidos; conserva ``_punto`` y su guarda en bloqueo."""
+        medidor = mock.Mock(return_value={"testigo": "qc_sustituido"})
+
+        def repartir(unidades, funcion, procesos, *, contexto, permitidas):
+            self.assertIs(funcion, costo._punto)
+            self.assertIs(contexto["escala"], costo.ESCALA_REAL)
+            self.assertTrue(contexto["real_era5"])
+            self.assertEqual(procesos, 2)
+            self.assertEqual(unidades, [{"punto": "qc"}, {"punto": None}])
+            return [funcion(unidad, contexto) for unidad in unidades]
+
+        lectura = mock.patch.object(costo, "_carga", side_effect=lecturas) if lecturas is not None else \
+            mock.patch.object(costo.os, "getloadavg", side_effect=OSError("sin lectura"))
+        with tempfile.TemporaryDirectory() as tmp, lectura, \
+                mock.patch.dict(costo._MEDIDORES, {"qc": medidor}, clear=True), \
+                mock.patch.object(orquestacion, "repartir", side_effect=repartir) as reparto, \
+                ceguera.RegistroAccesos(_vigiladas(), bloquear=True) as reg:
+            m = costo.medir(entorno.rutas_sinteticas(tmp), real_era5=True, umbrales=self.U, temporal=tmp,
+                            escala=costo.ESCALA_REAL, puntos=("qc",))
+        medidor.assert_called_once()
+        reparto.assert_called_once()
+        self.assertEqual((reg.accesos, reg.por_enlace, reg.negados_dentro), ([], [], []))
+        self.assertTrue(m["a_escala"])
+        self.assertEqual(m["puntos"]["qc"]["testigo"], "qc_sustituido")
+        self.assertEqual(m["puntos"]["qc"]["lecturas_reales"], [])
+        return m
+
+    def test_libre_false_no_invalida_proyeccion_ni_recorte(self):
+        for ms, recorte in ((1.0, "mod11"), (100.0, "mod23")):
+            with self.subTest(recorte=recorte):
+                m = _mediciones(ms_por_hora=ms)
+                antes = costo.proyectar(m, self.U)
+                m["carga"] = {"libre": False}
+                p = costo.proyectar(m, self.U)
+                self.assertTrue(p["veredicto"]["decide"], p["veredicto"]["motivos"])
+                self.assertEqual(p["veredicto"]["motivos"], [])
+                self.assertEqual(_numeros(p), _numeros(antes))
+                self.assertEqual(costo.recorte(p, self.U), recorte)
+
+    def test_carga_alta_no_invalida_ni_se_trunca(self):
+        antes = costo.proyectar(_mediciones(), self.U)
+        for alta in (3.0, 50.0, 1e100):
+            with self.subTest(alta=alta):
+                m = _mediciones()
+                r = costo.resumen_carga([alta, alta], 1)
+                m["carga"] = {"inicio": alta, "inicio_libre": False, "maxima_ajena": r["maxima_ajena"],
+                              "libre": r["libre"]}
+                m["puntos"]["qc"]["carga"] = r
+                p = costo.proyectar(m, self.U)
+                self.assertTrue(p["veredicto"]["decide"], p["veredicto"]["motivos"])
+                self.assertEqual(_numeros(p), _numeros(antes))
+                c = costo.contenido_costo(m, p, self.U)
+                self.assertFalse(c["recorte_pendiente"])
+                self.assertFalse(c["carga"]["libre"])
+                self.assertEqual(c["carga"]["inicio"], alta)
+                self.assertEqual(c["mediciones"]["qc"]["carga"]["maxima_bruta"], alta)
+                self.assertEqual(c["mediciones"]["qc"]["carga"]["maxima_ajena"], alta - 1)
+
+    def test_carga_no_finita_no_invalida_y_json_es_estricto(self):
+        for no_finita in (math.nan, math.inf, -math.inf):
+            with self.subTest(carga=no_finita):
+                m = _mediciones()
+                m["carga"] = {"inicio": no_finita, "inicio_libre": False, "libre": False}
+                m["puntos"]["qc"]["carga"] = costo.resumen_carga([1.2, no_finita], 1)
+                p = costo.proyectar(m, self.U)
+                self.assertTrue(p["veredicto"]["decide"], p["veredicto"]["motivos"])
+                c = costo.contenido_costo(m, p, self.U)
+                self.assertEqual(c["recorte"], "mod11")
+                self.assertIsNone(c["carga"]["inicio"])
+                r = c["mediciones"]["qc"]["carga"]
+                self.assertEqual((r["no_finitas"], r["libre"]), (1, False))
+                self.assertEqual(r["bruta"], [1.2, None])
+                self.assertIsNone(r["ajena"][1])
+                self.assertEqual(r["maxima_bruta"], 1.2)
+                json.dumps(c, allow_nan=False)
+                ceguera.vigilar_salida("costo_m1.json", c, clase="resumen")
+
+    def test_sin_diagnostico_de_carga_no_invalida(self):
+        for carga in (None, {}, {"libre": False, "inicio": None}):
+            with self.subTest(carga=carga):
+                m = _mediciones()
+                m["carga"] = carga
+                p = costo.proyectar(m, self.U)
+                self.assertTrue(p["veredicto"]["decide"], p["veredicto"]["motivos"])
+                self.assertEqual(costo.recorte(p, self.U), "mod11")
+        m.pop("carga")
+        self.assertTrue(costo.proyectar(m, self.U)["veredicto"]["decide"])
+
+    def test_informe_carga_es_referencia_no_umbral(self):
+        m = _mediciones()
+        c = costo.contenido_costo(m, costo.proyectar(m, self.U), self.U)
+        self.assertNotIn("carga_maxima_permitida", tuple(c))
+        self.assertEqual(c["carga_referencia_historica"], 2.0)
+        self.assertIs(c["carga_es_excluyente"], False)
+        ceguera.vigilar_salida("costo_m1.json", c, clase="resumen")
+
+    def test_advertencia_no_equivale_a_maquina_libre(self):
+        m = _mediciones()
+        m["carga"] = {"libre": False}
+        p = costo.proyectar(m, self.U)
+        notas = " ".join(p["veredicto"]["notas"])
+        self.assertIn("no equivale a máquina libre", notas)
+        self.assertIn("tiempos medidos y la proyección pueden variar", notas)
+        self.assertFalse(m["carga"]["libre"])
+        self.assertNotIn("conservadora", notas)
+
+    def test_carga_inicial_alta_llega_al_punto(self):
+        for alta in (2.0, 50.0, 1e100):
+            with self.subTest(alta=alta):
+                m = self._medir_con_cargas([alta, 1.0, 1.0])
+                self.assertEqual(m["carga"]["inicio"], alta)
+                self.assertFalse(m["carga"]["inicio_libre"])
+                self.assertFalse(m["carga"]["libre"])
+                self.assertTrue(m["puntos"]["qc"]["carga"]["libre"])
+
+    def test_carga_durante_alta_llega_al_punto_y_se_registra(self):
+        m = self._medir_con_cargas([1.0, 50.0, 1e100])
+        self.assertTrue(m["carga"]["inicio_libre"])
+        self.assertFalse(m["carga"]["libre"])
+        r = m["puntos"]["qc"]["carga"]
+        self.assertEqual(r["bruta"], [50.0, 1e100])
+        self.assertEqual(r["ajena"], [49.0, 1e100 - 1])
+        self.assertEqual((r["maxima_bruta"], r["maxima_ajena"], r["no_finitas"]), (1e100, 1e100 - 1, 0))
+        self.assertEqual(m["carga"]["maxima_ajena"], r["maxima_ajena"])
+        self.assertFalse(r["libre"])
+
+    def test_carga_no_finita_llega_al_punto_y_se_registra(self):
+        for no_finita in (math.nan, math.inf, -math.inf):
+            for inicio in (1.0, no_finita):
+                with self.subTest(inicio=inicio, durante=no_finita):
+                    m = self._medir_con_cargas([inicio, no_finita, no_finita])
+                    self.assertEqual(m["carga"]["inicio_libre"], math.isfinite(inicio))
+                    self.assertFalse(m["carga"]["libre"])
+                    r = costo._limpio(m)["puntos"]["qc"]["carga"]
+                    self.assertEqual((r["bruta"], r["ajena"]), ([None, None], [None, None]))
+                    self.assertEqual((r["no_finitas"], r["libre"]), (2, False))
+                    self.assertIsNone(r["maxima_bruta"])
+                    self.assertIsNone(r["maxima_ajena"])
+                    json.dumps(costo._limpio(m), allow_nan=False)
+
+    def test_sin_lectura_llega_al_punto_como_desconocida(self):
+        m = self._medir_con_cargas(None)
+        self.assertTrue(math.isnan(m["carga"]["inicio"]))
+        self.assertFalse(m["carga"]["libre"])
+        r = m["puntos"]["qc"]["carga"]
+        self.assertEqual((r["no_finitas"], r["libre"]), (2, False))
+        self.assertIsNone(r["maxima_bruta"])
+        self.assertIsNone(r["maxima_ajena"])
 
 
 class PruebasProcesosPorFase(unittest.TestCase):

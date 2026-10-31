@@ -3,7 +3,7 @@
 §10 del texto: «todo umbral numérico del cuerpo o del Anexo B que no esté en el Anexo A es fijo, con el valor y el
 alcance de su frase. M1 los lista en un anexo A2 generado del texto, cada uno con su fragmento literal».
 
-Tres listas, todas con su sección y un fragmento literal del texto vigente (v2.4, Enmienda 3; CON-n abajo):
+Tres listas, todas con su sección y un fragmento literal del texto vigente (v2.5, Enmienda 4; CON-n abajo):
 - ``CONSTANTES``: el anexo A2 (clase «umbral» u «operacion») y las definiciones físicas y de formato (clase
   «definicion»: Magnus, p_std, la hipsométrica, 287,05, 9,80665…). ``valor(nombre)`` las da.
 - ``REPETICIONES``: frases del cuerpo que repiten un valor del Anexo A, o de una constante de esta lista
@@ -31,7 +31,8 @@ Lecturas propias (CON-n), para el addendum de M1:
   también los criterios de las pruebas de §9, los períodos y los años (2000-2025, 2015-2019, 2020), las definiciones
   que el código usa (alturas de 2 y 10 m, las 23, 24 o 25 horas del día civil, el paso 1/3.600° de NASADEM, los meses
   200001, 201307 y 202507, la resolución de 100 m y la versión R2023A de GHS-POP, las 343 comunas de los nudos) y las
-  condiciones de operación (hilos en 1, 8 procesos, ≤ 8 GB, carga < 2). **No normativo:** las justificaciones físicas
+  condiciones de operación (hilos en 1, 8 procesos, ≤ 8 GB). EMC4/D68 conserva carga < 2 sólo como referencia
+  diagnóstica histórica, sin veto por carga al inicio ni durante el costo. **No normativo:** las justificaciones físicas
   de §2.3, los datos vistos en V, los ejemplos (la política de §2.5, el 990 de §2.1), los conteos de insumos (8.206
   píxeles, 838.430 celdas, 9.725 píxeles), el nombre nominal de la grilla («≈ 1 km», celdas de 0,01°), las citas
   (años de publicación), las fechas de historia (2026-…), las cifras de costo, memoria y disco (las tablas de §7.1, §8 y
@@ -273,7 +274,7 @@ CONSTANTES: tuple[ConstanteTexto, ...] = (
     _c("REPRES_COCIENTE", (0.5, 2), "§7.2", "quede fuera de [0,5; 2]"),
     # §8 Operación.
     _c("HILOS_ALGEBRA", 1, "§8", "`MKL_NUM_THREADS` = 1)", clase="operacion"),
-    _c("COSTO_CARGA_MAX", 2, "§8", "con la máquina libre, carga < 2", clase="operacion"),
+    _c("COSTO_CARGA_MAX", 2, "§8", "referencia diagnóstica histórica: carga < 2", clase="definicion"),
     _c("PROCESOS", 8, "§8", "En M3-4 y M5 se usan hasta 8 procesos", clase="operacion"),
     _c("MEMORIA_MAX_GB", 8, "§8", "≤ 8 GB en la competencia", clase="operacion"),
     # §9 Pruebas sintéticas (criterios).
@@ -462,6 +463,11 @@ _REPETICIONES_ESPEC = (
      "u y v con 0,01 m/s; p con escala 0,02 hPa y desplazamiento 800 hPa"),
     (("SEL_MOD_RECORTE",), (23,), "§8", "(mód 23), fijado en el addendum de M1"),
     (("PROCESOS",), (8,), "§8", "la proyección con 8 procesos"),
+    (("COSTO_CARGA_MAX",), (2,), "§8.1", "histórico «carga < 2». No hay marcas temporales individuales por muestra"),
+    (("COSTO_CARGA_MAX",), (2,), "§8.1", "`CARGA_MAX = 2` queda sólo como referencia diagnóstica histórica"),
+    (("COSTO_CARGA_MAX",), (2,), "§8.1", "El fragmento «con la máquina libre, carga < 2» puede citarse como antecedente"),
+    (("SEL_UMBRAL_H",), (36,), "§8.1", "recorte de 36 h de §4.9"),
+    (("PROCESOS",), (8,), "§8.1", "la proyección adicional con 8 procesos"),
     (("HR_SAT",), (100,), "§9", "rachas (HR = 100 de"),
     (("HR_SAT",), (100,), "§9", "Td con HR = 100 no se marca"),
     (("CERO_C",), (0,), "§9", "bajo 0 °C sobre hielo"),
