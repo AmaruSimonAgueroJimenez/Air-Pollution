@@ -22,6 +22,9 @@ Qué hay:
 
 Dueño: I22 (ola 6; corregido tras la revisión independiente de la ola 6).
 Lecturas propias (VER-n), para el addendum de M1:
+- VER-23. **Reutilización EMC5 [delegada].** ``--costo-desde`` exige ``--costo-sha256`` y ``--costo``; carga el
+  informe fijado como mediciones históricas, proyecta con la regla vigente y corre todas las pruebas nuevas. Declara
+  procedencia y no modifica ni aprueba retroactivamente el original. Si no se verifica, el costo no se aprueba.
 - VER-1. **La batería** (§5.3 del diseño; A32; MC-31). ``--sintetico`` descubre ``tests/`` (como ``unittest discover -s
   meteo_combinada/tests -t .``) y la corre entera bajo ``ceguera.SinRed`` y ``ceguera.RegistroAccesos`` en bloqueo:
   uno sobre /Volumes y los dos repositorios, que deja **leer** AP y APH (el código y los textos que leen las pruebas) y,
@@ -38,7 +41,7 @@ Lecturas propias (VER-n), para el addendum de M1:
   y la salida de ``unittest`` en verbosidad 2, sin trazas: de una falla sólo su identificador, porque una traza trae
   rutas de la carpeta de usuario, números de línea y valores; se vigila con los archivos de ``tests/`` como fuentes y,
   si aun así no pasa, va en su forma reducida, sin las descripciones ni los motivos de omisión), ``anexo_a2.json``
-  (documento, ``constantes.anexo_a2`` del v2.4), ``deriva_s6.json`` (resumen, ``tendencias.contenido_deriva_s6``),
+  (documento, ``constantes.anexo_a2`` del texto vigente), ``deriva_s6.json`` (resumen, ``tendencias.contenido_deriva_s6``),
   ``costo_m1.json`` (resumen, ``costo.contenido_costo``; con ``--costo``), ``resumen_m1.json`` (resumen: conteos,
   ``ceguera`` y huellas), ``sha256.json`` (procedencia) y, si la batería es completa, ``addendum_m1.json`` y
   ``addendum_m1.md`` (documento; ``addendum``), que citan la subcarpeta y si la batería aprobó: uno no aprobado no
@@ -1849,6 +1852,64 @@ def _medir_costo(medidor, reales, U) -> tuple[dict | None, str | None, str | Non
     return contenido, recorte, None, str(temporal)
 
 
+def _verificar_reproduccion_costo(mediciones, original, U):
+    """EMC5: el código histórico fijado debe reproducir TODO el informe persistido, sin medir."""
+    import dataclasses
+    from types import ModuleType
+    commit = "9bd45e1d5249ba4121fc8375983cc129d8bb0d7b"
+    esperado = "eb0b07ec26a6aaa4ee89240177519e1dbad722a71b36c2db97a8bec85e8ace87"
+    r = _git(entorno.rutas_reales().ap, "show", commit + ":scripts_modelo_1km/meteo_combinada/costo.py")
+    if r.returncode != 0 or hashlib.sha256(r.stdout).hexdigest() != esperado:
+        raise ValueError("no se dispone del código histórico fijado")
+    nombre = "meteo_combinada._costo_historico_emc4"
+    historico = ModuleType(nombre)
+    historico.__file__ = str(PAQUETE / "costo.py")
+    sys.modules[nombre] = historico
+    try:
+        exec(compile(r.stdout, historico.__file__, "exec"), historico.__dict__)
+        U_historico = dataclasses.replace(U, sha256_texto_vigente=
+            "7771e830c526d8a0da93453e7e2d821896ba797147d14803969907ce5749589d")
+        proyeccion = historico.proyectar(mediciones, U_historico)
+        reproducido = historico.contenido_costo(mediciones, proyeccion, U_historico)
+    finally:
+        sys.modules.pop(nombre, None)
+    if original != reproducido:
+        raise ValueError("la reconstrucción no reproduce exactamente el informe histórico")
+    return {"comparacion_proyeccion_original": "identica", "codigo_historico_sha256": esperado,
+            "commit_historico": commit}
+
+
+def _reproyectar_costo(medidor, ruta, sha256, U):
+    """EMC5: sólo proyección nueva de mediciones conservadas; nunca se presenta como medición nueva."""
+    from meteo_combinada import reutilizacion_costo
+    try:
+        comprobacion = {}
+        def verificar(mediciones, original):
+            comprobacion.update(_verificar_reproduccion_costo(mediciones, original, U))
+        mediciones, procedencia = reutilizacion_costo.cargar(ruta, sha256=sha256, umbrales=U, verificar=verificar)
+        if comprobacion.get("comparacion_proyeccion_original") != "identica":
+            raise ValueError("la reproducción histórica no se ejecutó")
+        procedencia.update(comprobacion)
+        historico = entorno.rutas_reales().local / "meteo_combinada/v1/m1/20261031T040149Z/costo_m1.json"
+        if (Path(ruta) != historico or sha256 !=
+                "c92aeec3a4cb003d1be0c36af2e0650bdb6ff3e5a89df9356167890234be06a6"):
+            raise ValueError("la reutilización operativa sólo admite el origen histórico fijado")
+        procedencia["fuente_historica"] = "LOCAL/meteo_combinada/v1/m1/20261031T040149Z/costo_m1.json"
+        procedencia["fecha_inicio_bateria_historica_utc"] = "2026-10-31T04:01:49Z"
+        procedencia["fecha_cierre_bateria_historica_utc"] = "2026-10-31T11:50:28.472900Z"
+        procedencia["advertencia"] = ("No es una medición nueva. El informe histórico se reprodujo exactamente con "
+            "su código fijado; la proyección nueva usa EMC5 y requiere la suite íntegra vigente. "
+            "La batería histórica no cambia de estado y las cargas se conservan sin falsear.")
+        proyeccion = medidor.proyectar(mediciones, U)
+        contenido = medidor.contenido_costo(mediciones, proyeccion, U)
+        contenido["mediciones_reutilizadas"] = True
+        contenido["procedencia_reutilizacion"] = procedencia
+        ceguera.vigilar_salida(COSTO_M1, contenido, clase="resumen")
+        return contenido, medidor.recorte(proyeccion, U), None, None
+    except Exception as e:                                          # noqa: BLE001 (queda como no aprobado)
+        return None, None, type(e).__name__, None
+
+
 def _texto_pruebas(sha: str, salida_unittest: str) -> str:
     return f"Pruebas de M1 del producto meteorológico combinado; texto vigente sha256 {sha}\n{salida_unittest}"
 
@@ -1898,10 +1959,14 @@ def _carpeta_de_bateria(rutas, inicio: datetime) -> Path:
 def correr_bateria(rutas, *, servicios: Servicios | None = None, patrones: Sequence[str] = (),
                    suite: unittest.TestSuite | None = None, costo: bool = False,
                    commits: Mapping[str, str] | None = None, consola: Consola | None = None,
-                   forzar_completa: bool = False) -> int:
+                   forzar_completa: bool = False, costo_desde=None, costo_sha256: str | None = None) -> int:
     """La batería de M1 (VER-1 a VER-5, VER-17): 0 si M1 se aprueba (VER-3), 1 si no. ``patrones`` (``--solo``) o
     ``suite`` corren un subconjunto: la batería queda «parcial» y no se aprueba ni escribe el addendum.
     ``forzar_completa`` es sólo para las pruebas: trata una ``suite`` dada como completa, para ejercitar el addendum."""
+    if (costo_desde is None) != (costo_sha256 is None) or (costo_desde is not None and not costo):
+        raise ValueError("reutilizar costo exige --costo, fuente y SHA256 juntos")
+    if costo_desde is not None:
+        costo_desde = Path(costo_desde).absolute()
     servicios = servicios or Servicios()
     reales = entorno.rutas_reales()
     parcial = (bool(patrones) or suite is not None) and not forzar_completa
@@ -1940,7 +2005,8 @@ def correr_bateria(rutas, *, servicios: Servicios | None = None, patrones: Seque
                 ceguera.RegistroAccesos(_zonas_ciegas(reales), bloquear=True) as ciego0, \
                 contextlib.redirect_stdout(captura), contextlib.redirect_stderr(captura):
             suite = suite if suite is not None else _descubrir(patrones)
-        insumos = _insumos_s14(reales) + (_insumos_costo(medidor, reales) if costo else ())
+        insumos = _insumos_s14(reales) + ((str(Path(costo_desde).absolute()),) if costo_desde is not None
+                                          else _insumos_costo(medidor, reales) if costo else ())
         de_datos = tuple(p for p in insumos if not any(p == r or p.startswith(r.rstrip("/") + "/") for r in repos))
         estricto = ceguera.RegistroAccesos(de_datos, bloquear=True) if de_datos else None
         with ceguera.RegistroAccesos(vigiladas, bloquear=True, permitidas=(*repos, *insumos)) as reg, \
@@ -1948,7 +2014,11 @@ def correr_bateria(rutas, *, servicios: Servicios | None = None, patrones: Seque
                 contextlib.redirect_stdout(captura), contextlib.redirect_stderr(captura):
             contenido_costo, recorte, error_costo, temporal = (None, None, None, None)
             if costo:                                               # VER-17: primero; carga informativa (EMC4)
-                contenido_costo, recorte, error_costo, temporal = _medir_costo(medidor, reales, U)
+                if costo_desde is None:
+                    contenido_costo, recorte, error_costo, temporal = _medir_costo(medidor, reales, U)
+                else:
+                    contenido_costo, recorte, error_costo, temporal = _reproyectar_costo(
+                        medidor, costo_desde, costo_sha256, U)
             clases_s14 = _clases_s14(suite)
             ventana = _Ventana(estricto, clases_s14)
             ventana.cerrar()
@@ -2075,7 +2145,9 @@ def correr_bateria(rutas, *, servicios: Servicios | None = None, patrones: Seque
         "s14": s14,
         "deriva": {"calculada": contenido_deriva is not None, "pasa": compuerta, "error": error_deriva},
         "costo": {"medido": contenido_costo is not None, "recorte": recorte, "error": error_costo,
-                  "carpeta_temporal": None if temporal is None else Path(temporal).name},
+                  "carpeta_temporal": None if temporal is None else Path(temporal).name,
+                  "mediciones_reutilizadas": costo_desde is not None,
+                  "huella_origen": costo_sha256 if costo_desde is not None else None},
         "ceguera": {"accesos": accesos, "por_enlace": len(reg0.por_enlace) + len(reg.por_enlace),
                     "negados_dentro": len(reg0.negados_dentro) + len(reg.negados_dentro),
                     "lecturas_permitidas": len(reg0.lecturas_permitidas) + len(reg.lecturas_permitidas),
@@ -2129,6 +2201,8 @@ def analizar_argumentos(argv: Sequence[str] | None) -> argparse.Namespace:
     for m in MODOS:
         g.add_argument(f"--{m}", dest="modo", action="store_const", const=m)
     p.add_argument("--costo", action="store_true", help="con --sintetico: mide el costo (§8.1; carga informativa, EMC4)")
+    p.add_argument("--costo-desde", help="con --sintetico --costo: informe histórico fijado, sin nueva medición")
+    p.add_argument("--costo-sha256", help="SHA256 obligatorio de --costo-desde (EMC5)")
     p.add_argument("--solo", action="append", default=[], metavar="PATRON",
                    help="con --sintetico: sólo las pruebas cuyo nombre calza (batería parcial, no aprueba M1)")
     p.add_argument("--commits", nargs=2, metavar=("COMMIT_AP", "COMMIT_APH"),
@@ -2138,6 +2212,14 @@ def analizar_argumentos(argv: Sequence[str] | None) -> argparse.Namespace:
     p.add_argument("--etiqueta", help="HUMAN<AAAAMMDD>_METEO_COMB_<n>[_ERRATA<k>] (VER-12)")
     p.add_argument("--errata", help="errata confirmada (§10), con --aplicar o --m6")
     args = p.parse_args(argv)
+    if (args.costo_desde is None) != (args.costo_sha256 is None):
+        p.error("--costo-desde y --costo-sha256 se requieren juntos")
+    if args.costo_desde is not None and (args.modo != "sintetico" or not args.costo):
+        p.error("--costo-desde exige --sintetico --costo")
+    if args.costo_desde is not None:
+        args.costo_desde = str(Path(args.costo_desde).absolute())
+    if args.costo_sha256 is not None and not re.fullmatch(r"[0-9a-f]{64}", args.costo_sha256):
+        p.error("--costo-sha256 requiere 64 hexadecimales")
     if args.modo != "sintetico" and (args.costo or args.solo or args.commits):
         p.error("--costo, --solo y --commits son de --sintetico")
     if args.modo == "sintetico" and (args.addendum or args.entradas or args.etiqueta or args.errata):
@@ -2155,7 +2237,7 @@ def main(argv: Sequence[str] | None = None, *, rutas=None, servicios: Servicios 
     if args.modo == "sintetico":
         commits = None if not args.commits else {"ap": args.commits[0], "aph": args.commits[1]}
         return correr_bateria(rutas, servicios=servicios, patrones=tuple(args.solo), costo=args.costo,
-                              commits=commits)
+                              commits=commits, costo_desde=args.costo_desde, costo_sha256=args.costo_sha256)
     consola = Consola(addendum.referencia(entorno.rutas_reales()))
     return _modo_real(args, rutas, args.modo, servicios, consola)
 

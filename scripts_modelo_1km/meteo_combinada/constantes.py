@@ -31,7 +31,7 @@ Lecturas propias (CON-n), para el addendum de M1:
   también los criterios de las pruebas de §9, los períodos y los años (2000-2025, 2015-2019, 2020), las definiciones
   que el código usa (alturas de 2 y 10 m, las 23, 24 o 25 horas del día civil, el paso 1/3.600° de NASADEM, los meses
   200001, 201307 y 202507, la resolución de 100 m y la versión R2023A de GHS-POP, las 343 comunas de los nudos) y las
-  condiciones de operación (hilos en 1, 8 procesos, ≤ 8 GB). EMC4/D68 conserva carga < 2 sólo como referencia
+  condiciones de operación (hilos en 1, hasta 8 procesos; factibilidad física del grupo). EMC4/D68 conserva carga < 2 sólo como referencia
   diagnóstica histórica, sin veto por carga al inicio ni durante el costo. **No normativo:** las justificaciones físicas
   de §2.3, los datos vistos en V, los ejemplos (la política de §2.5, el 990 de §2.1), los conteos de insumos (8.206
   píxeles, 838.430 celdas, 9.725 píxeles), el nombre nominal de la grilla («≈ 1 km», celdas de 0,01°), las citas
@@ -89,7 +89,8 @@ Lecturas propias (CON-n), para el addendum de M1:
   ``verificar_contra_texto`` y ``completitud`` dan 0 problemas con el v2.3. Las repeticiones de §2.5 que siguen se
   renumeran (``REP_2.5_n`` sale del orden de la lista).
 - CON-16. **EMC3 (D65).** PROCESOS conserva el valor ocho y pasa a citar «hasta 8 procesos» en §8. Se repite en la
-  proyección conservada del recorte (EMC3-2). No cambian valores ni el alcance de los criterios científicos.
+  proyección conservada del recorte (EMC3-2). EMC5/D69 conserva MEMORIA_MAX_GB sólo como referencia histórica,
+  sin exclusión individual; la factibilidad sigue por memoria física. No cambian criterios meteorológicos.
 Depende de: nada del paquete (biblioteca estándar); no importa numpy ni pandas.
 """
 from __future__ import annotations
@@ -276,7 +277,7 @@ CONSTANTES: tuple[ConstanteTexto, ...] = (
     _c("HILOS_ALGEBRA", 1, "§8", "`MKL_NUM_THREADS` = 1)", clase="operacion"),
     _c("COSTO_CARGA_MAX", 2, "§8", "referencia diagnóstica histórica: carga < 2", clase="definicion"),
     _c("PROCESOS", 8, "§8", "En M3-4 y M5 se usan hasta 8 procesos", clase="operacion"),
-    _c("MEMORIA_MAX_GB", 8, "§8", "≤ 8 GB en la competencia", clase="operacion"),
+    _c("MEMORIA_MAX_GB", 8, "§8", "referencia histórica de memoria individual: 8 GB", clase="definicion"),
     # §9 Pruebas sintéticas (criterios).
     _c("S1_RACHA_HR100_NO_H", 20, "§9", "rachas (HR = 100 de 20 h no se marca,", ajenos=(100,)),
     _c("S1_RACHA_HR100_SI_H", 50, "§9", "de 50 h sí; Td con HR = 100 no se marca", ajenos=(100,)),
@@ -628,7 +629,7 @@ NO_NORMATIVOS: tuple[NoNormativo, ...] = (
     _x("§8", "| 8-20 h, más la TF por lotes de un mes | ≈ 60 GB si se armara de una vez |", _COSTO),
     _x("§8", "**≈ 48-100 h de máquina", _COSTO),
     _x("§8", "≈ 2,0·10¹¹ celda-horas por variable × 5", _COSTO),
-    _x("§8", "≈ 340 MB por proceso", _COSTO),
+    _x("§8", "Los ≈ 340 MB del control de calidad son una referencia", _COSTO),
     _x("§8", "Quedan ≈ 469 GiB libres en el disco interno; el producto y el control de calidad ocupan ≈ 22 GB", _COSTO),
     _x("§8", "TROPOMI planean ≈ 276 GB", _COSTO),
     _x("§9", "horario diurno a 24 h", "el régimen de 24 h del caso de prueba (definición)"),

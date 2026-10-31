@@ -29,9 +29,9 @@ este diseño y el protocolo difieren, gana el protocolo, y la diferencia se anot
 
 **Decisiones posteriores a M0 que este diseño ya incorpora:**
 - **Enmienda 3 operativa del producto (D65).** §8 usa hasta ocho procesos, el mayor número admisible por fase de
-  M3-4/M5; se conservan los topes por trabajador/principal y del grupo frente a memoria física. El recorte se fija con
+  M3-4/M5; EMC5/D69 sustituye el tope individual por factibilidad física del grupo. El recorte se fija con
   la duración efectiva antes de M3-4, conservando la proyección con ocho y avisando si daría otro recorte. No cambian
-  8 GB, PROCESOS = 8, 36 h, mód 11/mód 23 ni el Anexo A, §4.9 o §10. No cambia S6.
+  PROCESOS = 8, 36 h, mód 11/mód 23 ni el Anexo A, §4.9 o §10. No cambia S6.
   El nuevo esquema del addendum es `meteo-combinada-addendum-m1/2`: agrega `enmienda_operativa` y concilia
   `declaracion_c4_reloj` (ADD-13). La publicación exige las declaraciones exactas, sin cambiar las negativas de C5.
   La formalización documental no cambia firmas. La corrección posterior de recibos añade el registro opcional de
@@ -163,6 +163,7 @@ solape y la integración quede en un solo lugar, como en el reloj:
 | `ambiental.py` | `lateral_monitores`, `operador_grilla` y `mc_bloque` (§7.1), con las columnas de I y de D y metadatos que acepta `unir_sidecar` | §7.1, Anexo B | tipos, constantes, umbrales, fijados, producto, fondo_era5l, candidatos |
 | `orquestacion.py` | Fases de M2a, M3-4, M5 y M6; unidades reanudables, `avance.jsonl`, reparto en procesos con orden fijo de agregación, fábrica de entradas | §2.1, §8, §10 | los de ciencia, más ceguera, sinca_meteo, entorno |
 | `salidas.py` | La única escritura: atómica, vigilada por `ceguera`; esquemas de archivos; `recibo_corrida.json`, `resumen_qc.json`, `decision.json`; carpeta de publicación para M5 (paso aparte); privacidad | §8 | tipos, umbrales, entorno, ceguera, addendum [delegada: validación EMC3 sin ciclo] |
+| `reutilizacion_costo.py` | Lector cerrado de mediciones persistidas, huella externa y procedencia; sin medición, proyección o escritura | §8.2 EMC5 | — |
 | `costo.py` | Medición a escala (sintética y un mes real de ERA5L), proyección de M3-4, M5, M6 y de la grilla v2, y la regla de mód 23 | §4.9, §7.1, §8 | sintetico, candidatos, tendencias, producto, ambiental, orquestacion, entorno; además tipos, constantes, fijados, fondo_era5l, particiones, politicas, salud y ceguera [ola 6, PED-1 y PED-3 de I21, COS-1] |
 | `addendum.py` | Addendum de M1: lista cerrada de huellas, anexo A2, compuerta de deriva, recorte, costo, lecturas y commits | §10 | umbrales, constantes, fijados, entorno, ceguera |
 | `verificar_meteo_combinada.py` | Ejecutable con `--sintetico` (M1, con `--costo`), `--estaticos` (M2a), `--aplicar` (M3-4), `--producir` (M5) y `--m6`; negativas de §10 y del Anexo B; cerrojos `intentos_aplicar.jsonl` e `intentos_m6.jsonl`; carpeta `HUMAN<AAAAMMDD>_METEO_COMB_1`; consola sin métricas | §8, §10, Anexo B | orquestacion, salidas, costo, addendum, ceguera, fijados, umbrales, entorno; además politicas, tendencias, salud, tipos y constantes [ola 6, PED-1 de I22] |
@@ -171,7 +172,7 @@ solape y la integración quede en un solo lugar, como en el reloj:
 **Grafo, por capas y sin ciclos** (cada módulo depende sólo de capas anteriores; `reloj_dmc` es externo):
 
 ```
-capa 0  tipos, constantes, umbrales, entorno
+capa 0  tipos, constantes, umbrales, entorno, reutilizacion_costo
 capa 1  fijados, numerico, ceguera
 capa 2  politicas, estaticas_nasadem, fondo_era5l, particiones, homogeneidad, sinca_meteo, decision, addendum
 capa 3  qc_dmc_meteo, candidatos, validacion, salidas
@@ -1325,7 +1326,7 @@ al plan v2 (§7.1).
 
 **Memoria.**
 - Por proceso: un lote de un mes en 108.579 celdas son ≈ 0,65 GB por campo en float64. Con 4-6 campos vivos, ≤ 4 GB, bajo el
-  tope de 8 GB de §8. Si no alcanza, el lote baja a una semana, fijado en el addendum, nunca a mitad de corrida (MC-37).
+  tope histórico de 8 GB de §8, retirado por EMC5/D69; rige factibilidad física. Si no alcanza, el lote baja a una semana, fijado en el addendum, nunca a mitad de corrida (MC-37).
 - `cargar_dmc`: ≈ 340 MB por proceso (§8).
 
 **Disco** (LOCAL):
@@ -1563,7 +1564,7 @@ from pathlib import Path
 paq = Path(sys.argv[1])
 ORDEN = ("tipos", "constantes", "umbrales", "entorno", "fijados", "numerico", "ceguera", "sintetico", "politicas",
          "estaticas_nasadem", "fondo_era5l", "particiones", "homogeneidad", "sinca_meteo", "decision", "qc_dmc_meteo",
-         "candidatos", "validacion", "tendencias", "producto", "salud", "ambiental", "orquestacion", "salidas", "costo",
+         "candidatos", "validacion", "tendencias", "producto", "salud", "ambiental", "orquestacion", "salidas", "reutilizacion_costo", "costo",
          "addendum", "verificar_meteo_combinada", "meteo_combinada")
 DUNDER = {"__init__", "__enter__", "__exit__", "__call__", "__getattr__", "__dir__"}
 ENUMS = {"StrEnum", "Enum", "IntEnum"}
@@ -2280,6 +2281,11 @@ print(len(salida), "líneas")
 - `es_ap_real(destino_ap) -> bool`
 - `publicar_m5(carpeta_corrida, destino_ap) -> list[str]`
 
+**`reutilizacion_costo.py`**
+
+- clase `ErrorReutilizacionCosto(ValueError)`
+- `cargar(ruta, *, sha256: str, umbrales, verificar=None) -> tuple[dict, dict]`
+
 **`costo.py`**
 
 - clase `ErrorCosto(RuntimeError)`
@@ -2361,7 +2367,7 @@ print(len(salida), "líneas")
   - `fallas(self, cfg) -> list[Falla]`
   - `__call__(self, cfg) -> list[str]`
 - `directorio_neutro()`
-- `correr_bateria(rutas, *, servicios: Servicios | None=None, patrones: Sequence[str]=(), suite: unittest.TestSuite | None=None, costo: bool=False, commits: Mapping[str, str] | None=None, consola: Consola | None=None, forzar_completa: bool=False) -> int`
+- `correr_bateria(rutas, *, servicios: Servicios | None=None, patrones: Sequence[str]=(), suite: unittest.TestSuite | None=None, costo: bool=False, commits: Mapping[str, str] | None=None, consola: Consola | None=None, forzar_completa: bool=False, costo_desde=None, costo_sha256: str | None=None) -> int`
 - `analizar_argumentos(argv: Sequence[str] | None) -> argparse.Namespace`
 - `main(argv: Sequence[str] | None=None, *, rutas=None, servicios: Servicios | None=None) -> int`
 
@@ -2370,3 +2376,11 @@ print(len(salida), "líneas")
 - `modulo_de(nombre: str) -> str`
 - `__getattr__(nombre: str)`
 - `__dir__() -> list[str]`
+
+
+## Enmienda operativa EMC5/D69 (2026-10-31)
+
+El tope individual fijo de memoria deja de excluir; no cambia ninguna fórmula de proyección. El número por fase
+se fija por factibilidad física del grupo medido, con recursos válidos. Se conserva el máximo de procesos y las
+otras guardas. Reutilización técnica [delegada]: informe histórico fijado, reconstrucción que reproduzca su
+proyección original, nueva batería completa y declaración de origen; nunca aprobación retroactiva de la anterior.

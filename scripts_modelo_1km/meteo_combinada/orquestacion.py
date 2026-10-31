@@ -324,7 +324,7 @@ Lecturas propias (ORQ-n), para el addendum de M1:
   «anual». ``Cfg.procesos_por_fase`` es None o exactamente {compuerta: {fase: n}} con esas compuertas y fases y n entero
   (no bool) de 1 a ``PROCESOS``, congelado en el orden de ``FASES_REPARTO``. Es obligatorio en los modos reales, como
   el recorte y la deriva: lo da el addendum de M1, desde la memoria medida por ``costo`` (el mayor número que cabe en
-  cada fase). En el sintético es None. Cada ``repartir`` de esas fases usa mín(procesos, n) (``_procesos_de_fases``);
+  cada fase; EMC5/D69 retira el tope individual fijo y conserva factibilidad física del grupo). En el sintético es None. Cada ``repartir`` de esas fases usa mín(procesos, n) (``_procesos_de_fases``);
   con None, ``procesos``, como antes. M6 sigue con ``Cfg.procesos``, porque D59 no lo nombra. El registro de M3-4 lleva
   «procesos_por_fase» = el de ``Cfg`` (el del addendum; null en el sintético), que no cambia entre 1, 2 y 8 procesos.
   EMC3-1 (D65): el recibo de M3-4 y el de M5 separa el «presupuesto» del uso observado en ``repartir``. Su entorno

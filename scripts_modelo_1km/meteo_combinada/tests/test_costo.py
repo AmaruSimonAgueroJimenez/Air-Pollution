@@ -223,7 +223,7 @@ class PruebasCosto(unittest.TestCase):
             "contencion": lambda m: m["puntos"].pop("contencion"),
             "escala": lambda m: m.update(a_escala=False),
             "mes real": lambda m: m.update(real_era5=False),
-            "memoria": lambda m: m["puntos"]["pliegue"].update(memoria_pico_gb=9.0),
+            "memoria": lambda m: m["puntos"]["pliegue"].update(memoria_pico_gb=128.0),
             "fisica": lambda m: m.update(sistema={"memoria_fisica_bytes": 5 * _GB}),
             "representatividad": lambda m: m["puntos"]["mes_real"].pop("memoria_pico_gb"),
         }
@@ -321,11 +321,13 @@ class PruebasCosto(unittest.TestCase):
         """COS-11, COS-24 (H2; ORQ-42 a ORQ-44): el pico de cada punto ya trae su armado por el camino de la corrida; a
         otra escala se suma lo que la red real trae de más (por horas, por estaciones, por celdas y píxeles); el grupo
         es P trabajadores más el principal, frente a la memoria física; el principal de M3-4, el máximo entre armar la
-        ligera y tenerla con un año de meses; el control de calidad en la estación más larga; el tope es
-        MEMORIA_MAX_GB·10⁹ B, también para el principal."""
+        ligera y tenerla con un año de meses; el control de calidad en la estación más larga; MEMORIA_MAX_GB es sólo
+        referencia histórica individual no excluyente (EMC5/D69, post_hoc)."""
         C = costo.CONTEOS
         mem = costo.proyectar(_mediciones(), self.U)["memoria"]
-        self.assertEqual(mem["tope_gb"], float(constantes.valor("MEMORIA_MAX_GB")))
+        self.assertEqual(mem["memoria_referencia_historica_gb"], float(constantes.valor("MEMORIA_MAX_GB")))
+        self.assertIs(mem["memoria_tope_individual_excluyente"], False)
+        self.assertNotIn("tope_gb", mem)
         self.assertEqual(mem["unidad"], "GB = 10^9 B")
         sel = 3.0 * _GB + (_F_H - 1) * (1 * _GB + _GB / 4) + (_F_N - 1) * (_GB / 2)
         self.assertAlmostEqual(mem["trabajador_gb"]["seleccion"], sel / _GB)
@@ -346,16 +348,15 @@ class PruebasCosto(unittest.TestCase):
         self.assertTrue(mem["principal_m34_cabe"])
         self.assertEqual(mem["sin_procesos"], [])
         self.assertAlmostEqual(mem["trabajador_gb"]["representatividad"], 0.6)       # el pico del mes real (COS-25)
-        # una selección de 9 GB pasa el tope de 8·10⁹ B: no cabe ni con un proceso (D59); un principal de 9 GB pasa
-        # del tope
+        # EMC5/D69: trabajador y principal pueden superar 8 GB si el grupo cabe físicamente.
         mem = costo.proyectar(_mediciones(pico_seleccion=9.0), self.U)["memoria"]
-        self.assertFalse(mem["fases"]["seleccion"]["cabe"])
-        self.assertEqual(mem["fases"]["seleccion"]["procesos_que_caben"], 0)
-        self.assertEqual(mem["procesos_por_fase"]["m34"]["seleccion_y_prediccion"], 0)
-        self.assertEqual(mem["sin_procesos"], ["m34/seleccion_y_prediccion"])
+        self.assertTrue(mem["fases"]["seleccion"]["cabe"])
+        self.assertEqual(mem["fases"]["seleccion"]["procesos_que_caben"], _P)
+        self.assertEqual(mem["procesos_por_fase"]["m34"]["seleccion_y_prediccion"], _P)
+        self.assertEqual(mem["sin_procesos"], [])
         m = _mediciones()
         m["puntos"]["tf"]["memoria_tras_fabricar_gb"] = 9.0
-        self.assertFalse(costo.proyectar(m, self.U)["memoria"]["principal_m34_cabe"])
+        self.assertTrue(costo.proyectar(m, self.U)["memoria"]["principal_m34_cabe"])
 
     def test_escala_real_fijada_contra_8_1(self):
         """``ESCALA_REAL`` es la de §8.1 (≥ 50 artefactos de un año, 579 estaciones, H horas, 108.579 celdas, un año
@@ -615,6 +616,227 @@ class PruebasCargaNoExcluyente(unittest.TestCase):
         self.assertIsNone(r["maxima_ajena"])
 
 
+class PruebasMemoriaFisica(unittest.TestCase):
+    """EMC5/D69 (post_hoc): sin tope individual ficticio; sólo factibilidad física, con medidas válidas."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.U = _umbrales()
+
+    def test_trabajador_sobre_8_gb_cabe_si_el_grupo_cabe(self):
+        referencia = float(constantes.valor("MEMORIA_MAX_GB")) * _GB
+        for trabajador in (referencia + 1, 9 * _GB, 15 * _GB):
+            with self.subTest(trabajador=trabajador):
+                self.assertEqual(costo._procesos_que_caben(trabajador, 4 * _GB, _FISICA, referencia, _P), _P)
+
+    def test_principal_sobre_8_gb_cabe_si_el_grupo_cabe(self):
+        self.assertEqual(costo._procesos_que_caben(_GB, 9 * _GB, _FISICA, 8 * _GB, _P), _P)
+
+    def test_ajusta_n_por_memoria_fisica_con_borde_inclusivo(self):
+        f = costo._procesos_que_caben
+        self.assertEqual(f(9 * _GB, 10 * _GB, 55 * _GB, 8 * _GB, _P), 5)
+        self.assertEqual(f(9 * _GB, 10 * _GB, 55 * _GB - 1, 8 * _GB, _P), 4)
+        self.assertEqual(f(9 * _GB, 10 * _GB, 19 * _GB, 8 * _GB, _P), 1)
+
+    def test_cero_si_no_cabe_ni_un_trabajador(self):
+        for fisica in (19 * _GB - 1, 10 * _GB, 9 * _GB):
+            with self.subTest(fisica=fisica):
+                self.assertEqual(costo._procesos_que_caben(9 * _GB, 10 * _GB, fisica, 8 * _GB, _P), 0)
+
+    def test_rechaza_medidas_invalidas_incluida_referencia_historica(self):
+        for indice in range(4):
+            for invalida in (math.nan, math.inf, -math.inf, None, -1.0):
+                with self.subTest(indice=indice, invalida=invalida):
+                    medidas = [float(_GB), float(_GB), float(_FISICA), float(8 * _GB)]
+                    medidas[indice] = invalida
+                    self.assertEqual(costo._procesos_que_caben(*medidas, _P), 0)
+        for indice in range(4):
+            with self.subTest(cero_en=indice):
+                medidas = [_GB, _GB, _FISICA, 8 * _GB]
+                medidas[indice] = 0
+                self.assertEqual(costo._procesos_que_caben(*medidas, _P), 0)
+        self.assertEqual(costo._procesos_que_caben(9 * _GB, 0, _FISICA, 8 * _GB, _P), 0)
+
+    def test_rechaza_numero_de_procesos_invalido(self):
+        for procesos in (math.nan, math.inf, -math.inf, None, -1, 0, 1.5, True):
+            with self.subTest(procesos=procesos):
+                self.assertEqual(costo._procesos_que_caben(_GB, _GB, _FISICA, 8 * _GB, procesos), 0)
+
+    def test_referencia_valida_no_se_convierte_en_otro_tope(self):
+        for referencia in (1, 8 * _GB, 16 * _GB):
+            with self.subTest(referencia=referencia):
+                self.assertEqual(costo._procesos_que_caben(9 * _GB, 10 * _GB, _FISICA, referencia, _P), _P)
+
+    def test_informe_sin_tope_ficticio_conserva_mediciones_y_proyeccion(self):
+        m = _mediciones(pico_seleccion=9.0)
+        m["puntos"]["tf"]["memoria_tras_fabricar_gb"] = 9.0
+        antes = copy.deepcopy(m)
+        p = costo.proyectar(m, self.U)
+        mem = p["memoria"]
+        self.assertEqual(mem["memoria_referencia_historica_gb"], 8.0)
+        self.assertIs(mem["memoria_tope_individual_excluyente"], False)
+        self.assertNotIn("tope_gb", mem)
+        self.assertGreater(mem["trabajador_gb"]["seleccion"], 8)
+        self.assertGreater(mem["principal_gb"]["m34"], 8)
+        self.assertTrue(mem["principal_m34_cabe"])
+        self.assertEqual(mem["procesos_por_fase"], _todas(_P))
+        g = mem["fases"]["seleccion"]
+        self.assertAlmostEqual(g["grupo_gb"], _P * g["trabajador_gb"] + mem["principal_gb"]["m34"])
+        self.assertEqual(g["grupo_con_n_gb"], g["grupo_gb"])
+        self.assertTrue(p["veredicto"]["decide"], p["veredicto"]["motivos"])
+        self.assertEqual(_numeros(p), _numeros(costo.proyectar(_mediciones(), self.U)))
+        self.assertEqual(m, antes)
+        c = costo.contenido_costo(m, p, self.U)
+        self.assertEqual(c["mediciones"]["pliegue"]["memoria_pico_gb"], 9.0)
+        self.assertEqual(c["mediciones"]["tf"]["memoria_tras_fabricar_gb"], 9.0)
+        self.assertEqual(c["proyeccion"]["memoria"], costo._limpio(mem))
+        self.assertFalse(c["recorte_pendiente"])
+        self.assertFalse(c["carga_es_excluyente"])
+        json.dumps(c, allow_nan=False)
+        ceguera.vigilar_salida("costo_m1.json", c, clase="resumen")
+
+    def test_proyeccion_sobre_8_gb_reduce_n_sin_cambiar_formula(self):
+        m = _mediciones(pico_seleccion=9.0)
+        mem = costo._memoria(m, _P)
+        w, pr = mem["trabajador_gb"]["seleccion"], mem["principal_gb"]["m34"]
+        m["sistema"]["memoria_fisica_bytes"] = (pr + 3.5 * w) * _GB
+        p = costo.proyectar(m, self.U)
+        self.assertEqual(p["procesos_por_fase"]["m34"]["seleccion_y_prediccion"], 3)
+        self.assertAlmostEqual(p["m34"]["fases"]["seleccion"]["pared_h"], _pared_seleccion(self.U, 3))
+        g = p["memoria"]["fases"]["seleccion"]
+        self.assertAlmostEqual(g["grupo_con_n_gb"], 3 * w + pr)
+        self.assertGreater(g["grupo_gb"], p["memoria"]["fisica_gb"])
+        self.assertTrue(p["veredicto"]["decide"], p["veredicto"]["motivos"])
+        self.assertIn("m34/seleccion_y_prediccion con 3", " ".join(p["veredicto"]["notas"]))
+
+    def test_principal_m5_sobre_8_gb_no_bloquea_grupo_factible(self):
+        m = _mediciones(pico_m5=0.01)
+        m["puntos"]["grilla"]["operador_mayor"]["bytes"] = int(5.2 * _GB)
+        p = costo.proyectar(m, self.U)
+        self.assertGreater(p["memoria"]["principal_gb"]["m5"], 8)
+        self.assertEqual(p["procesos_por_fase"]["m5"], {"representatividad": _P, "anual": _P})
+        self.assertTrue(p["veredicto"]["decide"], p["veredicto"]["motivos"])
+        self.assertEqual(costo.recorte(p, self.U), "mod11")
+
+    def test_negativa_fisica_real_mantiene_pendiente(self):
+        m = _mediciones(pico_seleccion=9.0, fisica=14 * _GB)
+        p = costo.proyectar(m, self.U)
+        self.assertEqual(p["memoria"]["sin_procesos"], ["m34/seleccion_y_prediccion"])
+        self.assertEqual(p["procesos_por_fase"]["m34"]["seleccion_y_prediccion"], 0)
+        self.assertTrue(p["memoria"]["principal_m34_cabe"])
+        self.assertFalse(p["veredicto"]["decide"])
+        motivos = " ".join(p["veredicto"]["motivos"])
+        self.assertIn("memoria física", motivos)
+        self.assertIn("m34/seleccion_y_prediccion", motivos)
+        self.assertNotIn("tope", motivos)
+        self.assertEqual(p["m34"]["fases"]["seleccion"]["procesos"], _P)  # sólo informativa
+        c = costo.contenido_costo(m, p, self.U)
+        self.assertEqual(c["recorte"], costo.PENDIENTE)
+        self.assertTrue(c["recorte_pendiente"])
+
+    def test_principal_m34_invalido_o_mayor_que_fisica_no_cabe(self):
+        for pico in (float(_FISICA / _GB), math.nan, math.inf):
+            with self.subTest(pico=pico):
+                m = _mediciones()
+                m["puntos"]["tf"]["memoria_tras_fabricar_gb"] = pico
+                p = costo.proyectar(m, self.U)
+                self.assertFalse(p["memoria"]["principal_m34_cabe"])
+                self.assertEqual(costo.recorte(p, self.U), costo.PENDIENTE)
+                motivos = " ".join(p["veredicto"]["motivos"])
+                self.assertIn("principal de M3-4", motivos)
+                self.assertIn("memoria física", motivos)
+                self.assertNotIn("tope", motivos)
+        # Una entrada inválida no se salva al sumarle insumos positivos o al tomar el máximo.
+        for invalida in (0, -1):
+            with self.subTest(principal=invalida):
+                m = _mediciones()
+                m["puntos"]["tf"]["memoria_tras_fabricar_gb"] = invalida
+                self.assertFalse(costo._memoria(m, _P)["principal_m34_cabe"])
+        m = _mediciones()
+        mem = costo._memoria(m, _P)
+        m["sistema"]["memoria_fisica_bytes"] = mem["principal_gb"]["m34"] * _GB
+        mem = costo._memoria(m, _P)
+        self.assertTrue(mem["principal_m34_cabe"])  # el principal solo cabe; su grupo no cabe ni con uno
+        self.assertEqual(mem["procesos_por_fase"]["m34"], {f: 0 for f in orquestacion.FASES_REPARTO["m34"]})
+
+    def test_memoria_fisica_invalida_no_declara_factibilidad(self):
+        for fisica in (math.nan, math.inf, -math.inf, None, -1, 0, True, False, str(_FISICA)):
+            with self.subTest(fisica=fisica):
+                p = costo.proyectar(_mediciones(fisica=fisica), self.U)
+                self.assertEqual(p["procesos_por_fase"], _todas(0))
+                self.assertFalse(p["memoria"]["principal_m34_cabe"])
+                self.assertFalse(p["veredicto"]["decide"])
+                self.assertEqual(costo.recorte(p, self.U), costo.PENDIENTE)
+
+    def test_recursos_rechazan_booleanos_y_cadenas(self):
+        for indice in range(4):
+            for invalida in (True, False, "1000000000", "nan", "inf"):
+                with self.subTest(indice=indice, invalida=invalida):
+                    medidas = [_GB, _GB, _FISICA, 8 * _GB]
+                    medidas[indice] = invalida
+                    self.assertEqual(costo._procesos_que_caben(*medidas, _P), 0)
+
+    def test_recursos_aceptan_enteros_y_flotantes_reales(self):
+        for tipo in (int, float, costo.np.int64, costo.np.float64):
+            with self.subTest(tipo=tipo):
+                medidas = [tipo(v) for v in (_GB, 9 * _GB, _FISICA, 8 * _GB)]
+                self.assertEqual(costo._procesos_que_caben(*medidas, _P), _P)
+
+    def test_memorias_originales_invalidas_no_se_sanan_al_extrapolar(self):
+        campos = (
+            ("pliegue", "memoria_pico_gb", "m34", "seleccion_y_prediccion"),
+            ("pliegue", "memoria_inicio_gb", "m34", "seleccion_y_prediccion"),
+            ("tf", "memoria_pico_gb", "m34", "tendencias_y_finitud"),
+            ("tf", "memoria_inicio_gb", "m34", "tendencias_y_finitud"),
+            ("tf", "memoria_tras_fabricar_gb", "m34", "tendencias_y_finitud"),
+            ("m5", "memoria_pico_gb", "m5", "anual"),
+            ("grilla", "memoria_pico_gb", None, "grilla"),
+            ("mes_real", "memoria_pico_gb", "m5", "representatividad"),
+            ("qc", "memoria_pico_gb", "m34", "artefactos"),
+            ("qc", "memoria_antes_unidades_gb", "m34", "artefactos"),
+        )
+        for punto, campo, compuerta, fase in campos:
+            for invalida in (True, False, "0.5", None, 0, -0.01, math.nan, math.inf, -math.inf):
+                with self.subTest(punto=punto, campo=campo, invalida=invalida):
+                    m = _mediciones()
+                    m["puntos"][punto][campo] = invalida
+                    antes = repr(m)
+                    p = costo.proyectar(m, self.U)
+                    mem = p["memoria"]
+                    self.assertIn(punto, mem["faltan"])
+                    if compuerta is None:  # la grilla sigue siendo informativa, no una fase de M3-4 o M5
+                        self.assertNotIn(fase, mem["trabajador_gb"])
+                    else:
+                        self.assertEqual(p["procesos_por_fase"][compuerta][fase], 0)
+                        self.assertFalse(p["veredicto"]["decide"])
+                        self.assertEqual(costo.recorte(p, self.U), costo.PENDIENTE)
+                    if punto == "tf":
+                        self.assertFalse(mem["principal_m34_cabe"])
+                    self.assertEqual(repr(m), antes)
+                    c = costo.contenido_costo(m, p, self.U)
+                    self.assertEqual(c["mediciones"][punto][campo], costo._limpio(invalida))
+                    json.dumps(c, allow_nan=False)
+
+    def test_referencia_original_invalida_no_da_procesos(self):
+        valor = constantes.valor
+        for invalida in (True, False, "8", None, 0, -1, math.nan, math.inf):
+            with self.subTest(referencia=invalida), mock.patch.object(
+                    constantes, "valor", side_effect=lambda n: invalida if n == "MEMORIA_MAX_GB" else valor(n)):
+                p = costo.proyectar(_mediciones(), self.U)
+                self.assertEqual(p["procesos_por_fase"], _todas(0))
+                self.assertFalse(p["veredicto"]["decide"])
+                self.assertEqual(costo.recorte(p, self.U), costo.PENDIENTE)
+
+    def test_memoria_qc_original_por_meses_debe_ser_positiva_real(self):
+        for invalida in (True, False, "100000000", None, 0, -1, math.nan, math.inf):
+            with self.subTest(memoria=invalida):
+                m = _mediciones()
+                m["puntos"]["qc"]["memoria_por_meses"]["6"] = invalida
+                p = costo.proyectar(m, self.U)
+                self.assertEqual(p["procesos_por_fase"]["m34"]["artefactos"], 0)
+                self.assertEqual(costo.recorte(p, self.U), costo.PENDIENTE)
+
+
 class PruebasProcesosPorFase(unittest.TestCase):
     """D59 (P145; P146 en M5; A39; COS-25): la fase de reparto que no cabe en memoria con 8 procesos corre con el mayor
     número que quepa, y su pared se proyecta con él; si no cabe ni con uno, el recorte queda «pendiente»."""
@@ -624,7 +846,7 @@ class PruebasProcesosPorFase(unittest.TestCase):
         cls.U = _umbrales()
 
     def test_procesos_que_caben(self):
-        """El mayor n de 1 a P con el trabajador bajo el tope y n·trabajador + principal ≤ la memoria física («≤»);
+        """El mayor n de 1 a P con n·trabajador + principal ≤ la memoria física («≤»), sin tope individual (EMC5/D69);
         0 si no cabe ni con uno o si falta una medida."""
         tope = float(constantes.valor("MEMORIA_MAX_GB")) * _GB
         f = costo._procesos_que_caben
@@ -632,22 +854,22 @@ class PruebasProcesosPorFase(unittest.TestCase):
         self.assertEqual(f(5 * _GB, 4 * _GB, 29 * _GB, tope, _P), 5)                 # 5·5 + 4 = 29: justo
         self.assertEqual(f(5 * _GB, 4 * _GB, 29 * _GB - 1, tope, _P), 4)
         self.assertEqual(f(5 * _GB, 4 * _GB, 8.9 * _GB, tope, _P), 0)                # ni con uno
-        self.assertEqual(f(tope, 0.0, 128 * _GB, tope, _P), _P)                       # en el tope, cabe
-        self.assertEqual(f(tope + 1, 0.0, 128 * _GB, tope, _P), 0)                    # sobre el tope, no
+        self.assertEqual(f(tope, 1.0, 128 * _GB, tope, _P), _P)                       # principal positivo válido
+        self.assertEqual(f(tope + 1, 1.0, 128 * _GB, tope, _P), _P)                   # sobre la referencia, cabe
         for falta in ((None, 1.0, 9.0), (1.0, None, 9.0), (1.0, 1.0, 0.0), (math.nan, 1.0, 9.0)):
             self.assertEqual(f(*(x if x is None else x * _GB for x in falta), tope, _P), 0, falta)
 
-    def test_principal_tambien_debe_caber_en_el_tope(self):
-        """D65: reducir trabajadores no permite que el principal supere su propio tope."""
+    def test_principal_sobre_referencia_cabe_fisicamente(self):
+        """EMC5/D69 sustituye D65: el principal puede superar 8 GB si el grupo cabe físicamente."""
         tope = float(constantes.valor("MEMORIA_MAX_GB")) * _GB
         f = costo._procesos_que_caben
         for principal in (tope - 1, tope):
             with self.subTest(principal=principal):
                 self.assertEqual(f(tope / _P, principal, 4 * tope, tope, _P), _P)
-        self.assertEqual(f(tope / _P, tope + 1, 4 * tope, tope, _P), 0)
+        self.assertEqual(f(tope / _P, tope + 1, 4 * tope, tope, _P), _P)
 
-    def test_principal_m5_sobre_tope_bloquea_aunque_el_grupo_quepa(self):
-        """M5: trabajador y grupo caben, pero el principal solo excede el tope; no se decide recorte."""
+    def test_principal_m5_sobre_referencia_no_bloquea_si_el_grupo_cabe(self):
+        """EMC5/D69: M5 no se excluye por el principal sobre 8 GB si el grupo cabe físicamente."""
         U = self.U
         tope = float(constantes.valor("MEMORIA_MAX_GB"))
         m = _mediciones(pico_m5=0.01)
@@ -660,10 +882,10 @@ class PruebasProcesosPorFase(unittest.TestCase):
             with self.subTest(trabajador=trabajador):
                 self.assertLessEqual(mem["trabajador_gb"][trabajador], tope)
                 self.assertLessEqual(mem["fases"][trabajador]["grupo_gb"], mem["fisica_gb"])
-        self.assertEqual(p["procesos_por_fase"]["m5"], {"representatividad": 0, "anual": 0})
-        self.assertEqual(costo.recorte(p, U), costo.PENDIENTE)
-        self.assertIn("m5/representatividad", " ".join(p["veredicto"]["motivos"]))
-        self.assertIn("m5/anual", " ".join(p["veredicto"]["motivos"]))
+        self.assertEqual(p["procesos_por_fase"]["m5"], {"representatividad": _P, "anual": _P})
+        self.assertEqual(costo.recorte(p, U), "mod11")
+        self.assertTrue(p["veredicto"]["decide"])
+        self.assertEqual(p["veredicto"]["motivos"], [])
 
     def test_fases_de_reparto_de_orquestacion(self):
         """Las fases son exactamente las de ``orquestacion.FASES_REPARTO`` y cada una sale de una memoria medida."""
@@ -860,9 +1082,9 @@ class PruebasProcesosPorFase(unittest.TestCase):
     def test_d59_una_fase_que_no_cabe_ni_con_1(self):
         """Una fase que no cabe ni con un proceso: «pendiente», con el motivo que nombra la fase (D59); su pared se
         proyecta con P, sólo como información. Sin memoria física para nada, todas las fases van en el motivo. Un
-        principal de M3-4 sobre el tope, también «pendiente»."""
+        principal de M3-4 mayor que la memoria física, también «pendiente»."""
         U = self.U
-        m = _mediciones(pico_seleccion=9.0)                             # 11,25·10⁹ B: sobre el tope de 8·10⁹ B
+        m = _mediciones(pico_seleccion=128.0)                           # trabajador > los 128 GB físicos
         p = costo.proyectar(m, U)
         self.assertEqual(p["procesos_por_fase"]["m34"]["seleccion_y_prediccion"], 0)
         self.assertEqual(costo.recorte(p, U), costo.PENDIENTE)
@@ -880,7 +1102,7 @@ class PruebasProcesosPorFase(unittest.TestCase):
                 self.assertIn(f"{c_}/{f_}", " ".join(p["veredicto"]["motivos"]))
         self.assertEqual(costo.recorte(p, U), costo.PENDIENTE)
         m = _mediciones()
-        m["puntos"]["tf"]["memoria_tras_fabricar_gb"] = 9.0
+        m["puntos"]["tf"]["memoria_tras_fabricar_gb"] = 128.0
         p = costo.proyectar(m, U)
         self.assertEqual(costo.recorte(p, U), costo.PENDIENTE)
         self.assertIn("principal de M3-4", " ".join(p["veredicto"]["motivos"]))

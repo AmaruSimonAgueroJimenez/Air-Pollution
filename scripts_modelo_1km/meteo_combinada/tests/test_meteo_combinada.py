@@ -40,7 +40,7 @@ _S_DEL_TEXTO = re.compile(r"^- \*\*S(\d+),", re.MULTILINE)
 # COORDINACION_M1.md («Ola 2: encargos»).
 _BASE = ("tipos", "constantes", "umbrales")
 DEPENDENCIAS = {
-    "tipos": (), "constantes": (), "umbrales": (), "entorno": (),
+    "tipos": (), "constantes": (), "umbrales": (), "entorno": (), "reutilizacion_costo": (),
     "fijados": ("entorno",), "numerico": ("constantes",), "ceguera": ("entorno",), "sintetico": (),
     "politicas": (*_BASE, "numerico", "entorno", "fijados"),
     "estaticas_nasadem": (*_BASE, "numerico", "entorno"),
@@ -65,12 +65,12 @@ DEPENDENCIAS = {
               "ceguera"),   # ola 6: PED-1 y PED-3 de I21
     "addendum": ("umbrales", "constantes", "fijados", "entorno", "ceguera"),
     "verificar_meteo_combinada": ("orquestacion", "salidas", "costo", "addendum", "ceguera", "fijados", "umbrales",
-                                  "entorno", "politicas", "tendencias", "salud", "tipos", "constantes"),   # ola 6: PED-1 de I22
+                                  "entorno", "politicas", "tendencias", "salud", "tipos", "constantes", "reutilizacion_costo"),   # ola 6: PED-1 de I22
     "meteo_combinada": (),
 }
 # §1 del diseño, «Grafo, por capas y sin ciclos». «fuera»: sintetico y la fachada.
 CAPAS = {
-    "tipos": 0, "constantes": 0, "umbrales": 0, "entorno": 0,
+    "tipos": 0, "constantes": 0, "umbrales": 0, "entorno": 0, "reutilizacion_costo": 0,
     "fijados": 1, "numerico": 1, "ceguera": 1,
     "politicas": 2, "estaticas_nasadem": 2, "fondo_era5l": 2, "particiones": 2, "homogeneidad": 2, "sinca_meteo": 2,
     "decision": 2, "addendum": 2, "salidas": 3,

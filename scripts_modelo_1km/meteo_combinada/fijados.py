@@ -171,7 +171,8 @@ SHA_POLITICA_TEMPORAL = "41018e4c066d9e30b5ba0b1ff92d47eeb47bab1984b5b8c45a77893
 SHA_TEXTO_M0 = "0d0972d8c8ebf09bb39bf45154496e72b524cdb8d57f9ce029aa53a16708edaf"         # v2.1
 SHA_JSON_M0 = "156587f195f77009fe49bfa9497fd4a334d6b4bbe14064b46b8f3d3bca5e488a"
 SHA_TEXTO_V2_4 = "eaedb10998e1a3f37f83f036c478afb5cf3fd3ccb5262477bd394dc220b1908b"   # historia: EMC3, D65
-SHA_TEXTO_VIGENTE = "7771e830c526d8a0da93453e7e2d821896ba797147d14803969907ce5749589d"   # v2.5: EMC4, D68; post_hoc
+SHA_TEXTO_V2_5 = "7771e830c526d8a0da93453e7e2d821896ba797147d14803969907ce5749589d"   # historia: EMC4, D68
+SHA_TEXTO_VIGENTE = "895ff90c46d9cfc772893f9f592d61dcfd26793140ec7abb708477ac17492d04"   # v2.6: EMC5, D69; post_hoc
 SHA_TEXTO_V2_3 = "b4175f785ec57811702352d9d063164a5dce05f325a48c327a6d554a09ceddc2"   # historia: Enmienda 2, APH dd6c1c6
 SHA_TEXTO_V2_2 = "f059c14cc4114765a0618b263b6e8a0308d1b772c3ea824b79d0ebe0af5254e9"      # v2.2 (Enmienda 1), el que el v2.3 enmienda
 SHA_RELOJ_C0 = "5fff072783e932843d210561a46f5344351a39b7dd85f5775ac884eaf96e4d85"
@@ -247,8 +248,10 @@ HUELLAS_CODIGO: tuple[tuple[str, str, str, str], ...] = (
      "Enmienda 2"),
     ("APH", "auditoria/20261023/meteo_combinada/enmienda3/PROTOCOLO_METEO_COMBINADA_v2.4.md", SHA_TEXTO_V2_4,
      "historia, Enmienda 3 (D65, post_hoc)"),
-    ("APH", "auditoria/20261023/meteo_combinada/enmienda4/PROTOCOLO_METEO_COMBINADA_v2.5.md", SHA_TEXTO_VIGENTE,
-     "texto vigente, Enmienda 4 (D68, post_hoc)"),
+    ("APH", "auditoria/20261023/meteo_combinada/enmienda4/PROTOCOLO_METEO_COMBINADA_v2.5.md", SHA_TEXTO_V2_5,
+     "historia, Enmienda 4 (D68, post_hoc)"),
+    ("APH", "auditoria/20261023/meteo_combinada/enmienda5/PROTOCOLO_METEO_COMBINADA_v2.6.md", SHA_TEXTO_VIGENTE,
+     "texto vigente, Enmienda 5 (D69, post_hoc)"),
     ("APH", RUTA_RELOJ_C0, SHA_RELOJ_C0, "§9.3"),
     ("APH", RUTA_JSON_RELOJ_C0, SHA_JSON_RELOJ_C0, "M0, MC-52 (FIJ-11)"),
     ("APH", "auditoria/20261023/reloj_dmc/enmienda2/PROTOCOLO_RELOJ_DMC_v1.0.2.md", SHA_RELOJ_V1_0_2, "§9.3"),

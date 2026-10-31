@@ -3768,3 +3768,18 @@ tablas de evidencia del reloj ni resultados de la competencia meteorológica rea
 
 Estado al registrar esta nota: integración y pruebas en curso; no hay todavía batería bajo EMC4 ejecutada ni costo,
 recorte o aprobación inventados. La formalización y el código deben recibir sus identidades nuevas antes de lanzar.
+
+## EMC5: memoria física en vez de tope individual fijo (2026-10-31)
+
+El autor indicó «borra limites neceisot que se ejcute todo para empesara ver los modelos». D69 retira el tope
+individual fijo por trabajador y principal; no eleva su valor ni lo reemplaza por infinito. La memoria física
+positiva y finita sigue determinando el mayor número de procesos por fase cuyo grupo cabe. No se eliminan
+integridad, ceguera, procedencia, criterios científicos ni el testigo externo; máximo de procesos y recorte intactos.
+Se conoce el costo medido anterior y su bloqueo operativo por memoria, no resultados meteorológicos reales.
+La batería histórica no se aprueba retroactivamente.
+
+**[delegada, para ratificar]** Evitar repetir la medición costosa si su informe conserva información reproducible:
+reconstrucción y reproducción histórica exacta antes de usarla, nueva proyección, nueva suite completa y procedencia
+explícita. No se inventan mediciones ni se sustituye la suite nueva por la antigua. Si falla esa reproducción, no
+se reutiliza. Esta decisión técnica no se atribuye a palabras del autor. La ejecución avanza sólo por las etapas
+habilitadas, sin envíos o descargas nuevas. Estado de esta nota: integración en curso, ninguna nueva batería aprobada.

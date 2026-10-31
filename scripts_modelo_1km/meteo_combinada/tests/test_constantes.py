@@ -55,6 +55,12 @@ class PruebasConstantes(_ConTexto):
         self.assertIn(c.fragmento, self.texto)
         self.assertIn("[EMC4-1]", self.texto)
 
+    def test_memoria_individual_es_referencia_no_tope(self):
+        c = constantes.POR_NOMBRE["MEMORIA_MAX_GB"]
+        self.assertEqual((c.valor, c.clase), (8, "definicion"))
+        self.assertIn(c.fragmento, self.texto)
+        self.assertIn("[EMC5-1]", self.texto)
+
     def test_fragmentos_en_su_seccion(self):
         """Cada fragmento (A2, definiciones, repeticiones y exclusiones) está tal cual en su sección del v2.4 y sus
         números calzan con el valor, con sus ajenos y sus negativos."""

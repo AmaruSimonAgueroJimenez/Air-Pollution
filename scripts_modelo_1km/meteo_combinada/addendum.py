@@ -8,9 +8,9 @@ Qué hay:
 - ``fuentes_documento(rutas)`` y ``referencia(rutas)``: el texto vigente y las fuentes de las lecturas con que se
   vigila un documento (``ceguera.ReferenciaDocumento``; CEG-18).
 - ``extraer_lecturas``, ``extraer_mc``, ``decisiones_del_autor``, ``respondidas``, ``secciones_coordinacion`` y
-  ``lecturas_m1(rutas)``: lo que el addendum copia del código del paquete, del diseño, de los cuatro archivos de
+  ``lecturas_m1(rutas)``: lo que el addendum copia del código del paquete, del diseño, de los cinco archivos de
   decisiones y de ``COORDINACION_M1.md``.
-- ``anexo_a2(rutas)``: el contenido de ``anexo_a2.json``, de ``constantes.anexo_a2`` sobre el texto vigente (v2.5).
+- ``anexo_a2(rutas)``: el contenido de ``anexo_a2.json``, de ``constantes.anexo_a2`` sobre el texto vigente (v2.6).
 - ``addendum_m1(lista, anexo_a2, deriva, recorte, costo, lecturas, commits, *, fecha, bateria)`` y
   ``addendum_md(contenido)``: el contenido de ``addendum_m1.json`` (clase documento, con las claves de ``CLAVES``) y su
   ``.md``. Este módulo no escribe: los escribe la batería por ``salidas`` en su subcarpeta de
@@ -21,7 +21,8 @@ Lecturas propias (ADD-n), para el addendum de M1:
 - ADD-1. **La lista cerrada** (§10, M1: «la lista cerrada de huellas (texto, JSON, código, pruebas y salida de la
   batería)»; MC-54; §9.3 y §9.4 del diseño). Entran, calculadas del disco: los textos del producto anclados en APH (v2.1
   con su JSON, su generador, su tabla de anclaje y sus huellas de M0; las Enmiendas 1 y 2 con el v2.2 y el v2.3,
-  la Enmienda 3 operativa con el v2.4 y la Enmienda 4 de carga con el v2.5; los cuatro archivos de decisiones), todo
+  la Enmienda 3 operativa con el v2.4, la Enmienda 4 de carga con el v2.5 y la Enmienda 5 de memoria con el v2.6;
+  los cinco archivos de decisiones), todo
   ``.py`` del paquete y de ``tests/`` (también ``__init__.py``), los dos
   documentos del paquete (``COORDINACION_M1.md`` y ``DISENO_IMPLEMENTACION_M1.md``: el addendum copia su contenido, así
   que entran con su huella; rige la más estricta, P-ADD-1), el código fijado de ``fijados.HUELLAS_CODIGO`` (que trae
@@ -43,9 +44,9 @@ Lecturas propias (ADD-n), para el addendum de M1:
   (sangradas); y las preguntas escritas en prosa («Preguntas para el autor (P-ORQ-n; …): P-ORQ-1 (…); P-ORQ-2 …»),
   partidas en cada «P-XXX-n» que abre un tramo. Se copian tal cual, con su módulo; una viñeta sangrada es parte de la
   anterior.
-- ADD-4. **Las decisiones del autor.** Las filas de tabla «| Dn | … |» de los cuatro archivos de decisiones (enmienda1,
-  m1 y enmienda3), con la huella de cada archivo; deben ir de D1 sin huecos y sin repetir. Las menciones en viñetas
-  («- **D3:** …») son referencias, no decisiones. Una pregunta está **respondida** por la decisión que la nombra en su
+- ADD-4. **Las decisiones del autor.** Las filas de tabla «| Dn | … |» de los cinco archivos de decisiones (enmienda1,
+  m1, enmienda3, enmienda4 y enmienda5; D1-D69), con la huella de cada archivo; deben ir de D1 sin huecos y sin repetir.
+  Las menciones en viñetas («- **D3:** …») son referencias, no decisiones. Una pregunta está **respondida** por la decisión que la nombra en su
   segunda columna («Pregunta», o el tema o el riesgo en las tablas de D1-D10: «P10: …», «P41 a P77»), o que dice
   «Pn queda descartada»; una mención en otra columna no la responde (P28 la responde D52, no D42); si dos la nombran,
   rige la última (P47: D56, después de D53).
@@ -65,7 +66,7 @@ Lecturas propias (ADD-n), para el addendum de M1:
   la autorización del autor (A33). Un commit es un texto de 40 hexadecimales; M3-4 y M6 se niegan si alguno sigue
   pendiente.
 - ADD-8. **La guarda del documento** (CEG-18). El addendum cita la huella entera del texto vigente y todo número suyo
-  sale del texto o de las fuentes: el código y los documentos del paquete y los cuatro archivos de decisiones (rutas por
+  sale del texto o de las fuentes: el código y los documentos del paquete y los cinco archivos de decisiones (rutas por
   alias de ``ceguera.RAICES_FUENTES``). No lleva enteros sueltos (ni conteos): las listas se cuentan solas, y los
   títulos del ``.md`` no traen rangos fijos. La batería lo escribe con ``salidas.escribir(…, clase="documento",
   referencia=referencia(rutas))``, que llama a ``ceguera.vigilar_salida``.
@@ -73,13 +74,13 @@ Lecturas propias (ADD-n), para el addendum de M1:
   M1»). Las viñetas «- **MC-nn …**» de §7 de ``DISENO_IMPLEMENTACION_M1.md`` (todas, de §7.1 a §7.3), con su sección y
   su marca ([E], [D] o [M]).
 - ADD-10. **El esquema exacto** (``CLAVES``). ``addendum_m1`` da siempre las mismas claves, en ese orden de
-  ``CLAVES``; ``verificar`` exige exactamente ésas, el texto vigente v2.5 con su huella, la batería aprobada y su
+  ``CLAVES``; ``verificar`` exige exactamente ésas, el texto vigente v2.6 con su huella, la batería aprobada y su
   subcarpeta.
 - ADD-11. **La declaración sobre el C4 de RELOJ** (§10: «M1 se sella antes del C4 de RELOJ si alcanza. Si no, rige el
   ítem prospectivo de §1.9 y, desde el inicio del C4 de RELOJ, el régimen estricto de abajo para todo cambio de M1»;
   P122). M1 no alcanzó: la corrida confirmatoria C4 de RELOJ quedó sellada el 2026-10-27. El addendum lo declara
   (``DECLARACION_C4``): qué se leyó del reloj, qué olas de M1 fueron antes y después del inicio del C4, y la lectura
-  para el código posterior, con las enmiendas operativas formalizadas por D65 y D68.
+  para el código posterior, con las enmiendas operativas formalizadas por D65, D68 y D69.
 - ADD-12. **Los procesos por fase** (D59, respuesta a P145: «La fase que no quepa en memoria con 8 procesos corre con
   el mayor número que quepa … Se declara en el addendum y en el registro de M3-4, y modifica D2 sólo en esa fase»; A39;
   P146, la extensión a M5). El costo de entrada es {ruta, sha256, recorte, procesos_por_fase} y el del addendum
@@ -102,7 +103,14 @@ Lecturas propias (ADD-n), para el addendum de M1:
   carga no veta inicio, ejecución, proyección efectiva ni recorte. Se conservan la carga bruta y ajena, los
   valores no finitos y el diagnóstico real de máquina libre, sin falsearlos. D64 sigue vigente: los tiempos
   pueden variar y cambiar el recorte; no se declara un comparativo confirmatorio ni se borra la S6 histórica.
-  Constructor, lector, formateador y publicador (JSON, Markdown y gzip) exigen las tres declaraciones exactas.
+  Constructor, lector, formateador y publicador (JSON, Markdown y gzip) exigen las declaraciones exactas.
+- ADD-15. **Memoria física posterior al C4 (D69).** El esquema /4 agrega ``enmienda_memoria``, EMC5 separada con
+  ``post_hoc`` booleano True y origen v2.5 histórico; EMC3 y EMC4 conservan exactamente sus textos y huellas. Se
+  retira sólo el tope individual de 8 GB: siguen memorias finitas y positivas, factibilidad física conjunta, hasta
+  8 procesos, recorte y 36 h, metodología, carga informativa y guardas. No aprueba la última batería ni borra su
+  costo completo guardado con ``recorte_pendiente``. Reutilización técnica [delegada, para ratificar] sólo con
+  reconstrucción histórica exacta, origen y fecha declarados y suite vigente íntegra; no reemplaza testigo.
+  Constructor, lector, formateador y publicador (JSON, Markdown y gzip) exigen C4, EMC3, EMC4 y EMC5 exactas.
 Preguntas para el autor (P-ADD-n; rige la más estricta):
 - P-ADD-1. Cita: §10, M1, «la lista cerrada de huellas (texto, JSON, código, pruebas y salida de la batería)»; §9.4
   del diseño, «el paquete ``meteo_combinada/`` (cada archivo)». Problema: con los dos documentos del paquete en la
@@ -127,7 +135,7 @@ from typing import Any, Mapping, Sequence
 
 from meteo_combinada import ceguera, constantes, entorno, fijados, umbrales
 
-ESQUEMA = "meteo-combinada-addendum-m1/3"
+ESQUEMA = "meteo-combinada-addendum-m1/4"
 PENDIENTE = "pendiente"
 NOMBRE_JSON = "addendum_m1.json"
 NOMBRE_MD = "addendum_m1.md"
@@ -144,13 +152,16 @@ CARPETA_PRODUCTO = _PRODUCTO
 DECISIONES = (f"{_PRODUCTO}/enmienda1/decisiones_autor_20261026.md",          # D1-D8
               f"{_PRODUCTO}/m1/decisiones_autor_m1_20261026.md",              # D9-D64
               f"{_PRODUCTO}/enmienda3/decisiones_autor_20261028.md",          # D65-D67
-              f"{_PRODUCTO}/enmienda4/decisiones_autor_20261031.md")          # D68
+              f"{_PRODUCTO}/enmienda4/decisiones_autor_20261031.md",          # D68
+              f"{_PRODUCTO}/enmienda5/decisiones_autor_20261031.md")          # D69
 TEXTO_V2_2 = f"{_PRODUCTO}/enmienda1/PROTOCOLO_METEO_COMBINADA_v2.2.md"
 TEXTO_V2_3 = f"{_PRODUCTO}/enmienda2/PROTOCOLO_METEO_COMBINADA_v2.3.md"
 TEXTO_V2_4 = f"{_PRODUCTO}/enmienda3/PROTOCOLO_METEO_COMBINADA_v2.4.md"
-# Historia exacta de EMC3: no debe seguir al texto vigente cuando éste cambie por EMC4.
+TEXTO_V2_5 = f"{_PRODUCTO}/enmienda4/PROTOCOLO_METEO_COMBINADA_v2.5.md"
+# Historia exacta de EMC3 y EMC4: ni sus rutas ni sus huellas siguen al texto vigente.
 SHA_TEXTO_V2_4 = "eaedb10998e1a3f37f83f036c478afb5cf3fd3ccb5262477bd394dc220b1908b"
-# ADD-1: EMC3 anclada en APH ae670dd (sello b07791e), su concordancia técnica y EMC4/D68.
+SHA_TEXTO_V2_5 = "7771e830c526d8a0da93453e7e2d821896ba797147d14803969907ce5749589d"
+# ADD-1: EMC3 anclada en APH ae670dd (sello b07791e), su concordancia técnica, EMC4/D68 y EMC5/D69.
 TEXTOS_PRODUCTO = (umbrales.TEXTO_M0, umbrales.JSON_M0, umbrales.PREPARAR_M0, f"{_PRODUCTO}/m0/tabla_anclaje_m0.json",
                    f"{_PRODUCTO}/m0/huellas_m0.json", f"{_PRODUCTO}/enmienda1/ENMIENDA_1.md", TEXTO_V2_2,
                    f"{_PRODUCTO}/enmienda2/ENMIENDA_2.md", TEXTO_V2_3,
@@ -158,6 +169,7 @@ TEXTOS_PRODUCTO = (umbrales.TEXTO_M0, umbrales.JSON_M0, umbrales.PREPARAR_M0, f"
                    f"{_PRODUCTO}/enmienda3/NOTA_FIRMAS_RECIBOS.md",
                    f"{_PRODUCTO}/enmienda3_borrador/BORRADOR_ENMIENDA_3_PROCESOS.md",
                    TEXTO_V2_4, f"{_PRODUCTO}/enmienda4/ENMIENDA_4.md", f"{_PRODUCTO}/enmienda4/generar_v2_5.py",
+                   TEXTO_V2_5, f"{_PRODUCTO}/enmienda5/ENMIENDA_5.md", f"{_PRODUCTO}/enmienda5/generar_v2_6.py",
                    umbrales.TEXTO_VIGENTE, *DECISIONES)
 # ADD-2: lo que escribe la batería en su subcarpeta de LOCAL/meteo_combinada/v1/m1/.
 SALIDA_BATERIA = ("pruebas_m1.txt", "resumen_m1.json", "deriva_s6.json", "anexo_a2.json", "costo_m1.json",
@@ -166,8 +178,8 @@ PREFIJO_M1 = "LOCAL/meteo_combinada/v1/m1/"
 # ADD-10: las claves de addendum_m1.json, en este orden.
 CLAVES = ("esquema", "fecha", "texto_vigente", "textos_anteriores", "umbrales", "lista_cerrada", "anexo_a2", "deriva",
           "recorte", "costo", "lecturas", "lecturas_diseno", "decisiones", "diferencias", "preguntas_abiertas",
-          "preguntas_respondidas", "acuerdos", "declaracion_c4_reloj", "enmienda_operativa", "enmienda_carga", "fuentes",
-          "commits", "bateria")
+          "preguntas_respondidas", "acuerdos", "declaracion_c4_reloj", "enmienda_operativa", "enmienda_carga",
+          "enmienda_memoria", "fuentes", "commits", "bateria")
 # ADD-11 (P122): la declaración sobre el C4 de RELOJ, tal como va al addendum.
 DECLARACION_C4 = MappingProxyType({
     "hecho": ("La corrida confirmatoria C4 de RELOJ (HUMAN20261027_RELOJ_DMC_1) quedó sellada el 2026-10-27 a las "
@@ -182,12 +194,15 @@ DECLARACION_C4 = MappingProxyType({
     "lectura_propuesta": ("Las olas 4 a 6 implementan el texto, salvo la regla operativa D59/D63/D64 de §8, que sí es "
                           "enmienda: D65 la formaliza como EMC3. Posteriormente D68 adopta EMC4: la carga pasa a ser "
                           "sólo informativa, sin veto al inicio, durante la ejecución ni en la proyección efectiva "
-                          "o el recorte. Ambas son post_hoc = true por su fecha posterior al inicio del C4 de "
-                          "RELOJ. No se cambia §10 ni se presenta todo cambio posterior al C4 como mera "
+                          "o el recorte. D69 adopta EMC5 por separado: elimina el tope individual de 8 GB, "
+                          "manteniendo factibilidad por memoria física y hasta 8 procesos. Las tres son "
+                          "post_hoc = true por su fecha posterior al inicio del C4 de RELOJ, no por la política C5 "
+                          "del reloj. No se cambia §10 ni se presenta todo cambio posterior al C4 como mera "
                           "implementación. D64 sigue vigente: los tiempos reales pueden modificar la proyección "
                           "efectiva y el recorte; no se promete que sólo cambie la duración."),
     "pregunta": ("P122 cerrada por D60; D65 formaliza la excepción operativa y D68 adopta por separado el cambio de "
-                 "carga de EMC4. P79, P145 y P147 siguen cerradas por D58, D59 y D64. La S6 histórica no se borra "
+                 "carga de EMC4; D69 adopta el cambio de memoria de EMC5 sin aprobar retroactivamente la última "
+                 "batería. P79, P145 y P147 siguen cerradas por D58, D59 y D64. La S6 histórica no se borra "
                  "ni se repite. No se vieron informes ni tablas de evidencia del reloj ni competencia "
                  "meteorológica real para elegir estas reglas; no se presenta un comparativo confirmatorio."),
 })
@@ -214,7 +229,7 @@ ENMIENDA_CARGA = MappingProxyType({
     "fuente": f"APH/{_PRODUCTO}/enmienda4/decisiones_autor_20261031.md",
     "enmienda": f"APH/{_PRODUCTO}/enmienda4/ENMIENDA_4.md",
     "texto_anclado": f"APH/{TEXTO_V2_4}", "sha256_anclado": SHA_TEXTO_V2_4,
-    "texto_enmendado": f"APH/{umbrales.TEXTO_VIGENTE}", "sha256_enmendado": umbrales.SHA_TEXTO_VIGENTE,
+    "texto_enmendado": f"APH/{TEXTO_V2_5}", "sha256_enmendado": SHA_TEXTO_V2_5,
     "regla_anclada": ("v2.4 §8: con la máquina libre, carga < 2; veto por carga al inicio y durante la "
                       "ejecución, que puede impedir medir el costo, la proyección efectiva y el recorte."),
     "regla_enmendada": ("v2.5 §8 y §8.1: carga sólo informativa, sin veto al inicio, durante la ejecución ni para "
@@ -236,6 +251,39 @@ ENMIENDA_CARGA = MappingProxyType({
     "limite": ("No valida retroactivamente intentos anteriores ni aprueba M1 sin costo medido. No cambia EMC3, "
                "S6, memoria, procesos, metodología, semillas, datos ni políticas de RELOJ; no elimina negativas "
                "de integridad, ceguera, procedencia y testigo externo, ni autoriza otra corrida confirmatoria."),
+})
+# ADD-15 (D69): memoria del producto, separada de EMC3, EMC4 y de la política C5 del reloj.
+ENMIENDA_MEMORIA = MappingProxyType({
+    "id": "EMC5", "fecha": "2026-10-31", "post_hoc": True, "decision": "D69",
+    "fuente": f"APH/{_PRODUCTO}/enmienda5/decisiones_autor_20261031.md",
+    "enmienda": f"APH/{_PRODUCTO}/enmienda5/ENMIENDA_5.md",
+    "texto_anclado": f"APH/{TEXTO_V2_5}", "sha256_anclado": SHA_TEXTO_V2_5,
+    "texto_enmendado": f"APH/{umbrales.TEXTO_VIGENTE}", "sha256_enmendado": umbrales.SHA_TEXTO_VIGENTE,
+    "orden_humana": "borra limites neceisot que se ejcute todo para empesara ver los modelos",
+    "regla_anclada": ("v2.5 §8: tope individual de 8 GB para cada trabajador y el principal, además de la "
+                      "factibilidad conjunta por memoria física y hasta 8 procesos por fase."),
+    "regla_enmendada": ("v2.6 §8 y §8.2 [EMC5-1]: sin tope individual de 8 GB; se exige n * memoria_trabajador + "
+                        "memoria_principal <= memoria_fisica, con memorias finitas y positivas. Hasta 8 procesos, "
+                        "el mayor número físicamente factible por fase de M3-4 y M5; si no cabe ni 1, el recorte "
+                        "queda pendiente. No se sustituye el tope retirado por infinito."),
+    "lo_visto": ("Resultados operativos comunicados, sin reabrir salidas: la última batería guardó el costo "
+                 "completo; el único motivo de no aprobación fue recorte_pendiente por memoria, con 9.42 GB en "
+                 "selección, 12.63 GB en TensorFlow y 11.28 GB en M5, bajo el tope individual de 8 GB entonces "
+                 "vigente. Sin resultados del reloj DMC ni de competencia meteorológica real vistos para "
+                 "elegir D69. Se conserva la S6 histórica ya vista, sin repetirla."),
+    "consecuencias": ("La última batería no se arregla ni aprueba retroactivamente: el costo guardado conserva "
+                      "su recorte pendiente y la regla vigente al medirlo. Reutilización técnica [delegada, "
+                      "para ratificar] sólo si la reconstrucción reproduce exactamente la proyección y el "
+                      "informe históricos con su código original, conserva origen, SHA-256 y fecha, y se "
+                      "ejecuta íntegra la suite vigente; si falla o faltan mediciones, requiere medir de nuevo. "
+                      "EMC5 exige evaluación nueva bajo v2.6, no autoriza ejecutar modelos por sí sola. "
+                      "D64 sigue vigente: se conservan "
+                      "la proyección efectiva y la de 8 procesos; los tiempos y el recorte pueden cambiar, "
+                      "sin comparativo confirmatorio."),
+    "limite": ("Se conservan recorte de §4.9 y 36 h, métodos, semillas, datos, carga sólo informativa de EMC4 "
+               "y todas las guardas de integridad, ceguera, procedencia y testigo externo. No cambia "
+               "retroactivamente EMC3 ni EMC4, ni el reloj ni su política C5, ni autoriza otra corrida "
+               "confirmatoria o elimina negativas."),
 })
 # ADD-12 (D59, A39, P146): la declaración que acompaña a los procesos por fase en el .md.
 DECLARACION_D59 = (f"D59/P145 y D63/P146, formalizadas por D65 (EMC3-1): hasta {constantes.valor('PROCESOS')} "
@@ -385,7 +433,7 @@ def lista_cerrada(rutas, *, bateria: Mapping[str, str] | None = None, rutas_bate
     if len(subcarpetas) > 1:
         raise ErrorAddendum("la salida de la batería es de una sola subcarpeta de m1 (ADD-2)")
     if salida.get(f"APH/{umbrales.TEXTO_VIGENTE}") != umbrales.SHA_TEXTO_VIGENTE:
-        raise ErrorAddendum("el texto vigente no es el v2.5 declarado")
+        raise ErrorAddendum("el texto vigente no es el v2.6 declarado")
     return dict(sorted(salida.items()))
 
 
@@ -393,7 +441,7 @@ def lista_cerrada(rutas, *, bateria: Mapping[str, str] | None = None, rutas_bate
 # Fuentes y referencia del documento (ADD-8; CEG-18)
 # ---------------------------------------------------------------------------
 def fuentes_documento(rutas) -> dict[str, str]:
-    """{ruta por alias: texto} de las fuentes de las lecturas: el código y los documentos del paquete y los cuatro
+    """{ruta por alias: texto} de las fuentes de las lecturas: el código y los documentos del paquete y los cinco
     archivos de decisiones del autor."""
     carpeta = Path(rutas.ap) / CARPETA_PAQUETE
     salida = {a: _leer(p).decode("utf-8") for a, p in codigo_del_paquete(rutas.ap).items()}
@@ -405,11 +453,11 @@ def fuentes_documento(rutas) -> dict[str, str]:
 
 
 def texto_vigente(rutas) -> tuple[str, str]:
-    """(texto, sha256) del texto vigente v2.5, comprobado contra ``umbrales.SHA_TEXTO_VIGENTE``."""
+    """(texto, sha256) del texto vigente v2.6, comprobado contra ``umbrales.SHA_TEXTO_VIGENTE``."""
     datos = _leer(Path(rutas.aph) / umbrales.TEXTO_VIGENTE)
     sha = entorno.sha256_bytes(datos)
     if sha != umbrales.SHA_TEXTO_VIGENTE:
-        raise ErrorAddendum("el texto vigente no es el v2.5 declarado")
+        raise ErrorAddendum("el texto vigente no es el v2.6 declarado")
     return datos.decode("utf-8"), sha
 
 
@@ -421,7 +469,7 @@ def referencia(rutas, *, fuentes: Mapping[str, str] | None = None) -> "ceguera.R
 
 
 def anexo_a2(rutas) -> dict:
-    """El contenido de ``anexo_a2.json`` (§10: «M1 los lista en un anexo A2 generado del texto»), del v2.5."""
+    """El contenido de ``anexo_a2.json`` (§10: «M1 los lista en un anexo A2 generado del texto»), del v2.6."""
     texto, sha = texto_vigente(rutas)
     return constantes.anexo_a2(texto, sha)
 
@@ -717,7 +765,7 @@ def addendum_m1(lista, anexo_a2, deriva, recorte, costo, lecturas, commits, *, f
             raise ErrorAddendum(f"{a}: la huella es un sha256 de 64 hexadecimales")
     vigente = f"APH/{umbrales.TEXTO_VIGENTE}"
     if lista.get(vigente) != umbrales.SHA_TEXTO_VIGENTE:
-        raise ErrorAddendum("la lista cerrada no trae el texto vigente v2.5 con su huella")
+        raise ErrorAddendum("la lista cerrada no trae el texto vigente v2.6 con su huella")
     if fecha is not None and not (isinstance(fecha, str) and _FECHA.fullmatch(fecha)):
         raise ErrorAddendum("la fecha del addendum es AAAA-MM-DD")
     if recorte == PENDIENTE:                        # ADD-12: un recorte «pendiente» es un recorte que falta
@@ -756,7 +804,7 @@ def addendum_m1(lista, anexo_a2, deriva, recorte, costo, lecturas, commits, *, f
                           "resumen": _referencia_archivo(bateria.get("resumen"), "bateria.resumen"),
                           "aprobada": bateria["aprobada"]}
     anteriores = [{"ruta": f"APH/{rel}", "sha256": lista[f"APH/{rel}"]}
-                  for rel in (TEXTO_V2_4, TEXTO_V2_3, TEXTO_V2_2, umbrales.TEXTO_M0)
+                  for rel in (TEXTO_V2_5, TEXTO_V2_4, TEXTO_V2_3, TEXTO_V2_2, umbrales.TEXTO_M0)
                   if f"APH/{rel}" in lista]
     contenido = {
         "esquema": ESQUEMA, "fecha": fecha,
@@ -778,6 +826,7 @@ def addendum_m1(lista, anexo_a2, deriva, recorte, costo, lecturas, commits, *, f
         "declaracion_c4_reloj": dict(DECLARACION_C4),
         "enmienda_operativa": dict(ENMIENDA_OPERATIVA),
         "enmienda_carga": dict(ENMIENDA_CARGA),
+        "enmienda_memoria": dict(ENMIENDA_MEMORIA),
         "fuentes": [{"ruta": a, "sha256": s} for a, s in sorted(lecturas["fuentes"].items())],
         "commits": {"ap": _commit(commits["ap"], "commits.ap"), "aph": _commit(commits["aph"], "commits.aph")},
         "bateria": salida_bateria,
@@ -787,9 +836,9 @@ def addendum_m1(lista, anexo_a2, deriva, recorte, costo, lecturas, commits, *, f
 
 
 def _validar_declaraciones(contenido) -> None:
-    """D65 y D68: C4, EMC3 y EMC4 exactas, con post_hoc booleano True (no 1 ni 1.0). Sin E/S."""
+    """D65, D68 y D69: C4, EMC3, EMC4 y EMC5 exactas; post_hoc es True (no 1 ni 1.0). Sin E/S."""
     if not isinstance(contenido, Mapping) or contenido.get("esquema") != ESQUEMA:
-        raise ErrorAddendum("el addendum no tiene el esquema vigente /3 (ADD-10, D65, D68)")
+        raise ErrorAddendum("el addendum no tiene el esquema vigente /4 (ADD-10, D65, D68, D69)")
     if contenido.get("declaracion_c4_reloj") != dict(DECLARACION_C4):
         raise ErrorAddendum("la declaración C4 no es exactamente la adoptada (D65; §10)")
     enmienda = contenido.get("enmienda_operativa")
@@ -799,10 +848,13 @@ def _validar_declaraciones(contenido) -> None:
     carga = contenido.get("enmienda_carga")
     if not isinstance(carga, Mapping) or carga.get("post_hoc") is not True or carga != dict(ENMIENDA_CARGA):
         raise ErrorAddendum("falta la Enmienda 4 de carga exacta con post_hoc booleano true (D68; §10)")
+    memoria = contenido.get("enmienda_memoria")
+    if not isinstance(memoria, Mapping) or memoria.get("post_hoc") is not True or memoria != dict(ENMIENDA_MEMORIA):
+        raise ErrorAddendum("falta la Enmienda 5 de memoria exacta con post_hoc booleano true (D69; §10)")
 
 
 def _declaraciones_md(contenido: Mapping) -> list[str]:
-    """Bloque canónico de C4, EMC3 y EMC4, común al formateador y al publicador."""
+    """Bloque canónico de C4, EMC3, EMC4 y EMC5, común al formateador y al publicador."""
     _validar_declaraciones(contenido)
     lineas = ["## Declaración sobre el C4 de RELOJ (§10; P122)", ""]
     lineas += [f"- {v}" for v in DECLARACION_C4.values()]
@@ -812,11 +864,14 @@ def _declaraciones_md(contenido: Mapping) -> list[str]:
     lineas += ["", "## Enmienda de carga del producto (D68; §10)", ""]
     lineas += [f"- {k}: {str(v).lower() if isinstance(v, bool) else v}"
                for k, v in ENMIENDA_CARGA.items()]
+    lineas += ["", "## Enmienda de memoria del producto (D69; §10)", ""]
+    lineas += [f"- {k}: {str(v).lower() if isinstance(v, bool) else v}"
+               for k, v in ENMIENDA_MEMORIA.items()]
     return lineas
 
 
 def _validar_publicacion(nombre: str, datos: bytes) -> None:
-    """Los addendum_m1.json/.md (también .gz) deben llevar C4, EMC3 y EMC4 exactas antes de publicarse."""
+    """Los addendum_m1.json/.md (también .gz) exigen C4, EMC3, EMC4 y EMC5 exactas antes de publicarse."""
     base = PurePosixPath(nombre).name.casefold()
     if base.endswith(".gz"):
         base = base[:-len(".gz")]
@@ -847,7 +902,7 @@ def _validar_publicacion(nombre: str, datos: bytes) -> None:
             bloque = texto[texto.index(inicio):texto.index(fin)]
             esperado = "\n".join(_declaraciones_md({"esquema": ESQUEMA,
                 "declaracion_c4_reloj": dict(DECLARACION_C4), "enmienda_operativa": dict(ENMIENDA_OPERATIVA),
-                "enmienda_carga": dict(ENMIENDA_CARGA)})) + "\n\n"
+                "enmienda_carga": dict(ENMIENDA_CARGA), "enmienda_memoria": dict(ENMIENDA_MEMORIA)})) + "\n\n"
             if bloque != esperado:
                 raise ErrorAddendum("las declaraciones del addendum Markdown no son exactamente las adoptadas")
     except (UnicodeError, json.JSONDecodeError) as e:

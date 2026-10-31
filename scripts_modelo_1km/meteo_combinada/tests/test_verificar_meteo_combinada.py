@@ -717,6 +717,11 @@ class PruebasNegativas(unittest.TestCase):
                 **addendum.ENMIENDA_CARGA, "post_hoc": 1}}, ["addendum"]),
             ("regla de carga alterada", {"enmienda_carga": {
                 **addendum.ENMIENDA_CARGA, "regla_enmendada": "se rechaza por carga"}}, ["addendum"]),
+            ("memoria ausente", {"quitar": ("enmienda_memoria",)}, ["addendum"]),
+            ("memoria post_hoc numérico", {"enmienda_memoria": {
+                **addendum.ENMIENDA_MEMORIA, "post_hoc": 1}}, ["addendum"]),
+            ("memoria regla falsa", {"enmienda_memoria": {
+                **addendum.ENMIENDA_MEMORIA, "regla_enmendada": "sin comprobaciones"}}, ["addendum"]),
             ("declaración C4 incompatible", {"declaracion_c4_reloj": {
                 **addendum.DECLARACION_C4, "lectura_propuesta": "todo es implementación, no enmienda"}}, ["addendum"]),
             ("batería no aprobada", {"aprobada": False}, ["addendum"]),
@@ -746,6 +751,7 @@ class PruebasNegativas(unittest.TestCase):
                     m.confirmar_todo()
                     if "enmienda_operativa" in cambios or "declaracion_c4_reloj" in cambios \
                             or "enmienda_carga" in cambios or "enmienda_carga" in cambios.get("quitar", ()) \
+                            or "enmienda_memoria" in cambios or "enmienda_memoria" in cambios.get("quitar", ()) \
                             or "enmienda_operativa" in cambios.get("quitar", ()):
                         contenido = json.loads(m.ruta(_ADDENDUM).read_bytes())
                         self.assertEqual(_motivos(V._fallas_contenido(cfg_valida, contenido)), esperado)
@@ -1534,6 +1540,62 @@ class PruebasBateria(unittest.TestCase):
         self.assertIn(addendum.DECLARACION_D59, r["_md"])
         self.assertNotIn(numero, consola)
         self.assertNotIn(numero.replace(",", "."), consola)
+
+    def test_costo_reutilizado_no_invoca_medicion_nueva(self):
+        from meteo_combinada import reutilizacion_costo
+        medidor = _medidor("1,25")
+        medidor.medir = mock.Mock(side_effect=AssertionError("no medir de nuevo"))
+        procedencia = {"sha256": "c92aeec3a4cb003d1be0c36af2e0650bdb6ff3e5a89df9356167890234be06a6", "bytes": 123}
+        def cargar_falso(ruta, *, sha256, umbrales, verificar):
+            verificar({"horas": 1.25}, {})
+            return {"horas": 1.25}, dict(procedencia)
+        historico = entorno.rutas_reales().local / "meteo_combinada/v1/m1/20261031T040149Z/costo_m1.json"
+        with mock.patch.object(reutilizacion_costo, "cargar", side_effect=cargar_falso) as cargar, \
+                mock.patch.object(V, "_verificar_reproduccion_costo", return_value={"comparacion_proyeccion_original": "identica"}):
+            codigo, r, _, _ = _correr(_una(), costo=True, forzar_completa=True,
+                costo_desde=str(historico), costo_sha256=procedencia["sha256"],
+                servicios=_servicios_bateria(medidor=medidor))
+        medidor.medir.assert_not_called()
+        cargar.assert_called_once()
+        self.assertTrue(r["costo"]["medido"])
+        self.assertEqual(r["costo"]["recorte"], "mod11")
+        self.assertNotIn("costo_no_medido", r["motivos"])
+        self.assertIsNone(r["costo"]["carpeta_temporal"])
+
+    def test_reproduccion_distinta_no_aprueba_costo(self):
+        from meteo_combinada import reutilizacion_costo
+        def cargar_falso(ruta, *, sha256, umbrales, verificar):
+            verificar({"horas": 1.25}, {})
+            return {"horas": 1.25}, {}
+        with mock.patch.object(reutilizacion_costo, "cargar", side_effect=cargar_falso), \
+                mock.patch.object(V, "_verificar_reproduccion_costo", side_effect=ValueError("no reproduce")):
+            contenido, recorte, error, temporal = V._reproyectar_costo(_medidor("1,25"), "x", "a" * 64, None)
+        self.assertIsNone(contenido)
+        self.assertIsNone(recorte)
+        self.assertEqual(error, "ValueError")
+
+    def test_reutilizacion_fallida_no_fabrica_costo(self):
+        from meteo_combinada import reutilizacion_costo
+        with mock.patch.object(reutilizacion_costo, "cargar", side_effect=ValueError("informe inválido")):
+            _, r, _, _ = _correr(_una(), costo=True, forzar_completa=True,
+                costo_desde="costo_m1.json", costo_sha256="a" * 64,
+                servicios=_servicios_bateria(medidor=_medidor("1,25")))
+        self.assertFalse(r["costo"]["medido"])
+        self.assertIn("costo_no_medido", r["motivos"])
+
+    def test_argumentos_reutilizacion_cerrados(self):
+        validos = V.analizar_argumentos(["--sintetico", "--costo", "--costo-desde", "costo_m1.json",
+                                        "--costo-sha256", "a" * 64])
+        self.assertEqual(validos.costo_sha256, "a" * 64)
+        self.assertTrue(Path(validos.costo_desde).is_absolute())
+        self.assertEqual(Path(validos.costo_desde), Path.cwd() / "costo_m1.json")
+        for args in (["--sintetico", "--costo-desde", "x"],
+                     ["--sintetico", "--costo-sha256", "a" * 64],
+                     ["--estaticos", "--costo-desde", "x", "--costo-sha256", "a" * 64],
+                     ["--sintetico", "--costo", "--costo-desde", "x", "--costo-sha256", "x"],
+                     ["--sintetico", "--costo-desde", "x", "--costo-sha256", "a" * 64]):
+            with self.subTest(args=args), contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
+                V.analizar_argumentos(args)
 
     def test_costo_medido_con_recorte_pendiente(self):
         """A39: con el costo medido y el recorte «pendiente» (una fase que no cabe ni con 1 proceso), la batería escribe

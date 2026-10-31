@@ -2,6 +2,8 @@
 
 La carga se mide como diagnóstico, no como exclusión (D68, Enmienda 4). Continuar no equivale a máquina libre:
 los tiempos medidos y la proyección pueden variar por la carga ajena.
+La memoria individual de 8 GB es sólo referencia histórica no excluyente (EMC5/D69, post_hoc): la factibilidad
+exige memoria válida y n trabajadores más el principal dentro de la memoria física, sin cambiar el máximo de procesos.
 
 Qué hay:
 - ``medir(rutas, *, real_era5, umbrales, temporal=None, escala=ESCALA_REAL, aislar=True, puntos=PUNTOS,
@@ -22,8 +24,8 @@ Qué hay:
      barrido, en una muestra de lotes de las 838.430 celdas;
   6. «mes_real»: la huella (``open`` de Python) y la lectura de un mes real (2024-01; sólo con ``real_era5``);
   y «contencion»: la misma unidad sola y en P copias a la vez (COS-20).
-- ``proyectar(mediciones, umbrales, *, procesos=8)``: la memoria por trabajador, del principal y del grupo frente al
-  tope de §8 y a la memoria física, y de ella los procesos de cada fase de reparto («procesos_por_fase», D59, COS-25);
+- ``proyectar(mediciones, umbrales, *, procesos=8)``: la memoria por trabajador, del principal y del grupo frente a la
+  memoria física, y de ella los procesos de cada fase de reparto («procesos_por_fase», D59, COS-25; EMC5/D69);
   con ellos, las horas de pared de M3-4, M5, M6 y de la grilla v2, y el veredicto (COS-22).
 - ``recorte(proyeccion, umbrales)``: «mod11», «mod23» o «pendiente» (§4.9; COS-12).
 - ``contenido_costo(mediciones, proyeccion, umbrales)``: el contenido de ``costo_m1.json`` (resumen; lo escribe la
@@ -95,7 +97,8 @@ Lecturas propias (COS-n), para el addendum de M1:
   de ``_comun_modelo.ruta_mensual``, como ``salud.insumos_s14``), en sólo lectura: primero sus bytes con ``open`` de
   Python y su sha256, después ``fondo_era5l.leer_mes`` con esa huella. Sólo con ``real_era5=True``; con False no se
   abre nada real (tampoco ``celdas.parquet``). La escala de §8.1 exige ``real_era5=True`` (COS-22).
-- COS-11. **La memoria** (§8: «≤ 8 GB en la competencia»; A30, P117, P-ORQ-11; H2). Cada punto arma su
+- COS-11. **La memoria** (EMC5/D69, post_hoc: sustituye el tope individual histórico de §8; A30, P117, P-ORQ-11; H2).
+  Cada punto arma su
   ``DatosCompetencia`` por el camino de la corrida (COS-24), así que el pico de su trabajador ya es el máximo entre la
   etapa en que se arma y la de su trabajo, no su suma. A otra escala se suma lo que la red real trae de más: por horas
   con dato, los residuos y el fondo guardado; por estaciones, las filas de C, el clima y la caché (COS-15); por celdas y
@@ -105,8 +108,9 @@ Lecturas propias (COS-n), para el addendum de M1:
   ERA5-Land (RR06); el de M5, la ligera y el operador de la grilla. El grupo es n trabajadores más el principal,
   frente a la memoria física (de ``os.sysconf``; no lee datos), y de ahí los procesos de cada fase (COS-25). El
   control de calidad se proyecta en la estación más larga (H horas) por la recta entre una estación con la mitad de sus
-  meses y con todos (``tracemalloc``), frente a los ≈ 340 MB de §8. GB = 10⁹ B y el tope es ``MEMORIA_MAX_GB``·10⁹ B (la
-  lectura estricta; P-COS-4), también para el principal de M3-4 (P-ORQ-11, rige la propuesta).
+  meses y con todos (``tracemalloc``), frente a los ≈ 340 MB de §8. GB = 10⁹ B; ``MEMORIA_MAX_GB`` = 8 se conserva
+  como ``memoria_referencia_historica_gb``, con ``memoria_tope_individual_excluyente=False``: ningún trabajador ni
+  principal se excluye por superar esa referencia. Se conservan las mediciones y la factibilidad física del grupo.
 - COS-12. **El recorte** (§4.9; §8: «Recorte por costo: sólo el de §4.9»): «mod23» si la pared proyectada de M3-4
   (con los procesos de cada fase, COS-25) pasa de ``SEL_UMBRAL_H`` horas (> 36 h; 36 h exactas es «mod11»), sólo si el
   veredicto decide (COS-22); si no, «pendiente», y ``costo_m1.json`` lo lleva marcado con sus motivos.
@@ -170,7 +174,8 @@ Lecturas propias (COS-n), para el addendum de M1:
   meses de TF con 2 y 3 redes, 108.579 celdas en la TF y en salud y las 838.430 de la grilla. El recorte decide sólo
   si la proyección está completa (los seis puntos y la contención), con P = ``PROCESOS``, a la escala de §8.1, con el
   mes real, si cada fase de reparto de M3-4 y de M5 cabe en memoria con al menos un proceso y si el principal de
-  M3-4 queda bajo el tope (COS-25); si no, «pendiente» con sus motivos. La carga sólo diagnostica (D68, COS-13).
+  M3-4 cabe en la memoria física (COS-25; EMC5/D69); si no, «pendiente» con sus motivos. La carga sólo diagnostica
+  (D68, COS-13).
 - COS-23. **La carpeta de trabajo** (H10; PED-3 de I22). Sin ``temporal``, ``medir`` corre en una carpeta nueva de
   ``entorno.carpeta_de_trabajo(PREFIJO_TRABAJO)`` (0700, directamente bajo la temporal del sistema), que se borra al
   terminar, también si un punto falla, sin seguir enlaces (ENT-9); ``costo`` no crea ni borra nada (§0, regla 8).
@@ -192,22 +197,23 @@ Lecturas propias (COS-n), para el addendum de M1:
   (``orquestacion._unidad_t2m``: un mes ERA5-Land leído entero, del que guarda la t2m de los píxeles del reloj, con un
   contexto mínimo) tiene por cota el pico del trabajador del punto «mes_real», que lee entero el mes real (su huella y
   su lectura) y además importa todo el paquete; sin el mes real medido, no se midió. En cada fase, n es el mayor número
-  de 1 a P con el trabajador bajo el tope de §8 y n trabajadores más el principal de su compuerta (el de M3-4 o el de
-  M5, COS-11; en M5 la serie de t2m de los píxeles del reloj, ≤ H × 579 × 8 B, queda bajo el operador de la grilla que
-  ya cuenta) bajo la memoria física; n = 0 si no cabe ni con uno o si falta una medida. La memoria se calcula primero y
+  de 1 a P con n trabajadores más el principal de su compuerta (el de M3-4 o el de M5, COS-11; en M5 la serie de t2m
+  de los píxeles del reloj, ≤ H × 579 × 8 B, queda bajo el operador de la grilla que ya cuenta) bajo la memoria física,
+  sin tope individual (EMC5/D69); n = 0 si no cabe ni con uno o una medida falta o es inválida. La memoria se calcula primero y
   cada fase se proyecta con su n (con P si n = 0, sólo como información: el veredicto no decide), con el factor de
   contención medido con P copias (una cota superior con menos). M6 y la grilla v2 siguen con P. «procesos_por_fase»
   ({compuerta: {fase: n}}) va en la proyección y en la raíz de ``costo_m1.json`` (A39). Si alguna fase corre con menos
   de P, el veredicto lo dice en una nota. Cada fase de la memoria lleva el grupo con P («grupo_gb») y con su n
   («grupo_con_n_gb»). La proyección lleva además la pared de M3-4 con P en todas las fases («pared_h_con_P», la de
   antes de D59, con la regla de TF más cara con P; P147): no decide, pero si con ella el recorte sería otro, el
-  veredicto lo dice en una nota. Con todo bajo los topes con P, ningún número cambia.
-Preguntas para el autor (P-COS-n; rige la más estricta): P-COS-1, el desequilibrio como la unidad más larga entera
-(rige: cota superior); P-COS-2, el tope de 8 GB: ¿por trabajador (rige, §8 «≤ 8 GB en la competencia»), y además el
-grupo frente a la memoria física?; P-COS-3, respondida por D59 (P145; P146 la extiende a M5): la fase que no cabe en
+  veredicto lo dice en una nota. Con factibilidad física para P, ningún número de la proyección cambia.
+Preguntas para el autor (P-COS-n; rige la más estricta salvo decisión posterior): P-COS-1, el desequilibrio como la
+unidad más larga entera (rige: cota superior); P-COS-2, resuelta por EMC5/D69 (post_hoc): los 8 GB son sólo referencia
+histórica individual no excluyente; el grupo sí debe caber en la memoria física. P-COS-3, respondida por D59
+(P145; P146 la extiende a M5): la fase que no cabe en
 memoria con 8 procesos corre con el mayor número que quepa y su pared se proyecta con ese número; si no cabe ni con uno,
-el recorte queda «pendiente» (COS-25); P-COS-4, la unidad del tope:
-¿8 GB son 8·10⁹ B (rige, la estricta) u 8·2³⁰ B?; P-COS-5, ¿qué proyección decide el recorte: la cota superior
+el recorte queda «pendiente» (COS-25); P-COS-4, la referencia histórica usa GB = 10⁹ B (EMC5/D69), sin tope excluyente;
+P-COS-5, ¿qué proyección decide el recorte: la cota superior
 coherente (rige: la regla de red y el ganador más caros) o la esperada?; P-COS-6, resuelta por D68 (Enmienda 4):
 la carga no excluye; se conservan la bruta inicial y, durante cada punto, la bruta y la ajena sin la contención,
 con el indicador histórico «libre» (COS-13); P-COS-7, ¿la grilla con 16
@@ -229,6 +235,7 @@ import hashlib
 import io
 import json
 import math
+import numbers
 import os
 import re
 import resource
@@ -2021,6 +2028,16 @@ def _proyectar_grilla_m6(pts, U, P, meses, lec, fc, sin_medir) -> tuple:
     return {"variantes": salida, "operador_gb": operador_gb}, m6
 
 
+def _memoria_positiva(valor) -> bool:
+    """Una medida de memoria real, no booleana, finita y estrictamente positiva, antes de convertir o extrapolar."""
+    if isinstance(valor, bool) or not isinstance(valor, numbers.Real):
+        return False
+    try:
+        return bool(math.isfinite(valor) and valor > 0)
+    except (TypeError, ValueError, OverflowError):
+        return False
+
+
 def _memoria(mediciones: Mapping, P: int) -> dict:
     """COS-11, COS-25: la memoria de cada trabajador por fase, del principal de M3-4 y de M5 y del grupo (n trabajadores
     y el principal) frente a la memoria física, los procesos que caben en cada fase de reparto (D59) y el control de
@@ -2028,13 +2045,26 @@ def _memoria(mediciones: Mapping, P: int) -> dict:
     camino de la corrida (COS-24), así que su pico ya trae la etapa en que se arma y la de su trabajo (el máximo, no la
     suma); a otra escala, se suma lo que la red real trae de más: por horas con dato, los residuos y el fondo guardado;
     por estaciones, las filas de C, el clima y la caché; por celdas y píxeles, los estáticos y el clima de M2a. En
-    bytes; el tope de §8 es ``MEMORIA_MAX_GB``·10⁹ B (la lectura estricta; P-COS-4)."""
+    bytes; ``MEMORIA_MAX_GB`` es sólo referencia histórica no excluyente (EMC5/D69, post_hoc)."""
     pts = mediciones["puntos"]
-    tope = float(constantes.valor("MEMORIA_MAX_GB")) * _GB
-    fisica = float((mediciones.get("sistema") or {}).get("memoria_fisica_bytes") or 0)
+    referencia_gb = constantes.valor("MEMORIA_MAX_GB")
+    referencia = float(referencia_gb) * _GB if _memoria_positiva(referencia_gb) else None
+    fisica_original = (mediciones.get("sistema") or {}).get("memoria_fisica_bytes")
+    fisica = float(fisica_original) if _memoria_positiva(fisica_original) else None
     hd, N = CONTEOS["horas_con_dato"], CONTEOS["estaciones"]
-    salida: dict = {"unidad": "GB = 10^9 B", "tope_gb": tope / _GB, "fisica_gb": fisica / _GB, "faltan": []}
+    salida: dict = {"unidad": "GB = 10^9 B",
+                   "memoria_referencia_historica_gb": None if referencia is None else referencia / _GB,
+                   "memoria_tope_individual_excluyente": False,
+                   "fisica_gb": None if fisica is None else fisica / _GB, "faltan": []}
     trab, princ = {}, {}
+
+    def punto_valido(nombre: str, *obligatorias: str) -> bool:
+        """No dejar que sumas, máximos o conversiones saneen un pico, inicio o memoria original inválidos."""
+        r = pts.get(nombre)
+        if _sin(r):
+            return False
+        claves = set(obligatorias) | {k for k in r if k.startswith("memoria_") and k.endswith("_gb")}
+        return all(_memoria_positiva(r.get(k)) for k in claves)
 
     def falta(r) -> float:
         """Los bytes que la red real trae de más que el mundo medido de un punto."""
@@ -2057,7 +2087,7 @@ def _memoria(mediciones: Mapping, P: int) -> dict:
         return (b.get("residuos", 0) * f_h + (b.get("filas_c", 0) + b.get("clima_a", 0) + b.get("cache_series", 0))
                 * f_n + b.get("estaticos_celdas", 0) * f_c + b.get("clima_pixeles", 0) * max(1.0, f_p))
     pl = pts.get("pliegue")
-    if _sin(pl):
+    if not punto_valido("pliegue", "memoria_pico_gb"):
         salida["faltan"].append("pliegue")
     else:
         trab["seleccion"] = pl["memoria_pico_gb"] * _GB + falta(pl)
@@ -2067,7 +2097,9 @@ def _memoria(mediciones: Mapping, P: int) -> dict:
         op_grilla = gr["operador_mayor"]["bytes"] * CONTEOS["celdas"] / gr["celdas"]
     for nombre in ("tf", "m5", "grilla"):
         r = pts.get(nombre)
-        if _sin(r):
+        obligatorias = ("memoria_pico_gb", "memoria_inicio_gb", "memoria_tras_fabricar_gb") if nombre == "tf" else (
+            "memoria_pico_gb",)
+        if not punto_valido(nombre, *obligatorias):
             salida["faltan"].append(nombre)
             continue
         w = r["memoria_pico_gb"] * _GB + falta(r)
@@ -2079,7 +2111,7 @@ def _memoria(mediciones: Mapping, P: int) -> dict:
             w += op_grilla                                     # los trabajadores lo leen para las laterales (ORQ-28)
         trab[nombre] = w
     tf = pts.get("tf")
-    if not _sin(tf):
+    if punto_valido("tf", "memoria_pico_gb", "memoria_inicio_gb", "memoria_tras_fabricar_gb"):
         base = tf["memoria_inicio_gb"] * _GB
         mes = _bytes_mes(pts)
         princ["m34"] = max(tf["memoria_tras_fabricar_gb"] * _GB + falta(tf), base + ligera(tf) + 12 * mes)
@@ -2087,12 +2119,14 @@ def _memoria(mediciones: Mapping, P: int) -> dict:
         salida["principal_detalle_gb"] = {"ligera": ligera(tf) / _GB, "un_anio_de_meses": 12 * mes / _GB,
                                           "operador_grilla": op_grilla / _GB}
     mes_real = pts.get("mes_real")                     # COS-25: la representatividad lee un mes real entero
-    if not _sin(mes_real) and mes_real.get("memoria_pico_gb") is not None:
+    if punto_valido("mes_real", "memoria_pico_gb"):
         trab["representatividad"] = float(mes_real["memoria_pico_gb"]) * _GB
     else:
         salida["faltan"].append("mes_real")
     qc = pts.get("qc")
-    if not _sin(qc):
+    por_meses = qc.get("memoria_por_meses") if not _sin(qc) else None
+    if (punto_valido("qc", "memoria_antes_unidades_gb") and isinstance(por_meses, Mapping) and por_meses
+            and all(_memoria_positiva(v) for v in por_meses.values())):
         trab["control_de_calidad"] = qc["memoria_antes_unidades_gb"] * _GB + _memoria_estacion(qc, CONTEOS["horas"])
         salida["control_de_calidad_frente_al_texto"] = {
             "estacion_mas_larga_gb": trab["control_de_calidad"] / _GB, "texto_gb": REFERENCIAS["qc_por_proceso_mb"]
@@ -2104,7 +2138,7 @@ def _memoria(mediciones: Mapping, P: int) -> dict:
     fases = {}
     for nombre, w in trab.items():                     # por la memoria medida (la grilla v2, sólo informativa)
         p_fase = princ.get(_COMPUERTA_DE_MEMORIA.get(nombre, "m34"))
-        n = _procesos_que_caben(w, p_fase, fisica, tope, P)
+        n = _procesos_que_caben(w, p_fase, fisica, referencia, P)
         fases[nombre] = {"trabajador_gb": w / _GB, "grupo_gb": None if p_fase is None else (P * w + p_fase) / _GB,
                          "grupo_con_n_gb": None if p_fase is None or n == 0 else (n * w + p_fase) / _GB,
                          "cabe": bool(n == P), "procesos_que_caben": n}
@@ -2113,25 +2147,28 @@ def _memoria(mediciones: Mapping, P: int) -> dict:
     for compuerta, nombres in orquestacion.FASES_REPARTO.items():
         por_fase[compuerta] = {}
         for fase in nombres:
-            n = _procesos_que_caben(trab.get(_MEMORIA_DE_FASE[fase]), princ.get(compuerta), fisica, tope, P)
+            n = _procesos_que_caben(trab.get(_MEMORIA_DE_FASE[fase]), princ.get(compuerta), fisica, referencia, P)
             por_fase[compuerta][fase] = n
             if n == 0:
                 sin_procesos.append(f"{compuerta}/{fase}")
     salida["procesos_por_fase"] = por_fase
     salida["sin_procesos"] = sin_procesos
-    salida["principal_m34_cabe"] = bool("m34" in princ and princ["m34"] <= tope)
+    p_m34 = princ.get("m34")
+    salida["principal_m34_cabe"] = bool(_memoria_positiva(p_m34) and _memoria_positiva(fisica) and p_m34 <= fisica)
     return salida
 
 
 def _procesos_que_caben(trabajador, principal, fisica, tope, procesos: int) -> int:
-    """D59 (COS-25), D65: el mayor n de 1 a ``procesos`` con trabajador y principal bajo el tope de §8 y
-    n·trabajador + principal bajo la memoria física (bytes, «≤»); 0 si no cabe ni con uno o falta alguna medida."""
-    medidas = (trabajador, principal, fisica, tope)
-    if any(x is None or not math.isfinite(float(x)) for x in medidas) or trabajador <= 0 or fisica <= 0:
+    """D59 (COS-25), EMC5/D69 (post_hoc): el mayor n de 1 a ``procesos`` con n·trabajador + principal ≤ la memoria
+    física (bytes); 0 si no cabe ni con uno o hay entradas inválidas. Las cuatro medidas deben ser reales, no
+    booleanas, finitas y > 0. ``tope`` se conserva por compatibilidad como referencia histórica validada, no como
+    límite individual del trabajador ni del principal."""
+    if isinstance(procesos, bool) or not isinstance(procesos, int) or procesos < 1:
         return 0
-    if trabajador > tope or principal > tope:
+    if not all(_memoria_positiva(x) for x in (trabajador, principal, fisica, tope)):
         return 0
-    for n in range(int(procesos), 0, -1):
+    trabajador, principal, fisica, tope = (float(x) for x in (trabajador, principal, fisica, tope))
+    for n in range(procesos, 0, -1):
         if n * trabajador + principal <= fisica:
             return n
     return 0
@@ -2161,8 +2198,9 @@ def _memoria_estacion(qc: Mapping, horas: int) -> float:
 def _veredicto(mediciones: Mapping, proy: Mapping, U) -> dict:
     """COS-12, COS-22, COS-25: el recorte se decide sólo con una proyección completa, con P = ``PROCESOS``, a la escala
     de §8.1, con el mes real, si cada fase de reparto cabe con al menos un proceso (D59) y si los principales de M3-4 y
-    M5 quedan bajo el tope. Si no, «pendiente» con sus motivos. Decide la cota superior (la regla y el ganador más caros;
-    P-COS-5); si una fase corre con menos de P, una nota lo dice. La carga sólo diagnostica (D68, COS-13)."""
+    M5 caben físicamente (EMC5/D69, post_hoc). Si no, «pendiente» con sus motivos. Decide la cota superior (la regla y
+    el ganador más caros; P-COS-5); si una fase corre con menos de P, una nota lo dice. La carga sólo diagnostica
+    (D68, COS-13)."""
     motivos = []
     if not proy["m34"]["completa"]:
         motivos.append("proyección incompleta: " + ", ".join(proy["m34"]["faltan"]))
@@ -2173,12 +2211,12 @@ def _veredicto(mediciones: Mapping, proy: Mapping, U) -> dict:
     if not mediciones.get("real_era5"):
         motivos.append("sin el mes real (COS-10)")
     mem = proy["memoria"]
-    tope = f"{constantes.valor('MEMORIA_MAX_GB')}·10⁹ B"
     if mem["sin_procesos"]:
-        motivos.append("D59: no caben en memoria ni con un proceso, o no se midió su memoria: "
-                       + ", ".join(mem["sin_procesos"]) + " (COS-25)")
+        motivos.append("D59: no caben en memoria física ni con un proceso, o su memoria no es válida o no se midió: "
+                       + ", ".join(mem["sin_procesos"]) + " (COS-25; EMC5/D69)")
     if not mem["principal_m34_cabe"]:
-        motivos.append(f"el principal de M3-4 pasa del tope de {tope}, o no se midió (COS-11; P-ORQ-11)")
+        motivos.append("el principal de M3-4 excede la memoria física, o su memoria o la física no es válida o no se "
+                       "midió (COS-11; EMC5/D69)")
     umbral = float(U.a("SEL_UMBRAL_H"))
     notas = []
     if not (mediciones.get("carga") or {}).get("libre"):
