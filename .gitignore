@@ -12,6 +12,7 @@
 *-Ex.R
 
 # knitr / R Markdown / Quarto
+/_site/
 *_cache/
 /cache/
 *.utf8.md

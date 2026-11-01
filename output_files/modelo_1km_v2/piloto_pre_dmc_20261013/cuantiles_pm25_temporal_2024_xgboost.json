@@ -1,0 +1,94 @@
+{
+  "cruces": {
+    "filas": 20000,
+    "filas_con_cruce": 0,
+    "q05_mayor_que_q50": 0,
+    "q50_mayor_que_q95": 0,
+    "q05_mayor_que_q95": 0,
+    "fraccion_con_cruce": 0.0
+  },
+  "q50_cambiado_al_ordenar": 0,
+  "bruto": {
+    "cobertura_90": 0.86055,
+    "anchura_media": 45.577850341796875,
+    "interval_score_sin_cruces": 91.88112589337081,
+    "filas_interval_score": 20000,
+    "q05": {
+      "pinball": 0.8263633847236633,
+      "fraccion_obs_menor_igual": 0.09825
+    },
+    "q50": {
+      "pinball": 5.207570552825928,
+      "fraccion_obs_menor_igual": 0.56305
+    },
+    "q95": {
+      "pinball": 3.767693042755127,
+      "fraccion_obs_menor_igual": 0.9588
+    }
+  },
+  "reordenado": {
+    "cobertura_90": 0.86055,
+    "anchura_media": 45.577850341796875,
+    "interval_score_sin_cruces": 91.88112589337081,
+    "filas_interval_score": 20000,
+    "q05": {
+      "pinball": 0.8263633847236633,
+      "fraccion_obs_menor_igual": 0.09825
+    },
+    "q50": {
+      "pinball": 5.207570552825928,
+      "fraccion_obs_menor_igual": 0.56305
+    },
+    "q95": {
+      "pinball": 3.767693042755127,
+      "fraccion_obs_menor_igual": 0.9588
+    }
+  },
+  "qc_validado": {
+    "cruces": {
+      "filas": 11960,
+      "filas_con_cruce": 0,
+      "q05_mayor_que_q50": 0,
+      "q50_mayor_que_q95": 0,
+      "q05_mayor_que_q95": 0,
+      "fraccion_con_cruce": 0.0
+    },
+    "q50_cambiado_al_ordenar": 0,
+    "bruto": {
+      "cobertura_90": 0.8392976588628762,
+      "anchura_media": 46.95984649658203,
+      "interval_score_sin_cruces": 92.97943557766469,
+      "filas_interval_score": 11960,
+      "q05": {
+        "pinball": 0.8673559427261353,
+        "fraccion_obs_menor_igual": 0.11622073578595318
+      },
+      "q50": {
+        "pinball": 5.456363201141357,
+        "fraccion_obs_menor_igual": 0.5902173913043478
+      },
+      "q95": {
+        "pinball": 3.781615734100342,
+        "fraccion_obs_menor_igual": 0.9555183946488295
+      }
+    },
+    "reordenado": {
+      "cobertura_90": 0.8392976588628762,
+      "anchura_media": 46.95984649658203,
+      "interval_score_sin_cruces": 92.97943557766469,
+      "filas_interval_score": 11960,
+      "q05": {
+        "pinball": 0.8673559427261353,
+        "fraccion_obs_menor_igual": 0.11622073578595318
+      },
+      "q50": {
+        "pinball": 5.456363201141357,
+        "fraccion_obs_menor_igual": 0.5902173913043478
+      },
+      "q95": {
+        "pinball": 3.781615734100342,
+        "fraccion_obs_menor_igual": 0.9555183946488295
+      }
+    }
+  }
+}
