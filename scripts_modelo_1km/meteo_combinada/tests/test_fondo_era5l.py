@@ -1187,6 +1187,107 @@ class PruebasFondo(unittest.TestCase):
             with self.assertRaises(F.ErrorFondo):
                 F._mes_del_conjunto(_conjunto(ruta, nombres, pixel_id=enmascarado), "0" * 64, "bueno.nc")
 
+    def test_geopotencial_centros_float32_antes_de_normalizar_longitud(self):
+        """Los centros CDS en float32 se reconocen en su precisión original, incluso 256,2° (desvío > 10⁻⁵°).
+        En ambas convenciones de longitud conservan exactamente z y la alineación con el derivado sintético."""
+        cat = S.catalogo_pixeles(-32.1, -103.8, 3, 4)
+        ids = cat.pixel_id.to_numpy(np.int64)
+        z = 100.0 + 37.0 * np.arange(len(cat))
+        nasadem = pd.DataFrame({"pixel_id": ids, "z_nasadem": z, "frac_nasadem": np.ones(len(cat))})
+        sp = pd.Series(numerico.p_std(z), index=ids)
+        with tempfile.TemporaryDirectory() as tmp:
+            r = S.geopotencial_sintetico(Path(tmp) / "g", cat, z)
+            geo = F.leer_geopotencial(r["geopotencial"])
+            base = _conjunto(r["geopotencial"], ("z", "latitude", "longitude"))
+            parquet = pd.read_parquet(r["altitud"])
+        directo = F.z_e5l(geo, cat, nasadem, sp, self.U, validos=ids)
+        for convencion in ("0..360", "-180..180"):
+            with self.subTest(convencion=convencion):
+                lon = geo.lon % 360 if convencion == "0..360" else geo.lon
+                crudo_lon = lon.astype(np.float32)
+                if convencion == "0..360":
+                    self.assertGreater(float(np.max(np.abs(crudo_lon.astype(np.float64) - lon))), 1e-5)
+                variables = {**base.variables,
+                             "latitude": _Variable(geo.lat.astype(np.float32), ("latitude",)),
+                             "longitude": _Variable(crudo_lon, ("longitude",))}
+                lat, lon, zz = F._geopotencial_del_conjunto(types.SimpleNamespace(variables=variables), "g.nc")
+                desde_f4 = F.z_e5l(F.Geopotencial(lat=lat, lon=lon, z=zz, sha256=geo.sha256), cat, nasadem, sp,
+                                   self.U, validos=ids)
+                pd.testing.assert_frame_equal(desde_f4, directo)
+                F.comprobar_alineacion(desde_f4, parquet)
+                np.testing.assert_array_equal(zz, geo.z)
+
+    def test_geopotencial_float32_fuera_del_centro_rechazado(self):
+        """No basta con redondear: un float vecino al del centro, aun bajo 10⁻⁵°, y un corrimiento real fallan."""
+        cat = S.catalogo_pixeles(-32.1, -103.8, 2, 3)
+        with tempfile.TemporaryDirectory() as tmp:
+            r = S.geopotencial_sintetico(Path(tmp) / "g", cat, np.arange(len(cat)) + 100.0)
+            geo = F.leer_geopotencial(r["geopotencial"])
+            base = _conjunto(r["geopotencial"], ("z", "latitude", "longitude"))
+        for nombre, eje in (("latitude", geo.lat), ("longitude", geo.lon), ("longitude", geo.lon % 360)):
+            for modo in ("vecino_menos", "vecino_mas", "corrido"):
+                with self.subTest(eje=nombre, origen=float(eje[0]), modo=modo):
+                    crudo = eje.astype(np.float32)
+                    if modo == "corrido":
+                        crudo[0] += np.float32(0.001)
+                    else:
+                        direccion = np.float32(-np.inf if modo == "vecino_menos" else np.inf)
+                        crudo[0] = np.nextafter(crudo[0], direccion)
+                    variables = {**base.variables, nombre: _Variable(crudo, (nombre,))}
+                    with self.assertRaises(F.ErrorFondo):
+                        lat, lon, zz = F._geopotencial_del_conjunto(types.SimpleNamespace(variables=variables), "g.nc")
+                        F._z_geopotencial(F.Geopotencial(lat=lat, lon=lon, z=zz, sha256=geo.sha256), F._catalogo(cat))
+
+    def test_geopotencial_float64_conserva_holgura_y_no_promueve_float32(self):
+        """Un eje float64 conserva 10⁻⁵°: no se lo convierte a float32 para aparentar igualdad con un centro."""
+        cat = S.catalogo_pixeles(-32.1, -103.8, 2, 3)
+        with tempfile.TemporaryDirectory() as tmp:
+            r = S.geopotencial_sintetico(Path(tmp) / "g", cat, np.arange(len(cat)) + 100.0)
+            geo = F.leer_geopotencial(r["geopotencial"])
+            base = _conjunto(r["geopotencial"], ("z", "latitude", "longitude"))
+        for desvio in (0.0, 9e-6, -9e-6, 1.1e-5, -1.1e-5, 0.001):
+            for nombre, eje in (("latitude", geo.lat), ("longitude", geo.lon % 360)):
+                with self.subTest(desvio=desvio, eje=nombre):
+                    crudo = eje.copy()
+                    crudo[0] += desvio
+                    variables = {**base.variables, nombre: _Variable(crudo, (nombre,))}
+                    if abs(desvio) <= 1e-5:
+                        lat, lon, zz = F._geopotencial_del_conjunto(types.SimpleNamespace(variables=variables), "g.nc")
+                        valores = F._z_geopotencial(F.Geopotencial(lat=lat, lon=lon, z=zz, sha256=geo.sha256),
+                                                    F._catalogo(cat))
+                        self.assertTrue(np.isfinite(valores).all())
+                    else:
+                        with self.assertRaises(F.ErrorFondo):
+                            lat, lon, zz = F._geopotencial_del_conjunto(types.SimpleNamespace(variables=variables), "g.nc")
+                            F._z_geopotencial(F.Geopotencial(lat=lat, lon=lon, z=zz, sha256=geo.sha256), F._catalogo(cat))
+        variables = {**base.variables, "longitude": _Variable((geo.lon % 360).astype(np.float32).astype(np.float64),
+                                                              ("longitude",))}
+        with self.assertRaises(F.ErrorFondo):
+            lat, lon, zz = F._geopotencial_del_conjunto(types.SimpleNamespace(variables=variables), "g.nc")
+            F._z_geopotencial(F.Geopotencial(lat=lat, lon=lon, z=zz, sha256=geo.sha256), F._catalogo(cat))
+
+    def test_geopotencial_centros_repetidos_no_finitos_o_enmascarados(self):
+        """La normalización no admite centros repetidos, NaN, infinitos ni coordenadas enmascaradas."""
+        cat = S.catalogo_pixeles(-32.1, -103.8, 2, 3)
+        with tempfile.TemporaryDirectory() as tmp:
+            r = S.geopotencial_sintetico(Path(tmp) / "g", cat, np.arange(len(cat)) + 100.0)
+            geo = F.leer_geopotencial(r["geopotencial"])
+            base = _conjunto(r["geopotencial"], ("z", "latitude", "longitude"))
+        for dtype in (np.float32, np.float64):
+            for nombre, eje in (("latitude", geo.lat), ("longitude", geo.lon % 360)):
+                for modo in ("repetido", "nan", "inf", "menos_inf", "enmascarado"):
+                    with self.subTest(tipo=dtype, eje=nombre, modo=modo):
+                        crudo = eje.astype(dtype)
+                        if modo == "enmascarado":
+                            crudo = np.ma.array(crudo, mask=np.arange(len(crudo)) == 0)
+                        else:
+                            crudo[0] = {"repetido": crudo[1], "nan": np.nan, "inf": np.inf,
+                                        "menos_inf": -np.inf}[modo]
+                        variables = {**base.variables, nombre: _Variable(crudo, (nombre,))}
+                        with self.assertRaises(F.ErrorFondo):
+                            lat, lon, zz = F._geopotencial_del_conjunto(types.SimpleNamespace(variables=variables), "g.nc")
+                            F._z_geopotencial(F.Geopotencial(lat=lat, lon=lon, z=zz, sha256=geo.sha256), F._catalogo(cat))
+
     def test_geopotencial_con_dimensiones_longitud_latitud(self):
         """Un z escrito (…, longitude, latitude) se transpone: da la misma rejilla y el mismo z_E5L que el escrito
         (…, latitude, longitude), con una rejilla de 3 × 4 y con una cuadrada de 3 × 3."""

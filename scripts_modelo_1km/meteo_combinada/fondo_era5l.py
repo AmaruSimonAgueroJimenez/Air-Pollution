@@ -52,7 +52,10 @@ Lecturas propias (FON-n), para el addendum de M1:
   202507 (texto o entero) y cada mes debe ser el de su clave; t2m y sp con algún valor finito en cada uno; la
   intersección, en orden de ``pixel_id``.
 - FON-4. **z_E5L** (§4.1). El geopotencial se ubica en la grilla global de 0,1° por índices, i = (90 − lat)/0,1 y
-  j = (lon mód 360)/0,1, con las coordenadas a ≤ 10⁻⁵° de un centro (las del CDS pueden venir en float32), y
+  j = (lon mód 360)/0,1. Si el eje crudo es float32, se exige igualdad exacta con el float32 del centro de 0,1° y
+  sólo entonces se lo decodifica al centro en float64, antes de normalizar la longitud (errata 2, 2026-11-01).
+  Los demás ejes conservan la holgura ≤ 10⁻⁵°; no se los convierte a float32 para aceptarlos. La holgura anterior
+  aplicada al crudo float32 rechazaba centros válidos de longitudes 0..360; no se aumenta esa tolerancia.
   z = z_geo/9,80665 en float64 desde el float32 del archivo: la misma cuenta que el parquet derivado. Caso 2: la media
   NASADEM de la huella del píxel con ``frac_nasadem`` ≥ ``U.frac("ZE5L_NASADEM_PCT")`` y finita (tabla de A9). Caso 3:
   la hipsométrica desde sp̄ en hPa (``sp_medio_hpa``, 2000-2025). ``z_hipso`` se calcula en todo píxel con sp̄, para el
@@ -540,6 +543,22 @@ def leer_geopotencial(ruta, *, sha256: str | None = None) -> Geopotencial:
     return Geopotencial(lat=lat, lon=lon, z=z, sha256=sha)
 
 
+def _coordenada_geopotencial(crudo, etiqueta: str) -> np.ndarray:
+    """Decodifica sólo los centros exactos en la precisión float32 original, como el productor del derivado."""
+    valores = np.ma.asarray(crudo)
+    if valores.ndim != 1 or not valores.size or np.ma.getmaskarray(valores).any():
+        raise ErrorFondo(f"el geopotencial tiene un eje inválido o enmascarado ({etiqueta})")
+    eje = np.asarray(valores, dtype=np.float64)
+    if not np.isfinite(eje).all():
+        raise ErrorFondo(f"el geopotencial tiene coordenadas no finitas ({etiqueta})")
+    if valores.dtype.newbyteorder("=") == np.dtype(np.float32):
+        centros = np.rint(eje * _CELDAS_POR_GRADO) / _CELDAS_POR_GRADO
+        if not np.array_equal(centros.astype(valores.dtype), valores):
+            raise ErrorFondo(f"el geopotencial no representa centros exactos de 0,1° en float32 ({etiqueta})")
+        return centros
+    return eje
+
+
 def _geopotencial_del_conjunto(ds, nombre: str) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """(lat, lon en −180..180, z lat × lon en float64) desde un conjunto abierto (``ds.variables``)."""
     if "z" not in ds.variables:
@@ -563,8 +582,8 @@ def _geopotencial_del_conjunto(ds, nombre: str) -> tuple[np.ndarray, np.ndarray,
     z = z.reshape([s for k, s in enumerate(z.shape) if k not in extras])
     if [d for d in dims if d in (n_lat, n_lon)] == [n_lon, n_lat]:
         z = z.T
-    lat = np.asarray(ds.variables[n_lat][:], dtype=np.float64)
-    lon = _lon180(np.asarray(ds.variables[n_lon][:], dtype=np.float64))
+    lat = _coordenada_geopotencial(ds.variables[n_lat][:], "latitud")
+    lon = _lon180(_coordenada_geopotencial(ds.variables[n_lon][:], "longitud"))
     if z.shape != (len(lat), len(lon)):
         raise ErrorFondo(f"{nombre}: z con forma {z.shape}; se espera (latitud, longitud) = {(len(lat), len(lon))}")
     z[~np.isfinite(z)] = np.nan
