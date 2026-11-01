@@ -1163,6 +1163,16 @@ class PruebasCerrojo(unittest.TestCase):
                                   ("estaticos", "politica"): "negado", ("estaticos", "otro"): "negado",
                                   ("estaticos", "volumes"): "negado", ("estaticos", "red"): "negada"})
 
+    def test_m2a_respeta_la_firma_del_ejecutor_real(self):
+        """El ejecutable no pasa «procesos» a correr_m2a: el doble debe exigir la firma real, no ocultar el error."""
+        ejecutor = mock.create_autospec(orquestacion.correr_m2a, side_effect=_sellar)
+        with tempfile.TemporaryDirectory() as tmp:
+            m = _Mundo(tmp, compuerta="m2a")
+            codigo, lineas = m.main("estaticos", ejecutor=ejecutor)
+        self.assertEqual(codigo, 0, lineas)
+        ejecutor.assert_called_once()
+        self.assertEqual(set(ejecutor.call_args.kwargs), {"avance"})
+
     def test_m2a_y_m5(self):
         """--estaticos corre con la lista cerrada de M1 y la línea de cierre de C2 (VER-20); --producir sigue a la M3-4
         sellada del cerrojo, y sin ella no se arma (§10)."""

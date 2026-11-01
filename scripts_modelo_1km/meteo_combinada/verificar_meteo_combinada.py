@@ -1631,7 +1631,7 @@ def _correr(cfg, compuerta: str, nombre: str, cerrojo: Cerrojo | None, intento: 
         avance = orquestacion.abrir_avance(cfg, compuerta)
         ejecutor = servicios.ejecutor(compuerta)
         with _registro_aislado(cfg.rutas, cfg.permitidas, compuerta):
-            if compuerta == "m6":
+            if compuerta in ("m2a", "m6"):
                 ejecutor(cfg, avance=avance)
             else:
                 ejecutor(cfg, avance=avance, procesos=cfg.procesos)
